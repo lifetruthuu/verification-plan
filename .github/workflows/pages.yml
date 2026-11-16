@@ -36,24 +36,20 @@ jobs:
       - name: Refresh PR facts
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node update-pr-snapshot.mjs pr-snapshot.js
+        run: npm run refresh
       - name: Commit refreshed snapshot
         run: |
-          if ! git diff --quiet -- pr-snapshot.js; then
+          if ! git diff --quiet -- public/data/pr-snapshot.js; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add pr-snapshot.js
+            git add public/data/pr-snapshot.js
             git commit -m 'Update roadmap PR snapshot'
             git push origin HEAD:main
           fi
       - uses: actions/configure-pages@v5
-      - name: Assemble static site
-        run: |
-          mkdir _site
-          cp index.html .nojekyll *.css *.js *.md _site/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: public
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

@@ -187,6 +187,6 @@ assert.equal(uncovered.length, 0, `active work missing from final scope acceptan
 
 // The hand-written plan document must carry the same work items, dependencies and change log.
 const doc = await readFile(DOC_PATH, "utf8");
-assert.equal(applyBlocks(doc, renderBlocks(plan, model)), doc, "x86-verification-plan.polished.md is out of date: run node plan-doc.mjs --write");
+assert.equal(applyBlocks(doc, renderBlocks(plan, model)), doc, "x86-verification-plan.polished.md is out of date: run node scripts/plan-doc.mjs --write");
 
 console.log(`Validated ${model.nodes.length} work items, ${model.edges.length} dependencies and ${snapshot.prs.length} PR snapshots; plan document is consistent.`);

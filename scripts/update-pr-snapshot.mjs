@@ -4,7 +4,7 @@ import { readFile, writeFile, rename } from "node:fs/promises";
 import { loadWindow, FILES } from "./plan-store.mjs";
 
 /* usage: update-pr-snapshot.mjs [PLAN_DATA] OUTPUT   (PLAN_DATA is accepted for compatibility and ignored:
- * all data files next to this script are read) */
+ * data files in public/data are read) */
 const outputPath = process.argv.slice(2).at(-1);
 if (!outputPath) throw new Error("usage: update-pr-snapshot.mjs OUTPUT");
 const context = { window: await loadWindow(FILES.filter((f) => !["pr-snapshot", "plan-model", "plan-layout"].includes(f))) };

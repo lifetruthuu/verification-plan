@@ -7,10 +7,12 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 
-export const DIR = fileURLToPath(new URL(".", import.meta.url));
+export const DIR = fileURLToPath(new URL("../public/data/", import.meta.url));
 /* Load order, same as index.html. */
 export const FILES = ["plan-data", "plan-edges", "plan-accept", "plan-history", "pr-catalog", "pr-snapshot", "plan-assemble", "plan-model", "plan-layout"];
-export const path = (name) => `${DIR}${name}.js`;
+const ASSETS_DIR = fileURLToPath(new URL("../public/assets/", import.meta.url));
+const ASSET_NAMES = new Set(["plan-assemble", "plan-model", "plan-layout"]);
+export const path = (name) => `${ASSET_NAMES.has(name) ? ASSETS_DIR : DIR}${name}.js`;
 
 export async function loadWindow(names = FILES) {
   const context = { window: {} };
@@ -70,7 +72,7 @@ export function formatAccept(acc) {
   const ks = Object.keys(acc);
   return `/* Explicit acceptance records ("done"). A merged PR, a green CI or a dashboard colour never sets one.
  * date: day the delivery was verified; evidence: what was checked, against which fixed commit (…@<sha>).
- * Add with  node plan.mjs accept ID --evidence "…"  or edit by hand. */
+ * Add with  npm run plan -- accept ID --evidence "…"  or edit by hand. */
 window.PLAN_ACCEPT = ${ks.length ? pretty(acc) : "{}"};
 `;
 }

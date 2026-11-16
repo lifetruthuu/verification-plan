@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* One entry point for maintaining the verification plan.  node plan.mjs help */
+/* One entry point for maintaining the verification plan.  npm run plan -- help */
 import { readFile, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -88,7 +88,7 @@ async function mutate(edit, { dry = false } = {}) {
   if (dry) { console.log("（--dry-run：没有写入）"); return; }
   const files = await writeData(w, d);
   const docChanged = await syncDocs();
-  console.log(`已写入：${files.join("、") || "（数据没有变化）"}${docChanged ? "；文档生成块已更新" : ""}。提交前运行：node plan.mjs check`);
+  console.log(`已写入：${files.join("、") || "（数据没有变化）"}${docChanged ? "；文档生成块已更新" : ""}。提交前运行：npm run plan -- check`);
 }
 
 /* ------------------------------------------------------------------ history */
@@ -117,7 +117,7 @@ const nodeOf = (d, id) => d.base.nodes.find((n) => n.id === id) || die(`没有�
 /* ------------------------------------------------------------------ commands */
 const commands = {};
 
-commands.help = async () => console.log(`用法：node plan.mjs <命令>
+commands.help = async () => console.log(`用法：npm run plan -- <命令>
 
 检查与查看
   check                      校验数据、依赖依据、变更记录与文档一致性（= check-data.mjs）

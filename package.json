@@ -1,0 +1,17 @@
+{
+  "name": "vostd-verification-plan",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VOSTD verification roadmap",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "preview": "python3 -m http.server 8000 --directory public",
+    "plan": "node scripts/plan.mjs",
+    "refresh": "node scripts/update-pr-snapshot.mjs public/data/pr-snapshot.js",
+    "sync": "node scripts/plan.mjs sync",
+    "docs": "node scripts/plan.mjs docs",
+    "check": "node scripts/plan.mjs check"
+  }
+}

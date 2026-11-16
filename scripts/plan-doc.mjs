@@ -7,14 +7,14 @@
  * trusted boundaries, change log). Volatile PR facts (state, CI, gate) are not rendered here:
  * they come from pr-snapshot.js and belong to the dated PR tables written by hand.
  *
- *   node plan-doc.mjs --write   regenerate the blocks in place
- *   node check-data.mjs         fails when the blocks are out of date
+ *   node scripts/plan-doc.mjs --write   regenerate the blocks in place
+ *   npm run check         fails when the blocks are out of date
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { loadWindow } from "./plan-store.mjs";
 
-export const DOC_PATH = fileURLToPath(new URL("./x86-verification-plan.polished.md", import.meta.url));
+export const DOC_PATH = fileURLToPath(new URL("../docs/x86-verification-plan.polished.md", import.meta.url));
 
 const GATE = { start: "开工前置", accept: "验收前置" };
 const edgeLabel = (e) => (e.kind === "inf" ? e.tag : `确认 · ${GATE[e.gate]}`);

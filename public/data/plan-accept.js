@@ -1,6 +1,6 @@
 /* Explicit acceptance records ("done"). A merged PR, a green CI or a dashboard colour never sets one.
  * date: day the delivery was verified; evidence: what was checked, against which fixed commit (…@<sha>).
- * Add with  node plan.mjs accept ID --evidence "…"  or edit by hand. */
+ * Add with  npm run plan -- accept ID --evidence "…"  or edit by hand. */
 window.PLAN_ACCEPT = {
   "PT_CFG": {
     "date": "2026-11-16",

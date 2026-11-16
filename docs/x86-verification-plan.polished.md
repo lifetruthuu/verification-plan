@@ -110,12 +110,12 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 
 最终交付记录固定集成提交、工具链、目标平台和验证命令，并提供实际内核 ELF、链接脚本、镜像 manifest 与可复现运行目标。仓库尚无现成 QEMU 启动验收目标，`ACC_RUN` 负责建立；形式证明和运行观测分别记录。新增 external_body/assume/admit 仍遵守仓库约束，本计划对现存边界的登记不构成新增可信代码授权。
 
-计划数据维护见 [README](README.md)（含 PR 变化、验收、调整依赖链、新增或拆分工作项的操作步骤）。数据按变化频率分文件：工作项内容、依赖表、验收记录、PR 目录与变更记录；PR 事实来自快照。保留稳定 ID，调整计划时用 `plan.mjs` 修改依赖并自动写入变更记录，常用命令：
+计划数据维护见 [README](../README.md)（含 PR 变化、验收、调整依赖链、新增或拆分工作项的操作步骤）。数据按变化频率分文件：工作项内容、依赖表、验收记录、PR 目录与变更记录；PR 事实来自快照。保留稳定 ID，调整计划时用 `plan.mjs` 修改依赖并自动写入变更记录，常用命令：
 
 ```sh
-node plan.mjs sync   # 刷新 PR 快照、重新生成文档块、校验，并列出需要人来判断的事项
-node plan.mjs check  # 校验数据、依赖依据、变更记录与本文件的一致性
-node plan.mjs help   # 其余命令：show / impact / edge / accept / pr / rev / log
+npm run plan -- sync   # 刷新 PR 快照、重新生成文档块、校验，并列出需要人来判断的事项
+npm run plan -- check  # 校验数据、依赖依据、变更记录与本文件的一致性
+npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev / log
 ```
 
 ## 9. 仍待确认
