@@ -38,3 +38,5 @@ npm run plan -- help     # 查看全部维护命令
 工作项完成需人工验收。已完成卡片的 PR 编号自动取自 `pr-catalog.js` 的 `implements`，无需重复维护；PR 合并不会自动标记工作完成。
 
 完整说明见 [验证计划](docs/x86-verification-plan.polished.md) 和 [复核记录](docs/review-r3.md)。
+
+AI 维护流程见 [AGENTS.md](AGENTS.md)，包括 PR 复核、节点调整、关联与前置依赖。
