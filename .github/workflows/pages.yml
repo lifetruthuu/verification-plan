@@ -34,12 +34,10 @@ jobs:
         with:
           node-version: '22'
       - name: Refresh PR facts
-        if: github.event_name != 'push'
         env:
           GH_TOKEN: ${{ github.token }}
         run: node update-pr-snapshot.mjs pr-snapshot.js
       - name: Commit refreshed snapshot
-        if: github.event_name != 'push'
         run: |
           if ! git diff --quiet -- pr-snapshot.js; then
             git config user.name 'github-actions[bot]'

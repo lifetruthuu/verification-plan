@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-16T07:59:40.109Z",
+  "generatedAt": "2026-11-16T11:26:10.264Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -115,19 +115,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "7c710f060f7a5ed3330aba64a9f711e6dd5edac9",
+      "head": "21105164b416c74c4a02021b3461bda41eba5819",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\r\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\r\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\r\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\r\n\r\n---\r\n\r\nMaybe wait until the following PRs are merged:\r\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\r\n- [x] https://github.com/asterinas/vostd/pull/809",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-16T07:46:17Z",
+      "updatedAt": "2026-11-16T08:12:00Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "FAILURE",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "失败"
+      "ci": "成功"
     },
     {
       "n": 720,
@@ -245,7 +245,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Rcu paper single link",
       "body": "- Complete explicit-context RCU proofs connecting IRC11 histories, reader protection, grace periods, and reclamation.\n- Add single-owning-link acceptance tests and eight negative regression checks.\n- Limit callback trust to allocation/type erasure, one-shot dispatch, and matching Box recovery. Kernel scheduler/preemption wiring remains out of scope.",
       "url": "https://github.com/asterinas/vostd/pull/860",
-      "updatedAt": "2026-11-12T02:16:24Z",
+      "updatedAt": "2026-11-16T10:30:18Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -371,7 +371,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Wire preemption guard to local IRQs and model CPU IRQ state",
       "body": "Use the local IRQ guard as the current runtime preemption fallback and restore the saved IRQ state on drop. Model CPU IRQ state, nested guard ownership, transfer, restoration, and timer preemption in Verus.\n\nIn addition to #824, this adds some support for the CPU IRQ model.",
       "url": "https://github.com/asterinas/vostd/pull/900",
-      "updatedAt": "2026-11-14T19:41:18Z",
+      "updatedAt": "2026-11-16T09:41:13Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -569,7 +569,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Verify heap slots and free-slot list",
       "body": "Enable `mm::heap::slot` and `slot_list` in place and verify ten existing functions. Prove empty construction, LIFO push/pop, exclusive slot ownership transfer, preservation of remaining links, and exact slot address/type/size and physical-address conversion.\n\nKeep the `usize` link representation, using existing vstd permission-aware reads/writes and provenance helpers to verify memory access. Runtime behavior is preserved. Slab allocation, large alloc/dealloc, and the global allocator remain disabled.\n\nOverlaps #505 in scope; implemented independently from main without its external raw-pointer read/write specifications.",
       "url": "https://github.com/asterinas/vostd/pull/923",
-      "updatedAt": "2026-11-14T09:25:20Z",
+      "updatedAt": "2026-11-16T08:00:40Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -635,20 +635,20 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 927,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
-      "head": "32635fe1eadb80cc31cf81442ef8b256742d7829",
+      "head": "06f92ec0f899d7d451531b0e0fb3902d7e4e9a55",
       "title": "prove: verify Pod and fallible VM I/O ktests",
       "body": "## Summary\n\nExtend the VM I/O ktest verification introduced in #924 by bringing 11 additional test functions into Verus verification. Restore the original reader/writer construction paths and `vec!` allocation where supported, re-enable `Pod` derive support, and fix the resulting rustdoc integration issue.\n\nThe scope remains partial: buffer-content equality assertions and several fallible-success assertions are still commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Infallible slice I/O | `read_write_slice_infallible`, `read_write_slice_vmio_infallible` |\n| Infallible bounds handling | `read_beyond_buffer_infallible`, `write_beyond_buffer_infallible` |\n| Struct I/O | `read_write_struct_infallible` |\n| Fallible value I/O and zero filling | `read_write_val_fallible`, `fill_zeros_fallible` |\n| Fallible partial copying | `partial_read_fallible`, `partial_write_fallible` |\n| Fallible collection | `collect_fallible`, `collect_partial_fallible` |\n\nThe bounds tests prove `Err(InvalidArgs)` directly instead of executing the original panicking `unwrap()` calls. The struct test establishes the layout of `TestPodStruct` and verifies that its infallible read/write results can be unwrapped.\n\nThe fallible tests exercise the API calls under the existing contracts; they do not yet prove successful completion or exact output contents.\n\n## 2. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `VmReader::cursor`, `VmWriter::cursor` | Specify that the returned pointer equals `self.cursor`, allowing tests to retain the original `from(...)` → `from_kernel_space(...)` construction sequence. |\n| `Vec::index_mut` | Add a trusted external specification in `vstd_extra::external::vec`, reusing `SliceIndexSpec` to connect the vector's initial/final contents with the borrowed element or slice. This enables the original `vec![0u8; data.len()]` buffer. |\n| `TestPodStruct` | Restore `#[derive(Pod)]` and add a layout declaration and proof helper for its 16-byte size and 8-byte alignment. |\n\nThe `Vec` specification extends the trusted boundary; the cursor contracts and layout helper are verified.\n\n## 3. Pod derive and documentation support\n\nRestore the `ostd-pod-derive` crate, its default feature, and its integration tests.\n\nUpdate the `dv` submodule so direct rustdoc invocations receive the documented target's `CARGO_PKG_NAME`. This lets `Pod` derive choose `::ostd_pod::Pod` correctly when documenting `ostd`.\n\n## 4. Remaining verification gaps\n\nContent assertions such as `assert_eq!(buffer, data)` and `assert_eq!(read_buffer, data)` remain disabled. The current slice/VM-memory contracts do not establish the complete relationship between VM writes and the original Rust buffer's final contents.\n\nFallible operations may fault under the existing model, so assertions requiring `Ok`, an exact successful copy count, or successful collection also remain disabled where unsupported. Runtime `#[ktest]` attributes remain commented out during the verification migration.\n",
       "url": "https://github.com/asterinas/vostd/pull/927",
-      "updatedAt": "2026-11-16T07:57:35Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
+      "updatedAt": "2026-11-16T10:40:42Z",
+      "mergedAt": "2026-11-16T08:50:40Z",
+      "closedAt": "2026-11-16T08:50:40Z",
+      "mergeCommit": "f0d568203bab781f04521b410d526d242babc704",
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -709,18 +709,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 931,
       "kind": "open",
       "draft": false,
-      "head": "d30c271708585a0ae89b5eafd1dd795bc98281a9",
+      "head": "2e32d23281da1b70a9579034977bdf4259e0410a",
       "title": "prove: specify bzImage flat binary construction",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/931",
-      "updatedAt": "2026-11-16T07:17:53Z",
+      "updatedAt": "2026-11-16T10:53:01Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": "CHANGES_REQUESTED",
+      "reviewDecision": null,
       "ciState": "SUCCESS",
-      "review": "需修改",
-      "gate": "BLOCKED",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -731,7 +731,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Port dv into the repository",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/932",
-      "updatedAt": "2026-11-16T07:24:13Z",
+      "updatedAt": "2026-11-16T10:40:13Z",
       "mergedAt": "2026-11-16T07:24:13Z",
       "closedAt": "2026-11-16T07:24:13Z",
       "mergeCommit": "032089aa3d4603fa68f3f874cddfc6d61ff81225",
@@ -742,5 +742,13 @@ window.PLAN_PR_SNAPSHOT = {
       "ci": "成功"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 933,
+      "title": "Refine review skill checks for proof roles and resource accounting",
+      "url": "https://github.com/asterinas/vostd/pull/933",
+      "head": "cc0b47efab48260764a6d4f989bdcb1cfbf30155",
+      "updatedAt": "2026-11-16T08:56:10Z"
+    }
+  ]
 };
