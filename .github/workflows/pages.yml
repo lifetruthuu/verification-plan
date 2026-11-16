@@ -1,0 +1,61 @@
+name: Refresh roadmap and deploy Pages
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  checks: read
+  statuses: read
+  pull-requests: read
+
+concurrency:
+  group: roadmap-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refresh PR facts
+        if: github.event_name != 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node update-pr-snapshot.mjs pr-snapshot.js
+      - name: Commit refreshed snapshot
+        if: github.event_name != 'push'
+        run: |
+          if ! git diff --quiet -- pr-snapshot.js; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add pr-snapshot.js
+            git commit -m 'Update roadmap PR snapshot'
+            git push origin HEAD:main
+          fi
+      - uses: actions/configure-pages@v5
+      - name: Assemble static site
+        run: |
+          mkdir _site
+          cp index.html .nojekyll *.css *.js *.md _site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
