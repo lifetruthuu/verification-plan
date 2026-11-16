@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-16T11:58:09.773Z",
+  "generatedAt": "2026-11-16T12:03:50.866Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
