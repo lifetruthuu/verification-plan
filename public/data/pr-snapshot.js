@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-16T12:12:25.850Z",
+  "generatedAt": "2026-11-16T22:14:27.086Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -367,11 +367,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 900,
       "kind": "open",
       "draft": false,
-      "head": "c8b604c0ec69db3bdf4bac683c04218ea1184432",
+      "head": "0e5815a712827ef102d0509e64b20e385075fdf6",
       "title": "Wire preemption guard to local IRQs and model CPU IRQ state",
       "body": "Use the local IRQ guard as the current runtime preemption fallback and restore the saved IRQ state on drop. Model CPU IRQ state, nested guard ownership, transfer, restoration, and timer preemption in Verus.\n\nIn addition to #824, this adds some support for the CPU IRQ model.",
       "url": "https://github.com/asterinas/vostd/pull/900",
-      "updatedAt": "2026-11-16T09:41:13Z",
+      "updatedAt": "2026-11-16T20:52:10Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -744,11 +744,18 @@ window.PLAN_PR_SNAPSHOT = {
   ],
   "candidates": [
     {
+      "n": 934,
+      "title": "prove: verify seven frame ktests",
+      "url": "https://github.com/asterinas/vostd/pull/934",
+      "head": "29f6cf0aebb968b0eb4757f05882ef09fa2e9323",
+      "updatedAt": "2026-11-16T16:30:38Z"
+    },
+    {
       "n": 933,
       "title": "Refine review skill checks for proof roles and resource accounting",
       "url": "https://github.com/asterinas/vostd/pull/933",
-      "head": "cc0b47efab48260764a6d4f989bdcb1cfbf30155",
-      "updatedAt": "2026-11-16T08:56:10Z"
+      "head": "d99455d023bbfa4834ebf02cbeea95244dd45148",
+      "updatedAt": "2026-11-16T13:59:15Z"
     }
   ]
 };
