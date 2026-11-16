@@ -324,3 +324,6 @@ footer.page ul { margin: 4px 0 4px 18px; padding: 0; }
 .why-fold[open] summary { margin-bottom: 4px; }
 .prline { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
 .dm .prchip { margin-left: 2px; }
+
+/* Completed cards keep all associated PRs in the tooltip and detail links. */
+.n-left .slabel.st-done { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }

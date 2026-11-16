@@ -32,7 +32,7 @@
     waiting: { name: "前置待交付", short: "可先做局部证明", tile: "确认的验收前置未完成；可先做条件证明，尚不能组合验收" },
     active: { name: "PR 进行中", short: "先协调评审", tile: "已有开放 PR：先协调或评审，避免重复" },
     blocked: { name: "开工受阻", short: "缺开工前置", tile: "未关联开放 PR，存在尚未满足的开工前置" },
-    done: { name: "已完成", short: "需验收记录", tile: "达到文档验收口径的工作包；PR 合入、CI 通过、代码行变绿都不算完成（文档 §2）" },
+    done: { name: "已完成", short: "已验收", tile: "达到文档验收口径的工作包；PR 合入、CI 通过、代码行变绿都不算完成（文档 §2）" },
   };
   const STATE_ORDER = window.PlanModel.STATES;
 
@@ -362,9 +362,11 @@
     const pre = preRefs(n.id);
     const roll = n.rollup ? { done: M.pred[n.id].filter((e) => NODE[e.a].done).length, total: M.pred[n.id].length } : null;
     const local = !n.done && M.localOk(n.id);
+    // PR associations have one source: pr-catalog.js implements. Reuse PRs are not delivery PRs.
+    const completedLabel = n.prs.length ? `已验收 · ${n.prs.map((x) => `#${x}`).join("、")}` : "已验收 · 未关联 PR";
     const left = st === "active"
       ? [n.prs.slice(0, 2).map((x) => prChip(x, { link: false })), n.prs.length > 2 ? h("span", { class: "gmore", title: n.prs.slice(2).map((x) => "#" + x).join(" ") }, `+${n.prs.length - 2}`) : null]
-      : h("span", { class: `slabel st-${st}` }, STATE[st].name);
+      : h("span", { class: `slabel st-${st}`, title: st === "done" ? completedLabel : null }, st === "done" ? completedLabel : STATE[st].name);
     /* One small tag at most, for what the state label cannot say. “局部可先行” is not repeated here: it is what
      * “前置待交付” means, and the hover text and details spell it out. */
     const tag = n.rollup ? h("span", { class: "n-tag", title: "最终验收：前置是逐项交付清单，不画连线；点开看清单与进度" }, "汇总验收")
@@ -374,7 +376,7 @@
       class: `node ${st}${n.milestone ? " milestone" : ""}${pre.length ? " has-pre" : ""}`, role: "button", tabindex: "0", "data-id": n.id, "aria-pressed": "false",
       style: `left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px`,
       title: `${n.title}\n${n.face}\n${STATE[st].name}${unmet ? `，还有 ${unmet} 项已确认的前置未完成${local ? "（都是验收前置，局部证明可先行）" : ""}` : ""}${wait ? `，另有 ${wait} 项推断 / 待确认的前置` : ""}${unl ? `，完成后有 ${unl} 项工作少一个前置` : ""}`,
-      "aria-label": `${n.title}。${LANE[n.lane].name}，${n.rollup ? "汇总验收" : `关系层 ${c.stage + 1}`}，模块 ${n.face}。${STATE[st].name}。${unmet ? `还有 ${unmet} 项已确认的前置未完成：` + M.blockers(n.id).map((e) => NODE[e.a].title).join("、") + "。" : "已确认的前置都已完成。"}${wait ? `另有 ${wait} 项推断或待确认的前置，不算阻塞。` : ""}`,
+      "aria-label": `${n.title}。${LANE[n.lane].name}，${n.rollup ? "汇总验收" : `关系层 ${c.stage + 1}`}，模块 ${n.face}。${st === "done" ? completedLabel : STATE[st].name}。${unmet ? `还有 ${unmet} 项已确认的前置未完成：` + M.blockers(n.id).map((e) => NODE[e.a].title).join("、") + "。" : "已确认的前置都已完成。"}${wait ? `另有 ${wait} 项推断或待确认的前置，不算阻塞。` : ""}`,
       onclick: () => select(selected === n.id ? "" : n.id),
       onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(selected === n.id ? "" : n.id); } },
     },
@@ -550,6 +552,9 @@
         st === "active" ? h("span", null, `已有 ${M.openPrs(id).length} 个开放 PR。${start.length ? `开工前置仍未交付：${start.map((e) => NODE[e.a].title).join("、")}。` : ""}${M.acceptanceWaits(id).length ? `验收前置仍未交付：${M.acceptanceWaits(id).map((e) => NODE[e.a].title).join("、")}。` : ""}${!blk.length ? "已确认的前置均已满足。" : "开放 PR 不表示前置已满足。"}${wt.length ? `另有 ${wt.length} 项待确认关系。` : ""}`) : null,
         st === "active" ? h("div", { class: "prs" }, M.openPrs(id).map((x) => prChip(x, { big: true }))) : null,
         !n.rollup && st === "blocked" ? h("span", null, `开工前置尚未满足：${start.map((e) => NODE[e.a].title).join("、")}。${M.acceptanceWaits(id).length ? `另有 ${M.acceptanceWaits(id).length} 项验收前置待完成。` : ""}${wt.length ? `另有 ${wt.length} 项推断 / 待确认关系，不算阻塞。` : ""}`) : null,
+        st === "done" ? h("div", { class: "prs" },
+          h("span", null, "关联实施 PR："),
+          n.prs.length ? n.prs.map((x) => prChip(x, { big: true })) : h("span", { class: "hint" }, "未关联 PR")) : null,
         st === "done" ? h("span", null, `验收依据：${n.done}`) : null),
       n.star ? h("p", { class: "starnote" }, "★ ", n.star) : null,
       ...M.prBlockers(id).map(b => h("p", { class: "hint" }, `#${b.pr}：${b.reason}`)),

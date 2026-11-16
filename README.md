@@ -130,3 +130,5 @@ node plan.mjs check     # = node check-data.mjs
 网站地址：https://lifetruthuu.github.io/verification-plan/ 。Pages 通过本仓库的 GitHub Actions 工作流发布。更新文件并推送到 `main` 后会自动重新发布静态页面。
 
 PR 快照由独立仓库的 `Refresh roadmap and deploy Pages` 工作流每 6 小时刷新一次（北京时间约 02:17、08:17、14:17、20:17，GitHub 可能延迟执行），成功后提交快照并发布页面。也可在 Actions 中手动运行该工作流。推送到 `main` 也会先刷新 PR 快照，再发布页面。自动更新只修改 PR 事实快照，计划依赖、覆盖判断和验收记录由维护者管理。刷新失败会使任务失败，线上保留上次成功发布的版本。公开仓库的定时工作流可能在连续 60 天无活动后被 GitHub 停用，可在 Actions 中重新启用。
+
+已完成卡片显示“已验收 · #PR”，详情顶部列出全部关联实施 PR 的链接，并显示验收日期和依据。编号自动取自 `pr-catalog.js` 的 `implements`，无需在验收记录中重复填写；`reuses` 不计入这些链接。用 `node plan.mjs pr link 编号 工作项ID` 维护关联。没有关联时显示“未关联 PR”；多个编号放不下时卡片省略，悬停可查看全部，点击卡片可打开详情。关联实施 PR 不等于该 PR 单独完成了全部验收要求，验收范围以证据记录为准。
