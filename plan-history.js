@@ -1,0 +1,1160 @@
+/* Change log, oldest first. The last entry is the plan revision shown on the page and in the document.
+ * Later edge decisions supersede earlier ones (check-data compares the latest decision with the graph).
+ * Append with  plan.mjs rev "reason"  and the edge / log commands, or edit by hand. */
+window.PLAN_HISTORY = [
+  {
+    "revision": 1,
+    "date": "2026-11-16",
+    "reason": "建立独立计划与 PR 快照；保留现有工作项和依赖。"
+  },
+  {
+    "revision": 2,
+    "date": "2026-11-16",
+    "reason": "对照 main 97963e831 的源码与各 PR 的最新 head 审查路线、前置依赖和范围：每条依赖补上“用到前置的哪个接口 / 在哪个固定提交核对”，区分开工前置与验收前置，推断关系不再算作阻塞；拆分过粗的工作项，补充遗漏项，移除没有依据的先后关系；#855、#921 已合入，#408 由 #928 取代。",
+    "splits": [
+      {
+        "from": "IO_ALLOC",
+        "to": ["IO_ALLOC", "IO_PIO"],
+        "why": "PIC、PIT、PCI 配置端口只消费 PIO 端口合同，不消费 MMIO 分配器；APIC、IOAPIC 只消费 MMIO 登记合同。IO_ALLOC 保留 range 与 MMIO 部分。"
+      },
+      {
+        "from": "APIC_PROBE",
+        "to": ["APIC_PROBE", "APIC_RESERVE"],
+        "why": "模式探测只消费 CPUID；xAPIC 寄存器指针来自 paddr_to_vaddr，不经 IoMem，只有 init 里的窗口保留（remove）接触 IO 分配器。"
+      },
+      {
+        "from": "IOAPIC_REG",
+        "to": ["IOAPIC_REG", "IOAPIC_ENTRY"],
+        "why": "寄存器级访问只需地址与窗口；重定向项 enable / disable 才消费 IrqLine::num / remapping_index。"
+      },
+      {
+        "from": "SMP_AP",
+        "to": ["SMP_AP", "SMP_COMPOSE"],
+        "why": "计划把 BSP / AP 编排称为最终集成入口：AP 启动合同与编排 / 发布可见性是两件事，后者是组合验收。"
+      },
+      {
+        "from": "TASK_STACK",
+        "to": ["TASK_STACK", "TASK_STACK_ALLOC"],
+        "why": "任务切换需要栈的存活、映射与初始 SP；#921 只证明了大小解析。"
+      },
+      {
+        "from": "PCI_CAP",
+        "to": ["PCI_CAP", "PCI_MSIX"],
+        "why": "capability 链遍历只需配置读取；MSI-X 需要 BAR 映射、remapping 编码与配置写入。"
+      },
+      {
+        "from": "BZ_RANGE",
+        "to": ["BZ_RANGE", "BZ_ENCODE"],
+        "why": "压缩 / 未压缩 payload 路径（encoder.rs）是独立接口，不消费区间合同。"
+      }
+    ],
+    "added": [
+      {
+        "id": "PREEMPT_PIN",
+        "why": "EOI、APIC timer、AP 启动与缺页路径都用 disable_preempt() 取得 PinCurrentCpu guard；main 与 #900 里它仍是 unimplemented!()，计划此前没有对应工作项。"
+      },
+      {
+        "id": "TASK_RUNTIME",
+        "why": "task/mod、scheduler、processor 共 485 行未验证，计划此前没有对应工作项。"
+      },
+      {
+        "id": "later",
+        "why": "新增“后续工作”区：LOC_DYNAMIC、HPET、SERIAL_QEMU_CMOS、MM_BOOT、HEAP_GLOBAL、SYNC_WAIT、BZ_SETUP；它们不在当前 x86 关键路径上。"
+      },
+      {
+        "id": "trusted",
+        "why": "新增“可信边界”区：TB_BOOT_INPUT、TB_IOMMU、TB_TDX、TB_HW_OPS、TB_ELF_RANGE、TB_EXTABLE_LINK、TB_ALLOC，列出消费它们的工作项。"
+      }
+    ],
+    "edgesRemoved": [
+      {
+        "a": "PT_CFG",
+        "b": "TLB_REQ",
+        "why": "#677 消费请求队列、覆盖关系与 TlbModel，#570 用 Mapping / PageTableView；都不消费 PageTableConfig（@c00f702244、@5bdb5d2aad）。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "PIC",
+        "why": "PIC 只消费 PIO 端口合同：改为 IO_PIO→PIC。"
+      },
+      {
+        "a": "ACPI_MADT",
+        "b": "IOAPIC_REG",
+        "why": "寄存器级证明可从给定地址开始；MADT 提供基址属 irq::init 的组合，已由 ACPI_MADT→ROUTE_MAP 表达。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "PIT_CFG",
+        "why": "PIT 只消费 PIO 端口合同：改为 IO_PIO→PIT_CFG。"
+      },
+      {
+        "a": "IO_WIN",
+        "b": "APIC_PROBE",
+        "why": "模式探测只消费 CPUID；窗口保留拆为 APIC_RESERVE（IO_WIN→APIC_RESERVE）。"
+      },
+      {
+        "a": "LOC_ID",
+        "b": "IDT_LOAD",
+        "why": "idt::init 不读取 CPU-local 或 CpuId；每 CPU 调用是编排条件，不是依赖。"
+      },
+      {
+        "a": "IRQ_MODEL",
+        "b": "IRQLINE",
+        "why": "回调锁只消费 guard 的禁中断 / 恢复合同：改为 IRQ_DROP→IRQLINE。"
+      },
+      {
+        "a": "IOAPIC_REG",
+        "b": "ROUTE_MAP",
+        "why": "ROUTE_MAP 消费的是重定向项 enable / disable：改为 IOAPIC_ENTRY→ROUTE_MAP。"
+      },
+      {
+        "a": "TRAP_DATA",
+        "b": "FPU_REPR",
+        "why": "FpuContext / XSaveArea / FxSaveArea 不消费 UserContext 或异常分类合同；同文件与 §5 的“依次处理”不构成依赖。"
+      },
+      {
+        "a": "XSAVE",
+        "b": "SYSCALL",
+        "why": "syscall 汇编入口与 RawUserContext::run 不调用 FPU 保存 / 恢复。"
+      },
+      {
+        "a": "SYSCALL",
+        "b": "TASK_SW",
+        "why": "任务切换的是 TaskContext，不消费 syscall 合同。"
+      },
+      {
+        "a": "TASK_STACK",
+        "b": "TASK_SW",
+        "why": "大小解析不足以供应栈存活 / 映射 / 初始 SP：改为 TASK_STACK_ALLOC→TASK_SW。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "PCI_CFG",
+        "why": "x86 配置空间访问只消费 0xCF8 / 0xCFC 的 PIO 合同：改为 IO_PIO→PCI_CFG。"
+      },
+      {
+        "a": "PCI_ENUM",
+        "b": "PCI_BAR",
+        "why": "给定 location 即可探测 BAR，不消费完整枚举结果：改为 PCI_CFG→PCI_BAR。"
+      },
+      {
+        "a": "PCI_BAR",
+        "b": "PCI_CAP",
+        "why": "普通 capability 链与 MSI 标记不消费 BAR，只有 MSI-X 需要：改为 PCI_BAR→PCI_MSIX。"
+      },
+      {
+        "a": "PCI_ENC",
+        "b": "PCI_CAP",
+        "why": "只有 MSI-X 的 remapping 分支需要编码：改为 PCI_ENC→PCI_MSIX。"
+      },
+      {
+        "a": "PCI_CAP",
+        "b": "PCI_IRQ",
+        "why": "IRQ 路径消费的是 MSI-X 表项合同：改为 PCI_MSIX→PCI_IRQ。"
+      },
+      {
+        "a": "ROUTE_MAP",
+        "b": "PCI_IRQ",
+        "why": "MSI-X 投递不经过 ISA→GSI→IOAPIC 路由；remapping 地址来自 IrqLine::remapping_index。"
+      },
+      {
+        "a": "BZ_TRUST",
+        "b": "BZ_ELF",
+        "why": "登记边界与收窄边界是同一件事的两步，登记本身不提供消费者合同。"
+      },
+      {
+        "a": "F_RECOVER",
+        "b": "ACC_IMG",
+        "why": "链接检查需要汇编符号与段存在，不要求缺页恢复路径已证明：改为 F_ASM→ACC_IMG。"
+      }
+    ],
+    "edgesAdded": [
+      {
+        "a": "IO_PIO",
+        "b": "PIC",
+        "why": "拆分后的 PIO 前置（原 IO_ALLOC）"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "PIT_CFG",
+        "why": "拆分后的 PIO 前置（原 IO_ALLOC）"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "PCI_CFG",
+        "why": "拆分后的 PIO 前置（原 IO_ALLOC）"
+      },
+      {
+        "a": "IOAPIC_REG",
+        "b": "IOAPIC_ENTRY",
+        "why": "IoApic::enable / disable 消费寄存器访问合同"
+      },
+      {
+        "a": "IRQLINE",
+        "b": "IOAPIC_ENTRY",
+        "why": "IoApic::enable 消费 IrqLine::num / remapping_index"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "APIC_RESERVE",
+        "why": "init 的 xAPIC 分支调用 io_mem_builder.remove(base..base + 1024)"
+      },
+      {
+        "a": "IO_WIN",
+        "b": "APIC_RESERVE",
+        "why": "保留的范围须属于登记窗口"
+      },
+      {
+        "a": "PREEMPT_PIN",
+        "b": "LAPIC_DEV",
+        "why": "interrupts_ack 用 disable_preempt() 取得 PinCurrentCpu 后调用 get_or_init(..).eoi()"
+      },
+      {
+        "a": "PREEMPT_PIN",
+        "b": "TMR_DEADLINE",
+        "why": "timer/apic.rs 三处 disable_preempt()"
+      },
+      {
+        "a": "PREEMPT_PIN",
+        "b": "TMR_PERIODIC",
+        "why": "timer/apic.rs 三处 disable_preempt()"
+      },
+      {
+        "a": "PREEMPT_PIN",
+        "b": "SMP_AP",
+        "why": "boot/smp.rs 第 159 行 disable_preempt()"
+      },
+      {
+        "a": "IRQLINE",
+        "b": "TRAP_DISP",
+        "why": "process_top_half 与回调表由陷阱分派调用"
+      },
+      {
+        "a": "IRQ_DROP",
+        "b": "IRQLINE",
+        "why": "替换 IRQ_MODEL→IRQLINE"
+      },
+      {
+        "a": "IOAPIC_ENTRY",
+        "b": "ROUTE_MAP",
+        "why": "替换 IOAPIC_REG→ROUTE_MAP"
+      },
+      {
+        "a": "IRQLINE",
+        "b": "TMR_DEADLINE",
+        "why": "init_bsp / init_timer 注册 IrqLine 回调"
+      },
+      {
+        "a": "SMP_AP",
+        "b": "SMP_COMPOSE",
+        "why": "编排验收建立在 AP 启动合同之上"
+      },
+      {
+        "a": "IRQLINE",
+        "b": "SMP_IPI",
+        "why": "smp::init 用 IrqLine::alloc().on_active(do_inter_processor_call)"
+      },
+      {
+        "a": "LOC_ACC",
+        "b": "SMP_IPI",
+        "why": "CALL_QUEUES 是 cpu_local!，经 get_on_cpu 跨核访问"
+      },
+      {
+        "a": "GDT",
+        "b": "SYSCALL",
+        "why": "syscall::init 的安全条件要求 GDT 已初始化"
+      },
+      {
+        "a": "TASK_STACK_ALLOC",
+        "b": "TASK_SW",
+        "why": "替换 TASK_STACK→TASK_SW"
+      },
+      {
+        "a": "SA_RCU",
+        "b": "TASK_SW",
+        "why": "switch_to_task 调用 finish_grace_period()"
+      },
+      {
+        "a": "TASK_RUNTIME",
+        "b": "TASK_SW",
+        "why": "推断：待确认 TASK_SW 是否消费 Task / CurrentTask 合同"
+      },
+      {
+        "a": "IRQ_GUARD",
+        "b": "TASK_STACK_ALLOC",
+        "why": "flush_tlb 的参数是 &DisabledLocalIrqGuard"
+      },
+      {
+        "a": "PT_X86",
+        "b": "TASK_STACK_ALLOC",
+        "why": "推断：待确认 flush_tlb 调用的刷新原语"
+      },
+      {
+        "a": "PCI_CFG",
+        "b": "PCI_BAR",
+        "why": "BAR 探测写全一、读尺寸、恢复原值"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "PCI_BAR",
+        "why": "MemoryBar::new 调用 unsafe IoMem::new"
+      },
+      {
+        "a": "PCI_CFG",
+        "b": "PCI_CAP",
+        "why": "capability 链只需配置读取"
+      },
+      {
+        "a": "PCI_CAP",
+        "b": "PCI_MSIX",
+        "why": "MSI-X capability 定位"
+      },
+      {
+        "a": "PCI_BAR",
+        "b": "PCI_MSIX",
+        "why": "MSI-X table / PBA 所在 BAR"
+      },
+      {
+        "a": "PCI_ENC",
+        "b": "PCI_MSIX",
+        "why": "remapping 分支的 MSI-X 地址编码"
+      },
+      {
+        "a": "PCI_MSIX",
+        "b": "PCI_IRQ",
+        "why": "替换 PCI_CAP→PCI_IRQ"
+      },
+      {
+        "a": "TRAP_DISP",
+        "b": "PCI_IRQ",
+        "why": "回调执行与 EOI 的最终验收"
+      },
+      {
+        "a": "BZ_ELF",
+        "b": "BZ_RANGE",
+        "why": "to_flat_binary 消费 file_size <= mem_size 等 ELF 段条件"
+      },
+      {
+        "a": "F_ASM",
+        "b": "ACC_IMG",
+        "why": "替换 F_RECOVER→ACC_IMG"
+      }
+    ],
+    "prs": "#855 已合入 41ccd7463（main 含 #928、#929）；#921 已合入 97963e831；#916 于审查期间合入 c25ca6f98；#408 已关闭，由 #928 取代；#706、#927 的 head 在审查期间更新，#930 未关联（见 reviewedCandidates）。"
+  },
+  {
+    "revision": 3,
+    "date": "2026-11-16",
+    "reason": "复核当前 main、相关 PR 的固定 head、审阅及 CI；期间追踪 #927/#931 新 head 与 #932 合入。按接口粒度拆分前置，补回完成 x86 所需的公共模块、DMA coherent/登记与最终范围验收。首个 BSP 中断里程碑不再代表整个 x86 范围；已复核的配置合同独立结项，验收依赖不再显示为无法开工。",
+    "splits": [
+      {
+        "from": "TASK_RUNTIME",
+        "to": ["TASK_RUNTIME", "TASK_COMPOSE"],
+        "why": "current-task/park-unpark 的局部状态合同与 TaskBuilder、默认 FIFO、实际切换及远端抢占通知的组合分开，避免所有消费者都等待完整调度路径。"
+      },
+      {
+        "from": "SA_DMA",
+        "to": ["SA_DMA", "DMA_MAP"],
+        "why": "stream slice 同步不覆盖 coherent、全局映射登记、cache policy 和释放；main 的 registry 插入与硬件映射调用仍有注释路径。"
+      },
+      {
+        "from": "IO_ALLOC",
+        "to": ["IO_ALLOC", "IO_MMIO", "IO_GLOBAL"],
+        "why": "窗口资源算法、映射/访问和全局初始化是不同消费者合同。"
+      },
+      {
+        "from": "IO_PIO",
+        "to": ["IO_PIO", "IO_PIO_ALLOC"],
+        "why": "静态端口消费者不需要动态 allocator/显式释放完成。"
+      },
+      {
+        "from": "LOC_ALLOC",
+        "to": ["LOC_ALLOC", "LOC_EARLY_GLOBAL"],
+        "why": "#802 实例 alloc 已证明不等于全局分配返回可写独占内存。"
+      },
+      {
+        "from": "LOC_ACC",
+        "to": ["LOC_ACC", "LOC_REMOTE", "LOC_CELL"],
+        "why": "get_with、跨核共享 get_on_cpu 和单指令 CpuLocalCell 不消费相同 guard。"
+      },
+      {
+        "from": "TASK_SW",
+        "to": ["TASK_SW", "TASK_CTX"],
+        "why": "低层 context_switch ABI 可独立推进；processor 的资源交接另行组合。"
+      },
+      {
+        "from": "XSAVE",
+        "to": ["XSAVE", "CPU_ENABLE"],
+        "why": "AP 初始化只需要控制寄存器/特性启用，不等待 FPU clone/save/load 全部证明。"
+      },
+      {
+        "from": "VM_POD",
+        "to": ["VM_POD", "VM_REPR"],
+        "why": "桥接合同与测试验收拆开，read_val 不等待整个测试 PR。"
+      },
+      {
+        "from": "CAL_FREQ",
+        "to": ["CAL_FREQ", "TSC_VALUE"],
+        "why": "deadline 消费频率值/发布合同，不需要 PIT 回退校准整体完成。"
+      },
+      {
+        "from": "PCI_ENUM",
+        "to": ["PCI_ENUM", "PCI_DEVICE"],
+        "why": "location 遍历与完整设备构造分别验收，避免枚举和 BAR/capability 相互等待。"
+      }
+    ],
+    "moved": [
+      {
+        "id": "MM_BOOT",
+        "from": "later",
+        "to": "nodes",
+        "why": "不在首个 BSP 中断路径不等于不在完成 x86 的当前范围。ostd/src/mm/kspace/mod.rs::init_kernel_page_table,activate_kernel_page_table; ostd/src/mm/frame/allocator.rs::init @97963e831"
+      },
+      {
+        "id": "LOC_DYNAMIC",
+        "from": "later",
+        "to": "nodes",
+        "why": "不在首个 BSP 中断路径不等于不在完成 x86 的当前范围。ostd/src/cpu/local/dyn_cpu_local.rs @97963e831"
+      },
+      {
+        "id": "SYNC_WAIT",
+        "from": "later",
+        "to": "nodes",
+        "why": "不在首个 BSP 中断路径不等于不在完成 x86 的当前范围。ostd/src/sync/wait.rs::WaitQueue,Waker @97963e831"
+      },
+      {
+        "id": "HPET",
+        "from": "later",
+        "to": "nodes",
+        "why": "不在首个 BSP 中断路径不等于不在完成 x86 的当前范围。ostd/src/arch/x86/timer/hpet.rs::Hpet::new @97963e831"
+      },
+      {
+        "id": "SERIAL_QEMU_CMOS",
+        "from": "later",
+        "to": "nodes",
+        "why": "不在首个 BSP 中断路径不等于不在完成 x86 的当前范围。ostd/src/arch/x86/serial.rs::init; qemu.rs::exit_qemu; device/cmos.rs @97963e831"
+      },
+      {
+        "id": "HEAP_GLOBAL",
+        "from": "later",
+        "to": "nodes",
+        "why": "不在首个 BSP 中断路径不等于不在完成 x86 的当前范围。ostd/src/mm/heap/mod.rs::AllocDispatch,GlobalHeapAllocator @97963e831"
+      },
+      {
+        "id": "BZ_SETUP",
+        "from": "later",
+        "to": "nodes",
+        "why": "不在首个 BSP 中断路径不等于不在完成 x86 的当前范围。ostd/libs/linux-bzimage/setup/src/loader.rs::load_elf; setup/src/main.rs @97963e831"
+      }
+    ],
+    "added": [
+      {
+        "id": "IO_PIO_ALLOC",
+        "why": "#706 的 acquire/acquire_overlapping、reserve_io_port_range、动态 claim 和 consuming drop(self)；核对自动 Drop 改写后的真实调用者。"
+      },
+      {
+        "id": "IO_MMIO",
+        "why": "#706 的 IoMem::new/acquire/slice、VmIo/VmIoOnce 与映射存活；当前 new/acquire/设备访问仍 external，obeys_vmio_* 为 false，不能向设备调用者提供完整访问保证。"
+      },
+      {
+        "id": "IO_GLOBAL",
+        "why": "把局部 builder/PIO allocator 与 io::init 的 Once 状态、注册窗口和动态分配权限相连，验证全局入口能获得所需资源。"
+      },
+      {
+        "id": "MM_FRAME",
+        "why": "补 FrameAllocOptions、Frame/Segment 元数据初始化、引用计数/类型转换、所有权移交和释放合同；#720 的类型接口仅按实际调用复用。"
+      },
+      {
+        "id": "MM_PT",
+        "why": "覆盖 cursor map/unmap/protect/query、item 原始转换和 frame 所有权往返，消解或逐项登记现存 external/admit/assume；#855 的常量证明不覆盖这些接口。"
+      },
+      {
+        "id": "MM_KVA",
+        "why": "交付 map_frames/map_untracked_frames、区间分配、range 与 Drop 的局部映射合同；显式区分指针算术、映射已生效和远端 TLB 安全释放。"
+      },
+      {
+        "id": "KFAULT_MAP",
+        "why": "单列 handle_kernel_page_fault：合法缺页范围/error code、对齐、Untracked(paddr,1,prop) 映射与返回；这条分支不同于用户可失败复制的 ExTable 恢复。"
+      },
+      {
+        "id": "LOC_EARLY_GLOBAL",
+        "why": "把 #802 的实例数值证明接到全局 early_alloc/init_early_allocator，给出每次分配的可写区域与跨次不重叠、既有分配保留合同。"
+      },
+      {
+        "id": "LOC_REMOTE",
+        "why": "交付 CpuLocal::get_on_cpu、StaticStorage::get_ptr_on_target 的索引、存活与 T: Sync 共享合同；无需 get_with 的 IRQ guard。"
+      },
+      {
+        "id": "LOC_CELL",
+        "why": "覆盖 load/store、加减/位操作的单指令 CPU 归属、环绕算术与 as_mut_ptr 的借用条件；不能由 CpuLocal::get_with 证明替代。"
+      },
+      {
+        "id": "SYNC_GUARD",
+        "why": "连接 SpinGuardian、GuardTransfer、PreemptDisabled、LocalIrqDisabled、WriteIrqDisabled 与实际 guard 生命周期；已有锁内存不变式证明不能代替硬件禁中断/不迁移状态。"
+      },
+      {
+        "id": "SYNC_API",
+        "why": "核对阻塞锁、升级/降级、借用及解锁 API 与 WaitQueue 的执行合同，登记 RwArc 外部体；不把 LOC 已验证比例当 API 组合完成。"
+      },
+      {
+        "id": "TASK_CTX",
+        "why": "在有效的 cur/nxt 上下文、独占资源和栈输入条件下建立保存恢复寄存器、RSP/RIP/FSBASE 与返回约定；复用 #870 的数据方法证明。"
+      },
+      {
+        "id": "CPU_ENABLE",
+        "why": "从 XSAVE 拆出 enable_cpu_features/enable_essential_features 的 CR0/CR4/EFER/XCR0、XSAVE 区大小与 Once 发布合同。"
+      },
+      {
+        "id": "VM_REPR",
+        "why": "建立 Pod 位表示、Rust slice 与 VmIoOwner/MemView 的字节对应及布局合同；测试用例本身不能作为 read_val 证明的前置。"
+      },
+      {
+        "id": "TSC_VALUE",
+        "why": "从 CAL_FREQ 拆出采样频率的 Hz 单位、非零/范围以及 TSC_FREQ Once 发布/读取合同；给定合格采样即可证明消费者。"
+      },
+      {
+        "id": "PCI_DEVICE",
+        "why": "把 PciCommonDevice::new 的 command 设置、BAR 管理器、capability/MSI-X 构造与总线登记组合；枚举循环本身可以先证明。"
+      },
+      {
+        "id": "BOOT_COMMON",
+        "why": "验证 BootInfo 发布/访问、init_after_heap 对 command-line/memory-region 的保存和 call_ostd_main 的入口条件；纳入普通 lib 初始化关闭路径的清单。"
+      },
+      {
+        "id": "COMMON_AUDIT",
+        "why": "逐模块盘点未被工作项覆盖的 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util、ostd-pod/ostd-test、辅助库入口；每个未启用函数/占位/可信体必须有归属，不以 LOC 颜色推断完整性。"
+      },
+      {
+        "id": "ACC_SCOPE",
+        "why": "在一个固定集成提交上启用计划内执行路径，分别验证 OSTD 与 bzImage，逐 API 对照清单；记录构建产物、运行结果、剩余可信输入与尚未证明的性质。"
+      }
+    ],
+    "edgesRemoved": [
+      {
+        "a": "PT_CFG",
+        "b": "PT_X86",
+        "why": "CR3/INVLPG 与范围刷新用 x86 的 PAGE_SIZE 和根页输入条件；不需要重新完成整个 PageTableConfig。常量合同已经可用。"
+      },
+      {
+        "a": "IO_WIN",
+        "b": "IOAPIC_REG",
+        "why": "给定基址与窗口权限可证明寄存器访问；固件地址对应窗口的组合归 ROUTE_MAP。"
+      },
+      {
+        "a": "LOC_ALLOC",
+        "b": "LOC_STORE",
+        "why": "实例数值合同不能供应 copy_bsp_for_ap 所需全局独占可写内存，替换为 LOC_EARLY_GLOBAL。"
+      },
+      {
+        "a": "LOC_ACC",
+        "b": "SMP_IPI",
+        "why": "CALL_QUEUES 用 get_on_cpu，不消费 get_with 的 IRQ guard 接口。"
+      },
+      {
+        "a": "IRQ_DROP",
+        "b": "IRQLINE",
+        "why": "只覆盖 WriteIrqDisabled 的写侧；读侧还消费禁抢占，改为 SYNC_GUARD 合同。"
+      },
+      {
+        "a": "CPU_FEAT",
+        "b": "XSAVE",
+        "why": "采样到控制寄存器效果先由 CPU_ENABLE 交付。"
+      },
+      {
+        "a": "VM_POD",
+        "b": "VM_CONTENT",
+        "why": "测试包未提供 read_val 所需的 Pod/buffer 字节桥接合同，替换为 VM_REPR。"
+      },
+      {
+        "a": "CAL_FREQ",
+        "b": "TMR_DEADLINE",
+        "why": "deadline 只需要 tsc_freq 的 Hz/非零/发布合同；替换为 TSC_VALUE。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "PCI_BAR",
+        "why": "MemoryBar::new 使用 unsafe IoMem::new，不调用窗口 allocator；改为 IO_MMIO 映射接口。"
+      },
+      {
+        "a": "IO_WIN",
+        "b": "PCI_BAR",
+        "why": "固定 #706 head 的 IoMem::new requires 不含窗口登记；unsafe MMIO 区域合法性仍须证明，但不能臆造 IO_WIN 阻塞。"
+      }
+    ],
+    "edgesAdded": [
+      {
+        "a": "TASK_RUNTIME",
+        "b": "TASK_COMPOSE",
+        "why": "组合使用当前任务引用、运行权和 park/unpark 的状态合同。"
+      },
+      {
+        "a": "TASK_SW",
+        "b": "TASK_COMPOSE",
+        "why": "reschedule 和 kernel_task_entry 消费实际切换及 after_switching_to 的资源交接。"
+      },
+      {
+        "a": "TASK_STACK_ALLOC",
+        "b": "TASK_COMPOSE",
+        "why": "TaskBuilder::build 建立栈存活和 end_vaddr()-16 的初始 SP。"
+      },
+      {
+        "a": "PREEMPT_PIN",
+        "b": "TASK_COMPOSE",
+        "why": "set_need_preempt 和 FIFO local_rq_with 用 guard.current_cpu 选择当前核分支和队列。"
+      },
+      {
+        "a": "SMP_IPI",
+        "b": "TASK_COMPOSE",
+        "why": "set_need_preempt 的远端分支以 inter_processor_call 调用目标 CPU 的 cpu_local::set_need_preempt；不承诺该 API 未提供的必达。"
+      },
+      {
+        "a": "SYNC_GUARD",
+        "b": "TASK_COMPOSE",
+        "why": "默认 FIFO 通过 disable_irq().lock() 保护 run queue；不能仅信任注入调度器而漏掉内置实现。"
+      },
+      {
+        "a": "TRAP_DATA",
+        "b": "TASK_COMPOSE",
+        "why": "TaskBuilder::build 从 UserContext::tls_pointer 初始化 TaskContext 的 TLS 字段。"
+      },
+      {
+        "a": "TASK_COMPOSE",
+        "b": "ACC_SCOPE",
+        "why": "将任务创建、默认调度和远端通知纳入最终当前范围验收。"
+      },
+      {
+        "a": "DMA_MAP",
+        "b": "SA_DMA",
+        "why": "stream 同步最终使用 map 建立的设备地址、存活与一致性条件；slice 局部证明可先行。"
+      },
+      {
+        "a": "SYNC_GUARD",
+        "b": "DMA_MAP",
+        "why": "DMA_MAPPING_SET 的 SpinLock 及 DmaCoherent/DmaStream 的 RwArc 消费 PreemptDisabled guard 合同。"
+      },
+      {
+        "a": "MM_PT",
+        "b": "DMA_MAP",
+        "why": "待恢复的非一致性 coherent 分支消费 protect_flush_tlb 的 cache policy 映射更新合同。"
+      },
+      {
+        "a": "PT_X86",
+        "b": "DMA_MAP",
+        "why": "protect_flush_tlb 的现存注释实现调用 tlb_flush_addr(range.start)，只能确认本地刷新合同。"
+      },
+      {
+        "a": "TLB_SHOOT",
+        "b": "DMA_MAP",
+        "why": "待确认：原 cache policy 路径仅本地刷新；是否需要远端失效须补并发访问与平台一致性条件，不能从函数名推定。"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "IO_PIO_ALLOC",
+        "why": "typed port 的 valid_io_port_access、宽度与构造合同"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_GLOBAL",
+        "why": "已登记窗口的 builder 与保留状态"
+      },
+      {
+        "a": "IO_WIN",
+        "b": "IO_GLOBAL",
+        "why": "builder.has_registered_windows() 的引导来源"
+      },
+      {
+        "a": "IO_PIO_ALLOC",
+        "b": "IO_GLOBAL",
+        "why": "敏感端口保留后发布全局 allocator 的权限状态"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IOAPIC_REG",
+        "why": "IoApicAccess::new 保留 [base,base+0x20) 时的 remove 权限合同"
+      },
+      {
+        "a": "IO_WIN",
+        "b": "ROUTE_MAP",
+        "why": "irq::init 将 MADT 的 IOAPIC 地址对应到可保留窗口；须证明地址落在登记窗口且未分配"
+      },
+      {
+        "a": "APIC_RESERVE",
+        "b": "APIC_PUB",
+        "why": "xAPIC 分支只有 remove 成功后发布 APIC_TYPE；x2APIC 分支不消费该条件"
+      },
+      {
+        "a": "PT_CFG",
+        "b": "MM_PT",
+        "why": "PageTableConfig 布局/顶层范围引理与当前 x86 PagingConstsTrait"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "MM_PT",
+        "why": "页表节点和映射 frame 的有效元数据、引用计数及所有权转移合同"
+      },
+      {
+        "a": "MM_PT",
+        "b": "MM_KVA",
+        "why": "map_frames/map_untracked_frames 消费 cursor 映射与所有权保持合同"
+      },
+      {
+        "a": "MM_KVA",
+        "b": "IO_MMIO",
+        "why": "IoMem::new 的 KVirtArea::map_untracked_frames 结果、映射存活与范围合同"
+      },
+      {
+        "a": "MM_PT",
+        "b": "MM_BOOT",
+        "why": "构造内核映射与 boot_pt 接管的页表合同"
+      },
+      {
+        "a": "PT_X86",
+        "b": "MM_BOOT",
+        "why": "激活已构造根页、读取 boot 根页的 CR3 效果合同"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "MM_BOOT",
+        "why": "元数据 pages 与全局 frame allocator 的初始化/可用区间合同"
+      },
+      {
+        "a": "MM_BOOT",
+        "b": "KFAULT_MAP",
+        "why": "KERNEL_PAGE_TABLE 已发布与线性映射区间/物理地址对应合同"
+      },
+      {
+        "a": "MM_PT",
+        "b": "KFAULT_MAP",
+        "why": "cursor_mut/map(Untracked) 的映射与失败合同"
+      },
+      {
+        "a": "PREEMPT_PIN",
+        "b": "KFAULT_MAP",
+        "why": "创建 cursor 时保持当前 CPU 的 pin 与释放合同"
+      },
+      {
+        "a": "LOC_ALLOC",
+        "b": "LOC_EARLY_GLOBAL",
+        "why": "实例 allocated_regions 与 alloc 的边界和保留合同"
+      },
+      {
+        "a": "LOC_EARLY_GLOBAL",
+        "b": "LOC_STORE",
+        "why": "AP 地址数组和各 CPU 存储的两个 early_alloc 调用需要跨次不重叠可写资源"
+      },
+      {
+        "a": "LOC_EARLY_GLOBAL",
+        "b": "MM_BOOT",
+        "why": "frame allocator 初始化排除 early 阶段已经分配的范围"
+      },
+      {
+        "a": "LOC_ID",
+        "b": "LOC_REMOTE",
+        "why": "逻辑 CPU 索引与 get_ap/静态存储地址的对应关系"
+      },
+      {
+        "a": "LOC_ID",
+        "b": "LOC_CELL",
+        "why": "单次指令使用当前 GS 存储、offset 布局和逻辑 CPU 对应"
+      },
+      {
+        "a": "LOC_CELL",
+        "b": "PREEMPT_PIN",
+        "why": "inc_guard_count/dec_guard_count 的单指令计数合同；避免依赖需要本 guard 的高级锁接口"
+      },
+      {
+        "a": "LOC_REMOTE",
+        "b": "LAPIC_INST",
+        "why": "APIC_INSTANCE.get_on_cpu(current_racy()) 的槽存活和共享访问合同"
+      },
+      {
+        "a": "LOC_REMOTE",
+        "b": "SMP_IPI",
+        "why": "目标 CPU 队列索引、T: Sync 与存储生命周期"
+      },
+      {
+        "a": "LOC_CELL",
+        "b": "TRAP_DISP",
+        "why": "KERNEL_INTERRUPT_NESTED_LEVEL 的同核单指令加减与恢复"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "LOC_DYNAMIC",
+        "why": "每 CPU chunk 的连续 Segment、元数据与独占内存"
+      },
+      {
+        "a": "IRQ_DROP",
+        "b": "SYNC_GUARD",
+        "why": "LocalIrqDisabled/WriteIrqDisabled 写侧的创建、转移与 IF 恢复"
+      },
+      {
+        "a": "PREEMPT_PIN",
+        "b": "SYNC_GUARD",
+        "why": "PreemptDisabled 与 WriteIrqDisabled 读侧的不迁移/释放合同"
+      },
+      {
+        "a": "SYNC_GUARD",
+        "b": "IRQLINE",
+        "why": "Inner.callbacks 的读/写 guardian 及 guard 转移恢复合同"
+      },
+      {
+        "a": "SYNC_GUARD",
+        "b": "SMP_IPI",
+        "why": "CALL_QUEUES 的 SpinLock 保持原子模式、队列互斥和释放合同"
+      },
+      {
+        "a": "TASK_RUNTIME",
+        "b": "SYNC_WAIT",
+        "why": "当前 Task 的有效引用、park_current/unpark_target 的状态转换与唤醒合同"
+      },
+      {
+        "a": "SYNC_WAIT",
+        "b": "SYNC_API",
+        "why": "Mutex/RwMutex 的 WaitQueue 等待及唤醒保证"
+      },
+      {
+        "a": "SYNC_GUARD",
+        "b": "SYNC_API",
+        "why": "读写锁/RwArc 持锁期间的运行模式与释放合同"
+      },
+      {
+        "a": "LOC_CELL",
+        "b": "TASK_RUNTIME",
+        "why": "CURRENT_TASK_PTR 的同核读取、Arc 来源和有效引用条件"
+      },
+      {
+        "a": "TASK_STACK",
+        "b": "TASK_STACK_ALLOC",
+        "why": "KERNEL_STACK_SIZE 的页面倍数与上界；零长度和加上 guard pages 的溢出仍须另证"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "TASK_STACK_ALLOC",
+        "why": "alloc_segment_with 返回连续、存活的栈 frames 与失败资源保持"
+      },
+      {
+        "a": "MM_KVA",
+        "b": "TASK_STACK_ALLOC",
+        "why": "map_frames 保留 4 页 guard 区间及有效栈映射，初始 SP 在映射末端"
+      },
+      {
+        "a": "TASK_CTX",
+        "b": "TASK_SW",
+        "why": "cur/nxt 独占上下文和有效栈满足 context_switch 的 ABI/恢复合同"
+      },
+      {
+        "a": "IRQ_DROP",
+        "b": "TASK_SW",
+        "why": "forget(irq_guard) 到 after_switching_to 的跨栈恢复权限；末尾 enable_local 的前提"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "SMP_AP",
+        "why": "AP_BOOT_STACK_SIZE 的连续 Segment 存活到 AP 使用结束"
+      },
+      {
+        "a": "MM_BOOT",
+        "b": "SMP_AP",
+        "why": "boot_pt::with_borrow 的根页、线性映射栈地址与 activate_kernel_page_table 效果"
+      },
+      {
+        "a": "SMP_AP",
+        "b": "SMP_IPI",
+        "why": "construct_hw_cpu_id_mapping 给出 CpuId 索引到在线 HwCpuId 的完整映射"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "TLB_FREE",
+        "why": "page_keeper 持有 Frame 所有权并延迟最终释放，不能仅传入 frame 就视为保留"
+      },
+      {
+        "a": "CPU_FEAT",
+        "b": "CPU_ENABLE",
+        "why": "特性采样的叶支持与位判断合同"
+      },
+      {
+        "a": "CPU_ENABLE",
+        "b": "XSAVE",
+        "why": "已启用控制寄存器和保存区掩码/长度合同"
+      },
+      {
+        "a": "VM_REPR",
+        "b": "VM_CONTENT",
+        "why": "read_val 的 Pod 值和实际读取字节之间的关系"
+      },
+      {
+        "a": "VM_REPR",
+        "b": "VM_POD",
+        "why": "内容断言消费 Pod/切片的实际字节桥接合同"
+      },
+      {
+        "a": "TSC_VALUE",
+        "b": "TMR_DEADLINE",
+        "why": "init_deadline_mode_config 消费 tsc_freq() 并计算间隔"
+      },
+      {
+        "a": "TSC_VALUE",
+        "b": "CAL_FREQ",
+        "why": "CPUID/PIT 选择后发布的频率值合同"
+      },
+      {
+        "a": "SYSCALL",
+        "b": "SMP_COMPOSE",
+        "why": "ap_early_entry 的 trap::init 消费 GDT/IDT/syscall 初始化结果"
+      },
+      {
+        "a": "TRAP_DISP",
+        "b": "SMP_COMPOSE",
+        "why": "开中断前已安装入口并能安全分派"
+      },
+      {
+        "a": "CPU_ENABLE",
+        "b": "SMP_COMPOSE",
+        "why": "enable_cpu_features 的每核控制寄存器已配置状态"
+      },
+      {
+        "a": "TMR_DEADLINE",
+        "b": "SMP_COMPOSE",
+        "why": "init_on_ap 的 deadline 分支配置和回调就绪状态"
+      },
+      {
+        "a": "TMR_PERIODIC",
+        "b": "SMP_COMPOSE",
+        "why": "init_on_ap 的 periodic 分支配置和回调就绪状态"
+      },
+      {
+        "a": "TASK_RUNTIME",
+        "b": "SMP_COMPOSE",
+        "why": "AP late entry 后 yield_now 的调度输入与 bootstrap 不返回条件"
+      },
+      {
+        "a": "IO_MMIO",
+        "b": "PCI_BAR",
+        "why": "MemoryBar::new 消费 IoMem::new 的映射范围、存活和 cache/flags 合同"
+      },
+      {
+        "a": "IO_MMIO",
+        "b": "PCI_MSIX",
+        "why": "表项 write_once/read_once 的有效范围与设备可见写入；仅有 BAR 地址合同不够"
+      },
+      {
+        "a": "IRQLINE",
+        "b": "PCI_MSIX",
+        "why": "set_interrupt_vector 取 num/remapping_index 并持有 IrqLine，克隆/替换须保留生命周期"
+      },
+      {
+        "a": "PCI_ENUM",
+        "b": "PCI_DEVICE",
+        "why": "有效 location 遍历与无设备判断"
+      },
+      {
+        "a": "PCI_BAR",
+        "b": "PCI_DEVICE",
+        "why": "BarManager 的六槽/桥接类型与映射合同"
+      },
+      {
+        "a": "PCI_CAP",
+        "b": "PCI_DEVICE",
+        "why": "capability 链有界遍历与结果"
+      },
+      {
+        "a": "PCI_MSIX",
+        "b": "PCI_DEVICE",
+        "why": "遇到 MSI-X capability 时的构造和启用合同"
+      },
+      {
+        "a": "ACPI_TABLES",
+        "b": "HPET",
+        "why": "ACPI HPET 表发现、基址和字段可读合同"
+      },
+      {
+        "a": "ROUTE_MAP",
+        "b": "HPET",
+        "why": "Hpet::new 调用 IRQ_CHIP.map_isa_pin_to(irq,0)，需映射句柄与释放合同；仅约束完整构造，getter 可先证明"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "SERIAL_QEMU_CMOS",
+        "why": "串口/QEMU/CMOS 静态端口访问宽度与权限合同"
+      },
+      {
+        "a": "ACPI_TABLES",
+        "b": "SERIAL_QEMU_CMOS",
+        "why": "CMOS 的 FADT 世纪寄存器编号来源，仅约束 CMOS 子项"
+      },
+      {
+        "a": "SA_HEAP",
+        "b": "HEAP_GLOBAL",
+        "why": "slab 自由槽的 LIFO、独占内存与布局合同"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "HEAP_GLOBAL",
+        "why": "slab/大分配使用 frame/Segment 的存活与回收合同"
+      },
+      {
+        "a": "LOC_ACC",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 LOC_ACC 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "VM_POD",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 VM_POD 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "TLB_FREE",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 TLB_FREE 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "CAL_FREQ",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 CAL_FREQ 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "SMP_COMPOSE",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 SMP_COMPOSE 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "XSAVE",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 XSAVE 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "TASK_SW",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 TASK_SW 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "PCI_IRQ",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 PCI_IRQ 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "SA_DMA",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 SA_DMA 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "BZ_TRUST",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 BZ_TRUST 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "BZ_ENCODE",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 BZ_ENCODE 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "ACC_RUN",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 ACC_RUN 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "IO_GLOBAL",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 IO_GLOBAL 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "KFAULT_MAP",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 KFAULT_MAP 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "LOC_DYNAMIC",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 LOC_DYNAMIC 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "SYNC_API",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 SYNC_API 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "PCI_DEVICE",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 PCI_DEVICE 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "HPET",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 HPET 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "SERIAL_QEMU_CMOS",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 SERIAL_QEMU_CMOS 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "HEAP_GLOBAL",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 HEAP_GLOBAL 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "BZ_SETUP",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 BZ_SETUP 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "BOOT_COMMON",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 BOOT_COMMON 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      },
+      {
+        "a": "COMMON_AUDIT",
+        "b": "ACC_SCOPE",
+        "why": "当前范围的 COMMON_AUDIT 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序"
+      }
+    ],
+    "edgesChanged": [
+      {
+        "a": "PT_X86",
+        "b": "TASK_STACK_ALLOC",
+        "why": "由待确认改为验收前置：flush_tlb 明确调用 tlb_flush_addr_range(&self.kvirt_area.range())；刷新后标记当前 CPU coherent"
+      },
+      {
+        "a": "TASK_RUNTIME",
+        "b": "TASK_SW",
+        "why": "由待确认改为验收前置：CURRENT/PREVIOUS_TASK_PTR 的 Arc 存活、switched_to_cpu 独占运行权及 after_switching_to 延迟释放"
+      },
+      {
+        "a": "PT_X86",
+        "b": "TASK_SW",
+        "why": "改为待确认：实际注入客户 hook 是否激活地址空间尚缺证据；栈刷新已由 TASK_STACK_ALLOC 供给。"
+      },
+      {
+        "a": "ROUTE_MAP",
+        "b": "PITIRQ",
+        "why": "组合骨架/条件证明可先开始；完成前置只限制最终验收。"
+      },
+      {
+        "a": "TRAP_DISP",
+        "b": "PITIRQ",
+        "why": "组合骨架/条件证明可先开始；完成前置只限制最终验收。"
+      },
+      {
+        "a": "LAPIC_DEV",
+        "b": "PITIRQ",
+        "why": "组合骨架/条件证明可先开始；完成前置只限制最终验收。"
+      },
+      {
+        "a": "SMP_AP",
+        "b": "SMP_COMPOSE",
+        "why": "组合骨架/条件证明可先开始；完成前置只限制最终验收。"
+      },
+      {
+        "a": "PIT_CFG",
+        "b": "PITIRQ",
+        "why": "由待确认改为验收前置：本里程碑明确验收实际 PIT 产生 IRQ0：必须给出 RateGenerator 编程与周期来源，不能只假定中断出现"
+      }
+    ],
+    "prs": "#855 的配置合同、#921 的解析合同、#916 的 PE 头构造按限定交付复核结项；#706 是静态/动态 PIO、MMIO 与配置访问底座，BAR 只复用它。末轮复核 #706@7c710f060、#895@b0db47c88、#883@2c6a1a266、#927@32635fe1e 与 #931@d30c27170，前述覆盖边界保持；#931 关联 BZ_RANGE/BZ_ELF，仅协调 #927 的 Vec 规约。main 纳入 #932；#706 最新失败点仍为 cpu/set.rs:300，#860 为 irc11.rs:38，审阅/CI/冲突分别记录。"
+  },
+  {
+    "revision": 4,
+    "date": "2026-11-16",
+    "reason": "修正依赖验收与页面就绪状态的联动：仅有未交付验收前置的工作由“可开始”改为“前置待交付”，可做条件证明但须等待组合验收；所有确认前置显式验收后才“前置就绪”。开放 PR 继续单列未交付合同，PR 合并不解除依赖。基于本版快照，原 79 项可开始分为 15 项就绪、64 项待交付；22 项 PR 进行中有 10 项缺前置，3 项已有验收记录，0 项有已确认的开工阻塞。工作项 ID、依赖关系和历史验收依据沿用 r3；本版调整状态规则，未新增源码或 PR head 复核。补充 #706 跨路线消费者、#855 限定完成及合并不解锁的回归校验。"
+  }
+];

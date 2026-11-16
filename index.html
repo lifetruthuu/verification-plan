@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VOSTD — 验证路线图</title>
+  <meta name="description" content="VOSTD 验证路线图：按 x86、bzImage、OSTD 公共模块三条路线分别查看，哪些工作可以开始、哪些已有 PR、哪些被前置卡住，以及完成后解锁什么。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="plan.css">
+</head>
+<body>
+  <div class="wrap wide">
+    <header class="page">
+      <h1>VOSTD</h1>
+      <span class="subtitle">验证路线图</span>
+      <span class="spacer"></span>
+      <a class="repo-btn" href="https://github.com/asterinas/vostd" target="_blank" rel="noopener">GitHub</a>
+      <p class="meta" id="meta">加载中…</p>
+    </header>
+
+    <div id="issues" class="banner" role="alert" hidden></div>
+
+    <nav class="tabsbar" id="tabs" role="tablist" aria-label="验证路线"></nav>
+
+    <section class="card summary" id="summary" aria-label="当前路线的状态总览"></section>
+
+    <section class="card boardcard" id="panel" role="tabpanel" aria-label="当前路线的工作与依赖">
+      <div class="boardwrap" id="boardwrap">
+        <div id="board"></div>
+      </div>
+    </section>
+
+    <section class="card" id="scopebox" aria-label="后续工作与可信边界"></section>
+
+    <section class="card" id="restmods" aria-label="图中未单列的 module"></section>
+
+    <footer class="page" id="footer"></footer>
+  </div>
+
+  <aside id="dock" class="dock" aria-label="工作详情" hidden></aside>
+  <div id="tip" class="tip" role="tooltip" hidden></div>
+  <script src="plan-data.js"></script>
+  <script src="plan-edges.js"></script>
+  <script src="plan-accept.js"></script>
+  <script src="plan-history.js"></script>
+  <script src="pr-catalog.js"></script>
+  <script src="pr-snapshot.js"></script>
+  <script src="plan-assemble.js"></script>
+  <script src="plan-model.js"></script>
+  <script src="plan-layout.js"></script>
+  <script src="plan.js"></script>
+</body>
+</html>
