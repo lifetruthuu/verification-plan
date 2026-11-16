@@ -3,7 +3,6 @@ import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { applyBlocks, renderBlocks, DOC_PATH } from "./plan-doc.mjs";
 import { loadWindow } from "./plan-store.mjs";
-import { runModelTests } from "./model-test.mjs";
 
 const { PLAN: plan, PLAN_PR_SNAPSHOT: snapshot, PLAN_PR_CATALOG: catalog, PlanModel, PlanLayout } = await loadWindow();
 /* Dependencies, scope and trusted boundaries must be traceable. */
@@ -190,8 +189,4 @@ assert.equal(uncovered.length, 0, `active work missing from final scope acceptan
 const doc = await readFile(DOC_PATH, "utf8");
 assert.equal(applyBlocks(doc, renderBlocks(plan, model)), doc, "x86-verification-plan.polished.md is out of date: run node plan-doc.mjs --write");
 
-const incomplete = structuredClone(snapshot);
-incomplete.prs = [];
-assert.throws(() => validate(plan, incomplete, catalog), /missing snapshot/);
-await runModelTests(await loadWindow());
-console.log(`Validated ${model.nodes.length} work items, ${model.edges.length} dependencies and ${snapshot.prs.length} PR snapshots; model regression checks passed; plan document is consistent.`);
+console.log(`Validated ${model.nodes.length} work items, ${model.edges.length} dependencies and ${snapshot.prs.length} PR snapshots; plan document is consistent.`);

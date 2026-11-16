@@ -142,7 +142,7 @@ commands.help = async () => console.log(`用法：node plan.mjs <命令>
   pr review N [--note t] [--scope t]   复核 head 之后记下：reviewedHead = 当前快照的 head
   log split|replaced|removed|added ...    记录节点层面的调整（节点本身在 plan-data.js 里手改）
 
-常见操作的步骤见 README.md 的“维护手册”。`);
+日常维护说明见 README.md。`);
 
 commands.check = async () => { try { execFileSync("node", [`${HERE}check-data.mjs`], { stdio: "inherit" }); } catch { process.exit(1); } };
 commands.docs = async () => console.log((await syncDocs()) ? "文档生成块已更新。" : "文档生成块已是最新。");
