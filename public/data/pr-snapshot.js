@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-17T08:02:06.886Z",
+  "generatedAt": "2026-11-17T21:01:09.544Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -115,18 +115,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "21105164b416c74c4a02021b3461bda41eba5819",
+      "head": "9bc9010cdd34339ebb2752f4991e22fee1eddae0",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\r\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\r\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\r\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\r\n\r\n---\r\n\r\nMaybe wait until the following PRs are merged:\r\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\r\n- [x] https://github.com/asterinas/vostd/pull/809",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-17T08:01:17Z",
+      "updatedAt": "2026-11-17T11:40:44Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -288,18 +288,18 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
       "n": 883,
       "kind": "open",
       "draft": false,
-      "head": "2c6a1a26653c9230780eef5ecd97a19ba0522e75",
+      "head": "aa9c79977b8355ec06c090294d51ae9d98582e49",
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-16T07:40:54Z",
+      "updatedAt": "2026-11-17T09:28:49Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -331,35 +331,35 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 887,
       "kind": "open",
       "draft": false,
-      "head": "a47e745320e96a162052ee7d682a243b93359d2c",
+      "head": "f1f8591a20201ccb8d5d830d25663e60d1b8e598",
       "title": "prove x86 context data exceptions",
       "body": "## Summary\r\n\r\nEnable the x86 user-context data path and verify that register, pointer, TLS, and exception updates change only the requested field.\r\n\r\n- `UserContext` getters and setters, `take_exception`, and the `UserContextApi` instruction-pointer, stack-pointer, and trap-metadata operations preserve every other saved register, the trap number, the error code, and the pending exception.\r\n- `CpuException::type_` covers every variant. `is_cpu_exception` accepts vectors 0 through 31. `CpuExceptionType::is_fault_or_trap` classifies fault and trap variants.\r\n- `activate_tls_pointer` stays `external_body`: it is the FSBASE write, and this change supplies no hardware-state postcondition.\r\n- Exception construction, user-mode execution, FPU save/restore, trap dispatch, and `UserMode` stay out until their hardware and scheduling contracts exist.",
       "url": "https://github.com/asterinas/vostd/pull/887",
-      "updatedAt": "2026-11-17T03:14:25Z",
+      "updatedAt": "2026-11-17T08:48:21Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
       "n": 895,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
-      "head": "910070850974fb29c0b9e28b92db37d2997e08b3",
+      "head": "5ed7a2c167d0faaf215beb1b5844fefe125e2a65",
       "title": "prove: verify PCI foundations",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/895",
-      "updatedAt": "2026-11-17T04:26:15Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
-      "reviewDecision": "CHANGES_REQUESTED",
+      "updatedAt": "2026-11-17T10:47:47Z",
+      "mergedAt": "2026-11-17T10:47:47Z",
+      "closedAt": "2026-11-17T10:47:47Z",
+      "mergeCommit": "11d378516c021b68e3fd08298426935e10851cb3",
+      "reviewDecision": null,
       "ciState": "SUCCESS",
-      "review": "需修改",
+      "review": "无汇总结论",
       "gate": "UNKNOWN",
       "ci": "成功"
     },
@@ -504,25 +504,25 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 920,
       "kind": "open",
       "draft": false,
-      "head": "24b49326748e8a1488c4f79d4903be657b9c29df",
+      "head": "1358fc9ae84204e358d2da999325216af850c2c2",
       "title": "prove: Verify x86 AVX feature detection",
       "body": "Enable and verify `has_avx()` and `has_avx512()` in the existing x86 module, adding 16 Verified executable LoC. Per-call ghost samples specify the original leaf-0 gate and the exact AVX/AVX-512F bit checks; other inactive code and existing comments are preserved.\n\nReplace the core CPUID intrinsics with the already specified `native_cpuid::cpuid_count`. The pinned x86/raw-cpuid implementation delegates to the same intrinsic and preserves all four registers, so query arguments and order are unchanged. No trusted boundary is added. The contracts describe this invocation's samples; they do not assume consistency across reads or prove all hardware and OS conditions for executing AVX instructions.\n\nPowered by fy0/Veriflow\n",
       "url": "https://github.com/asterinas/vostd/pull/920",
-      "updatedAt": "2026-11-16T07:47:33Z",
+      "updatedAt": "2026-11-17T10:38:23Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -707,21 +707,21 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 931,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
       "head": "0e945fc06469e7a7931080ec50d56522dc89470f",
       "title": "prove: specify bzImage flat binary construction",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/931",
-      "updatedAt": "2026-11-17T08:00:14Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
+      "updatedAt": "2026-11-17T08:06:09Z",
+      "mergedAt": "2026-11-17T08:06:08Z",
+      "closedAt": "2026-11-17T08:06:08Z",
+      "mergeCommit": "46d3b1e7e4a54ad7b420b2b8b321f9174a06d355",
       "reviewDecision": null,
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
-      "ci": "进行中"
+      "gate": "UNKNOWN",
+      "ci": "成功"
     },
     {
       "n": 932,
@@ -744,18 +744,46 @@ window.PLAN_PR_SNAPSHOT = {
   ],
   "candidates": [
     {
+      "n": 944,
+      "title": "prove: Verify RISC-V user context data operations",
+      "url": "https://github.com/asterinas/vostd/pull/944",
+      "head": "6e5d854834f0b2a57ceb6bb5c725e96c4140eacb",
+      "updatedAt": "2026-11-17T16:07:32Z"
+    },
+    {
+      "n": 943,
+      "title": "prove: Verify bzImage payload encoding parsing",
+      "url": "https://github.com/asterinas/vostd/pull/943",
+      "head": "53a020701cc05f8f99df03ed224e90bbe7ba234d",
+      "updatedAt": "2026-11-17T15:15:33Z"
+    },
+    {
+      "n": 942,
+      "title": "prove: verify kernel test result classification",
+      "url": "https://github.com/asterinas/vostd/pull/942",
+      "head": "3b0821b71b068164347e7d52a8624daf17bd94db",
+      "updatedAt": "2026-11-17T15:16:22Z"
+    },
+    {
+      "n": 940,
+      "title": "prove: Verify RISC-V ISA extension parsers",
+      "url": "https://github.com/asterinas/vostd/pull/940",
+      "head": "f7becca72affdc5c3b99654bf7d7e4c5218b1c23",
+      "updatedAt": "2026-11-17T13:00:26Z"
+    },
+    {
       "n": 935,
       "title": "Add initial specs for TLB",
       "url": "https://github.com/asterinas/vostd/pull/935",
-      "head": "eacf08fb9bc1bd231621c3e60601fa02c0399ea0",
-      "updatedAt": "2026-11-17T05:58:15Z"
+      "head": "d8d460998f66ee65f40c6cfe9ff1bcf558d81901",
+      "updatedAt": "2026-11-17T19:35:46Z"
     },
     {
       "n": 934,
       "title": "prove: verify seven frame ktests",
       "url": "https://github.com/asterinas/vostd/pull/934",
-      "head": "d80c2a32233e7d00ff8a4a336d4a511ae2cdd2f4",
-      "updatedAt": "2026-11-17T07:57:39Z"
+      "head": "bdebc7e9fe0927957ea0c8cc72c89d3c6dd58b49",
+      "updatedAt": "2026-11-17T11:00:44Z"
     }
   ]
 };
