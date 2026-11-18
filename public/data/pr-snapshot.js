@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-18T04:26:25.811Z",
+  "generatedAt": "2026-11-18T07:38:45.221Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -108,25 +108,25 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "9bc9010cdd34339ebb2752f4991e22fee1eddae0",
+      "head": "8a08b57135968e41bec2107c8593ededc72a2504",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\r\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\r\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\r\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\r\n\r\n---\r\n\r\nMaybe wait until the following PRs are merged:\r\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\r\n- [x] https://github.com/asterinas/vostd/pull/809",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-18T03:10:05Z",
+      "updatedAt": "2026-11-18T04:47:50Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -504,7 +504,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -846,7 +846,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -857,14 +857,14 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: verify kernel test result classification",
       "body": "Extract result classification from `KtestItem::run` into a verified helper in the same file, covering panic expectations and exact message matching while preserving runtime behavior. Panic capture and payload downcasting remain unverified.",
       "url": "https://github.com/asterinas/vostd/pull/942",
-      "updatedAt": "2026-11-17T15:16:22Z",
+      "updatedAt": "2026-11-18T07:35:55Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": null,
+      "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
-      "review": "无汇总结论",
-      "gate": "CLEAN",
+      "review": "需修改",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -875,14 +875,14 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: Verify bzImage payload encoding parsing",
       "body": "Verify `PayloadEncoding::from_str` with `#[verus_spec]`: accept exactly `raw`, `gzip`, and `zlib`, and return the exact original error prefix plus unchanged input for every other string.\n\nPreserve the `match` structure using equality guards, and construct errors with string append to reuse existing vstd contracts. Serde-generated `Serialize`/`Deserialize` implementations remain outside verification, following #916.",
       "url": "https://github.com/asterinas/vostd/pull/943",
-      "updatedAt": "2026-11-17T15:15:33Z",
+      "updatedAt": "2026-11-18T07:29:05Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": null,
+      "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
-      "review": "无汇总结论",
-      "gate": "CLEAN",
+      "review": "需修改",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -900,27 +900,35 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 945,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
       "head": "0913d1ce86e749b4a0f8c0a12ef6ef9b2d572cc2",
       "title": "rustc 1.100.0",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/945",
-      "updatedAt": "2026-11-18T04:18:50Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
+      "updatedAt": "2026-11-18T06:12:44Z",
+      "mergedAt": "2026-11-18T06:12:26Z",
+      "closedAt": "2026-11-18T06:12:26Z",
+      "mergeCommit": "b02cb9d12e879829551c1f5c6cc0583d0e9cc32b",
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
+      "gate": "UNKNOWN",
       "ci": "失败"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 947,
+      "title": "Update ci-irc11.yml and doc build",
+      "url": "https://github.com/asterinas/vostd/pull/947",
+      "head": "eea1266a2ccaf258a6766f6040503e0b2575d65e",
+      "updatedAt": "2026-11-18T07:26:48Z"
+    }
+  ]
 };
