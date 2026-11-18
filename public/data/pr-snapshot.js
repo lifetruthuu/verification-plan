@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-17T21:01:09.544Z",
+  "generatedAt": "2026-11-18T04:25:09.938Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -119,7 +119,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\r\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\r\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\r\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\r\n\r\n---\r\n\r\nMaybe wait until the following PRs are merged:\r\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\r\n- [x] https://github.com/asterinas/vostd/pull/809",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-17T11:40:44Z",
+      "updatedAt": "2026-11-18T03:10:05Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "失败"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -331,11 +331,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 887,
       "kind": "open",
       "draft": false,
-      "head": "f1f8591a20201ccb8d5d830d25663e60d1b8e598",
+      "head": "02fa63b7c260950c61471d66f220e41c05ab7b57",
       "title": "prove x86 context data exceptions",
       "body": "## Summary\r\n\r\nEnable the x86 user-context data path and verify that register, pointer, TLS, and exception updates change only the requested field.\r\n\r\n- `UserContext` getters and setters, `take_exception`, and the `UserContextApi` instruction-pointer, stack-pointer, and trap-metadata operations preserve every other saved register, the trap number, the error code, and the pending exception.\r\n- `CpuException::type_` covers every variant. `is_cpu_exception` accepts vectors 0 through 31. `CpuExceptionType::is_fault_or_trap` classifies fault and trap variants.\r\n- `activate_tls_pointer` stays `external_body`: it is the FSBASE write, and this change supplies no hardware-state postcondition.\r\n- Exception construction, user-mode execution, FPU save/restore, trap dispatch, and `UserMode` stay out until their hardware and scheduling contracts exist.",
       "url": "https://github.com/asterinas/vostd/pull/887",
-      "updatedAt": "2026-11-17T08:48:21Z",
+      "updatedAt": "2026-11-18T03:15:23Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -504,25 +504,25 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
       "n": 920,
       "kind": "open",
       "draft": false,
-      "head": "1358fc9ae84204e358d2da999325216af850c2c2",
+      "head": "d5764dad33a51a7686d34fe20c3a311d509ebdbe",
       "title": "prove: Verify x86 AVX feature detection",
       "body": "Enable and verify `has_avx()` and `has_avx512()` in the existing x86 module, adding 16 Verified executable LoC. Per-call ghost samples specify the original leaf-0 gate and the exact AVX/AVX-512F bit checks; other inactive code and existing comments are preserved.\n\nReplace the core CPUID intrinsics with the already specified `native_cpuid::cpuid_count`. The pinned x86/raw-cpuid implementation delegates to the same intrinsic and preserves all four registers, so query arguments and order are unchanged. No trusted boundary is added. The contracts describe this invocation's samples; they do not assume consistency across reads or prove all hardware and OS conditions for executing AVX instructions.\n\nPowered by fy0/Veriflow\n",
       "url": "https://github.com/asterinas/vostd/pull/920",
-      "updatedAt": "2026-11-17T10:38:23Z",
+      "updatedAt": "2026-11-18T03:13:33Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": null,
+      "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
-      "review": "无汇总结论",
-      "gate": "CLEAN",
+      "review": "需修改",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -740,50 +740,187 @@ window.PLAN_PR_SNAPSHOT = {
       "review": "无汇总结论",
       "gate": "UNKNOWN",
       "ci": "成功"
-    }
-  ],
-  "candidates": [
-    {
-      "n": 944,
-      "title": "prove: Verify RISC-V user context data operations",
-      "url": "https://github.com/asterinas/vostd/pull/944",
-      "head": "6e5d854834f0b2a57ceb6bb5c725e96c4140eacb",
-      "updatedAt": "2026-11-17T16:07:32Z"
-    },
-    {
-      "n": 943,
-      "title": "prove: Verify bzImage payload encoding parsing",
-      "url": "https://github.com/asterinas/vostd/pull/943",
-      "head": "53a020701cc05f8f99df03ed224e90bbe7ba234d",
-      "updatedAt": "2026-11-17T15:15:33Z"
-    },
-    {
-      "n": 942,
-      "title": "prove: verify kernel test result classification",
-      "url": "https://github.com/asterinas/vostd/pull/942",
-      "head": "3b0821b71b068164347e7d52a8624daf17bd94db",
-      "updatedAt": "2026-11-17T15:16:22Z"
-    },
-    {
-      "n": 940,
-      "title": "prove: Verify RISC-V ISA extension parsers",
-      "url": "https://github.com/asterinas/vostd/pull/940",
-      "head": "f7becca72affdc5c3b99654bf7d7e4c5218b1c23",
-      "updatedAt": "2026-11-17T13:00:26Z"
-    },
-    {
-      "n": 935,
-      "title": "Add initial specs for TLB",
-      "url": "https://github.com/asterinas/vostd/pull/935",
-      "head": "d8d460998f66ee65f40c6cfe9ff1bcf558d81901",
-      "updatedAt": "2026-11-17T19:35:46Z"
     },
     {
       "n": 934,
-      "title": "prove: verify seven frame ktests",
-      "url": "https://github.com/asterinas/vostd/pull/934",
+      "kind": "open",
+      "draft": false,
       "head": "bdebc7e9fe0927957ea0c8cc72c89d3c6dd58b49",
-      "updatedAt": "2026-11-17T11:00:44Z"
+      "title": "prove: verify seven frame ktests",
+      "body": "## Summary\n\nBring seven frame-management test functions into Verus verification. Cover allocation, cloning, release, borrowing, raw-pointer round trips, single-frame segment conversion, and linked-list push/pop operations.\n\nVerification covers successful allocation paths. Metadata-content assertions are retained for the migrated tests, while unsupported tests remain commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Frame allocation and reference management | `frame_allocation`, `frame_clone`, `frame_drop` |\n| Borrowing and raw-pointer permissions | `frame_ref_preserves_refcnt`, `frame_impls_non_null_ptr` |\n| Frame-to-segment conversion and iteration | `frame_to_segment` |\n| Linked-list insertion, traversal, and removal | `linked_list_push_pop` |\n\nThe frame tests check metadata values, reference counts, sizes, and addresses where supported. The raw-pointer test preserves the original `into_raw` → `from_raw` → `raw_as_ref` order, obtaining a borrowed pointer and reading permission from the restored frame before calling `raw_as_ref`.\n\nThe segment test proves that conversion preserves the frame's address, produces a page-sized segment, and yields the original metadata value during iteration.\n\nThe linked-list test retains all assertions on its successful allocation path, including cursor traversal in the order `2 → 1 → 3`, the terminal cursor state, pop results, and list sizes.\n\n## 2. Metadata representations\n\nAdd separate concrete representations for typed and untyped metadata carrying a `u32` value. Share their structure and representation implementations through `define_u32_frame_meta!`, while keeping their enum variants and typed/untyped trait behavior distinct.\n\nThe tests reuse these concrete types through `MockFrameMeta` and `MockUFrameMeta` aliases. The metadata model does not depend on the test module, and the original `Untyped` variant remains unchanged.\n\nExtend `MetaSlotSmall` to represent the linked-list test metadata. Use compact model layouts to retain the existing 64-byte size and 8-byte alignment checks for `MetaSlot`.\n\n## 3. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `Frame::borrow` | Specify that borrowing preserves the metadata-slot permission, supporting reference-count checks through the borrowed handle. |\n| `UniqueFrame::try_from_shared` | Expose the successful conversion's permissions, reference-count transition, and preservation of unrelated slots. |\n| Linked-list queries and cursor movement | Borrow owner permissions rather than consuming them, so callers can continue using the list or cursor. |\n| Linked-list insertion and removal | Specify metadata-value ordering and preservation of unrelated region entries. |\n| `CursorMut::current_meta` | Relate the returned metadata to the current element and preserve the list/region invariants after the mutable borrow ends. |\n| Frame-to-segment conversion | Add a proved bridge exposing the converted segment's invariant, address, size, and singleton iteration sequence without opening its internal representation. |\n| Segment iteration | Expose the finite iteration metric and add the test's metadata/permission invariant. |",
+      "url": "https://github.com/asterinas/vostd/pull/934",
+      "updatedAt": "2026-11-17T11:00:44Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
+    },
+    {
+      "n": 935,
+      "kind": "open",
+      "draft": false,
+      "head": "d8d460998f66ee65f40c6cfe9ff1bcf558d81901",
+      "title": "Add initial specs for TLB",
+      "body": "As the title shows.",
+      "url": "https://github.com/asterinas/vostd/pull/935",
+      "updatedAt": "2026-11-17T19:35:46Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": "CHANGES_REQUESTED",
+      "ciState": "SUCCESS",
+      "review": "需修改",
+      "gate": "BLOCKED",
+      "ci": "成功"
+    },
+    {
+      "n": 936,
+      "kind": "merged",
+      "draft": false,
+      "head": "d2a91c33ea02d576aa608779494523ab7572ade5",
+      "title": "refine: remove `ReprPerm`",
+      "body": "This PR removes `ReprPerm`, `from_repr` from `ReprPtr` since they are not actually useful. This is an internal change to `Repr` and should eventually be replaced with the new system that supports dynamic typing.",
+      "url": "https://github.com/asterinas/vostd/pull/936",
+      "updatedAt": "2026-11-17T08:03:32Z",
+      "mergedAt": "2026-11-17T07:36:33Z",
+      "closedAt": "2026-11-17T07:36:33Z",
+      "mergeCommit": "3c6dc67d4163ce550f157233e95e50f36704e22b",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
+    },
+    {
+      "n": 937,
+      "kind": "merged",
+      "draft": false,
+      "head": "93db8d35efab9f3d1f6f4e8a3b7daf92212d44e6",
+      "title": "breaking change: `count_ones`",
+      "body": "`vstd` now includes specification for `u64::count_ones`",
+      "url": "https://github.com/asterinas/vostd/pull/937",
+      "updatedAt": "2026-11-17T06:02:52Z",
+      "mergedAt": "2026-11-17T05:34:51Z",
+      "closedAt": "2026-11-17T05:34:51Z",
+      "mergeCommit": "99d70ca98778716ec69e47c583efc553bb55ef93",
+      "reviewDecision": null,
+      "ciState": "FAILURE",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "失败"
+    },
+    {
+      "n": 939,
+      "kind": "merged",
+      "draft": false,
+      "head": "009947da42322aa48696a468801d8e7a0949f21a",
+      "title": "Update ci-irc11.yml and simplify spec with `when_used_as_spec`",
+      "body": "",
+      "url": "https://github.com/asterinas/vostd/pull/939",
+      "updatedAt": "2026-11-17T06:43:31Z",
+      "mergedAt": "2026-11-17T06:43:26Z",
+      "closedAt": "2026-11-17T06:43:26Z",
+      "mergeCommit": "525267ea3dd9f39cc81e9ad9cfee23c05dc10294",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
+    },
+    {
+      "n": 940,
+      "kind": "open",
+      "draft": true,
+      "head": "f7becca72affdc5c3b99654bf7d7e4c5218b1c23",
+      "title": "prove: Verify RISC-V ISA extension parsers",
+      "body": "Enable the RISC-V CPU extension module and verify that both device-tree ISA parsers return exactly the flags matched by the existing extension table. Replace unsupported string and iterator operations with equivalent byte scans. The string parser requires valid UTF-8; the list parser accepts arbitrary bytes.\r\n\r\nComplete the shared `bitflags!` contracts for name lookup, known and unknown bits, and compound assignments.",
+      "url": "https://github.com/asterinas/vostd/pull/940",
+      "updatedAt": "2026-11-17T13:00:26Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
+    },
+    {
+      "n": 942,
+      "kind": "open",
+      "draft": false,
+      "head": "3b0821b71b068164347e7d52a8624daf17bd94db",
+      "title": "prove: verify kernel test result classification",
+      "body": "Extract result classification from `KtestItem::run` into a verified helper in the same file, covering panic expectations and exact message matching while preserving runtime behavior. Panic capture and payload downcasting remain unverified.",
+      "url": "https://github.com/asterinas/vostd/pull/942",
+      "updatedAt": "2026-11-17T15:16:22Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
+    },
+    {
+      "n": 943,
+      "kind": "open",
+      "draft": false,
+      "head": "53a020701cc05f8f99df03ed224e90bbe7ba234d",
+      "title": "prove: Verify bzImage payload encoding parsing",
+      "body": "Verify `PayloadEncoding::from_str` with `#[verus_spec]`: accept exactly `raw`, `gzip`, and `zlib`, and return the exact original error prefix plus unchanged input for every other string.\n\nPreserve the `match` structure using equality guards, and construct errors with string append to reuse existing vstd contracts. Serde-generated `Serialize`/`Deserialize` implementations remain outside verification, following #916.",
+      "url": "https://github.com/asterinas/vostd/pull/943",
+      "updatedAt": "2026-11-17T15:15:33Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
+    },
+    {
+      "n": 944,
+      "kind": "open",
+      "draft": true,
+      "head": "6e5d854834f0b2a57ceb6bb5c725e96c4140eacb",
+      "title": "prove: Verify RISC-V user context data operations",
+      "body": "Enable in-place Verus verification of the RISC-V saved user-context data operations. Specify zero initialization, register access and mutation, exception consumption, TLS pointer access, trap-frame conversion, and instruction/stack pointer access. Mutating operations preserve the remaining saved context through complete state contracts.\n\nKeep `as_trap_frame` and the IP/SP methods in their original `UserContextApiInternal` and `UserContextApi` implementations, and verify the existing `activate_tls_pointer` no-op in its original inherent impl. Enable the original user trait declarations on RISC-V and the crate-visible `TrapFrame` reexport needed by their existing import path. All changes stay in eight existing files.\n\nThe executable rewrites expose zero initialization to Verus: replace the derived `GeneralRegs::default` with an explicit implementation and initialize `UserContext` through `RawUserContext::zeroed`. Every field retains its original default value, with the original Rust forms recorded beside the changes. Hardware execution, trap handlers, assembly, and unfinished trap-number/error methods remain commented in place. The verified scope covers saved data and concrete trait implementations; it does not establish hardware execution or generic trait contracts.",
+      "url": "https://github.com/asterinas/vostd/pull/944",
+      "updatedAt": "2026-11-17T16:07:32Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
+    },
+    {
+      "n": 945,
+      "kind": "open",
+      "draft": false,
+      "head": "0913d1ce86e749b4a0f8c0a12ef6ef9b2d572cc2",
+      "title": "rustc 1.100.0",
+      "body": "",
+      "url": "https://github.com/asterinas/vostd/pull/945",
+      "updatedAt": "2026-11-18T04:18:50Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "FAILURE",
+      "review": "无汇总结论",
+      "gate": "UNSTABLE",
+      "ci": "失败"
     }
-  ]
+  ],
+  "candidates": []
 };

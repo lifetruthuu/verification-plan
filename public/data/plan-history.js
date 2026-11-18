@@ -1156,5 +1156,52 @@ window.PLAN_HISTORY = [
     "revision": 4,
     "date": "2026-11-16",
     "reason": "修正依赖验收与页面就绪状态的联动：仅有未交付验收前置的工作由“可开始”改为“前置待交付”，可做条件证明但须等待组合验收；所有确认前置显式验收后才“前置就绪”。开放 PR 继续单列未交付合同，PR 合并不解除依赖。基于本版快照，原 79 项可开始分为 15 项就绪、64 项待交付；22 项 PR 进行中有 10 项缺前置，3 项已有验收记录，0 项有已确认的开工阻塞。工作项 ID、依赖关系和历史验收依据沿用 r3；本版调整状态规则，未新增源码或 PR head 复核。补充 #706 跨路线消费者、#855 限定完成及合并不解锁的回归校验。"
+  },
+  {
+    "revision": 5,
+    "date": "2026-11-18",
+    "reason": "按 11 月 18 日 VOSTD main 和开放 PR 复核。拆分 payload 参数解析和内核测试结果分类，更新 TLB、MMIO、CPU 特性与已合并工作的验收缺口。",
+    "splits": [
+      {
+        "from": "BZ_ENCODE",
+        "to": ["BZ_ENCODE", "BZ_PARSE"],
+        "why": "encode_kernel 直接接收枚举，#943 单独交付字符串到枚举的解析。"
+      },
+      {
+        "from": "COMMON_AUDIT",
+        "to": ["COMMON_AUDIT", "KTEST_RESULT"],
+        "why": "#942 的内核测试结果分类有独立调用者与验收条件。"
+      }
+    ],
+    "edgesAdded": [
+      {
+        "a": "BZ_PARSE",
+        "b": "ACC_SCOPE",
+        "why": "汇总独立的参数解析交付。"
+      },
+      {
+        "a": "KTEST_RESULT",
+        "b": "COMMON_AUDIT",
+        "why": "把 ostd-test 中已有明确交付的分类器纳入公共 API 清单。"
+      }
+    ],
+    "edgesChanged": [
+      {
+        "a": "CPU_FEAT",
+        "b": "CPU_ENABLE",
+        "why": "#920 将独立采样改为基于共享平台假设的能力判断。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "APIC_RESERVE",
+        "why": "按 #706 当前的 remove 合同标明消费者仍缺的保留效果。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_WIN",
+        "why": "按 #706 最新接口替换已移除的 RangeAllocatorPermits 与 state_matches。"
+      }
+    ],
+    "prs": "#934 同时实施 frame 和 VM I/O 测试。#935 吸收 #677 的部分设计。#940 和 #944 仅记录共享代码协调。#895、#927、#931 已合入，仍缺调用者、内容或实际 builder 证据。更新 #706、#860、#883、#887、#900、#920 的覆盖说明，并记入 #936/#937/#939 的主线接口改动。#945 跟踪 Rust 1.100.0 对 RangeAllocator 的影响。"
   }
 ];

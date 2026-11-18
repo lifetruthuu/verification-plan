@@ -13,8 +13,8 @@ window.PLAN_BASE = {
   repo: "https://github.com/asterinas/vostd",
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
-    date: "2026-11-16",
-    sha: "032089aa3d4603fa68f3f874cddfc6d61ff81225",   // #932 vendors dv; ostd/verified_libs unchanged since 8e681282d
+    date: "2026-11-18",
+    sha: "11d378516c021b68e3fd08298426935e10851cb3",
     snapshotAt: "2026-11-13 17:44（北京时间）",
     snapshotSha: "90087275ebd4b974596947d11d3da27d722e05d3",
   },
@@ -54,7 +54,7 @@ window.PLAN_BASE = {
     { id: "IO_ALLOC", lane: "common", face: "io/io_mem · util/range_alloc", title: "MMIO 窗口分配与 remove 资源合同",
       mods: ["util/range_alloc", "io/io_mem"],
       todo: [
-        "#706 的 builder new/remove、窗口状态与 RangeAllocator 权限转移；局部分配不等于全局窗口登记。new 给出 state_matches，remove 消费 can_remove 与 io_mem_range_registered。IoMem 映射/访问、全局初始化另由 IO_MMIO / IO_GLOBAL 交付。",
+        "#706 的 builder::new 证明窗口视图与输入一致，将 has_registered_windows 归约到输入窗口匹配。实例 acquire 成功返回对应区间的 FreePermit。remove 只要求非空区间和 may_panic()，还需向调用方提供成功保留、冲突及其他区间保持的合同。",
       ],
       accept: "交付可供 IO_WIN、APIC_RESERVE、IOAPIC_REG 使用的局部窗口和权限合同；以给定合法窗口证明范围移除、互不重叠、失败状态保持及回收资格即可验收。不能要求下游 APIC/IOAPIC 已全部完成才关闭本项。固件区域真实性属 TB_BOOT_INPUT。",
       src: "§4 · §5 阶段 A" },
@@ -68,7 +68,7 @@ window.PLAN_BASE = {
     { id: "IO_WIN", lane: "x86", face: "boot/memory_region · arch/x86/io", title: "引导 MMIO 窗口 → 登记权限",
       mods: ["boot/memory_region", "arch/x86/io"],
       todo: [
-        "construct_io_mem_allocator_builder 从 EARLY_INFO.memory_regions 筛选区域并计算低、高 MMIO 窗口；目前未被验证，也没有建立与 registered_io_mem_windows() 的相等关系（arch/x86/io.rs，#706 head 44061a4945）。",
+        "construct_io_mem_allocator_builder 从 EARLY_INFO.memory_regions 筛选区域并计算低、高 MMIO 窗口；目前未被验证，也没有建立与 registered_io_mem_windows() 的相等关系（arch/x86/io.rs，#706 head 9bc9010cdd）。",
         "#706 对 x86 builder 构造函数本身的改动不足以建立这条端到端关系；MemoryRegion 的局部证明补不出固件布局的真实性。",
       ],
       accept: "交付：builder 返回的权限与实际引导 MMIO 窗口一一对应的证明。窗口列表来自未纳入计划的 arch/x86/boot，属可信边界 TB_BOOT_INPUT；动态显式释放资格仍须逐消费者验收。",
@@ -79,7 +79,7 @@ window.PLAN_BASE = {
       mods: ["trap/irq", "arch/x86/irq"],
       todo: [
         "确定同一 CPU 的 IF 状态、IRQ 嵌套和恢复权限由谁拥有。",
-        "#879 用 LocalIrqGuardOwner / CpuLocalAuth<bool>（specs/task/irq.rs @6cec73d064），#900 用 CpuCoreOwner / LocalIrqGuardToken（specs/task/cpu_core.rs @c8b604c0ec）：两者没有相互转换的不变式，需选统一状态或建立显式关联不变式。",
+        "#879 用 LocalIrqGuardOwner / CpuLocalAuth<bool>（specs/task/irq.rs @6cec73d064），#900 用 CpuCoreOwner / LocalIrqGuardToken（specs/task/cpu_core.rs @0e5815a712）：后者用 GhostSetAuth 登记 IRQ guard 并提供 tracked_forget_local。两者没有相互转换的不变式，需选统一状态或建立显式关联不变式。",
       ],
       accept: "交付统一的 IF/嵌套深度/恢复权限状态及 #879 owner 与 #900 CpuCoreOwner 的关联不变式，供 IRQ_GUARD、IRQ_DROP 和 trap 入口建立转换。逐个状态转移验证一致性，不能只保留互不相关的两个模型；初始 CPU 状态与硬件 IF 指令分别由 TB_BOOT_INPUT/TB_HW_OPS 记录。#900 已撤回禁抢占 fallback，不能据旧标题计入交付。",
       src: "§5 阶段 A · §6" },
@@ -150,7 +150,7 @@ window.PLAN_BASE = {
     { id: "VM_POD", lane: "common", face: "mm/io · mm/test", title: "Pod · 切片 · 可失败 VM I/O 测试",
       mods: ["mm/io", "mm/test"],
       todo: [
-        "#927：Pod derive、切片与可失败 VM I/O 测试；恢复 Pod derive、补 cursor 合同及可信 Vec 可变索引规约。main 已有 VM I/O 边界、失败保持与 limit 合同（#924）。",
+        "#927 已合入 f0d568203，11 个 VM I/O 测试函数接入 Verus，恢复 Pod derive 并补充 cursor 返回值合同。补上仍注释的字节相等、可失败操作成功和精确复制量断言，明确运行期 ktest 覆盖。#934 已补部分复制成功与 PageFault 分支的计数和游标断言，字节内容仍待验证。",
       ],
       accept: "以 VM_REPR 合同恢复内容相等、成功返回和精确复制量断言，并明确恢复哪些运行期 ktest；测试须调用实际 Pod/VM I/O API。测试通过只验收这些例子，成功/部分故障全链由 F_BYTES 验收；原始转换/Vec 外部规约逐条记录。",
       src: "§4" },
@@ -166,9 +166,9 @@ window.PLAN_BASE = {
       mods: ["mm/tlb"],
       todo: [
         "#677：OpsStack 不变式、push / merge / clear、请求覆盖与逻辑提交；OpsStack::new、硬件刷新、dispatch、sync 仍可信，CPU locality 与 frame 保留未建模。#570：tracked update / flush 规格，须与 #677 的模型协调（main 仍有对应公理，不能称已被取代）。",
-        "main 的 issue / dispatch 仍可信；逻辑 dispatch 只取最后一项，Range 只处理 range.start，不能代表整队硬件刷新。#838 的通用 TLB 基础与 #903 的模型清理纳入旧分支迁移。",
+        "#935 吸收 #677 的部分设计，以 FlushSet 表示请求、CpuTlb/TlbModel 区分驻留映射与陈旧条目。Range 按 PAGE_SIZE 建模，入队和升级为 all_user 已有合同。协调 #570 的映射更新接口，补 dispatch/sync 及当前 CPU 的固定证明。",
       ],
-      accept: "交付请求集合覆盖、队列 push/merge/clear 和 tracked 映射更新合同，供 TLB_SHOOT/TLB_FREE 使用；验证零请求、Range 全范围和队列所有请求，协调 #677/#570 与 main 的模型。逻辑提交不代表远端完成；OpsStack::new 的可信构造与硬件操作分开登记。",
+      accept: "交付请求集合覆盖、队列 push/merge/clear 和 tracked 映射更新合同，供 TLB_SHOOT/TLB_FREE 使用；验证零请求、Range 全范围和队列所有请求，协调 #935、#677、#570 与 main 的模型。逻辑提交不代表远端完成；OpsStack::new 的可信构造与硬件操作分开登记。",
       src: "§5 阶段 C · §7" },
     { id: "TLB_SHOOT", lane: "common", face: "mm/tlb · arch/x86/mm", title: "TLB shootdown：远端刷新与完成确认",
       mods: ["mm/tlb", "arch/x86/mm"],
@@ -180,7 +180,7 @@ window.PLAN_BASE = {
     { id: "TLB_FREE", lane: "common", face: "mm/tlb · mm/frame", title: "待释放页面保留；释放在确认之后",
       mods: ["mm/tlb", "mm/frame"],
       todo: [
-        "证明待释放页面的保留义务：page_keeper 的 push / extend / clear 在 main 都在注释里，#677 也未恢复。",
+        "#935 的 issue_tlb_flush_with 入队后即丢弃传入 frame，page_keeper 仍被注释。恢复所有权保留，覆盖队列合并、清除和远端完成后的释放。",
         "页框释放必须在所需确认之后。",
       ],
       accept: "验收跨 CPU 完成与资源释放；传入 frame 不能据接口名算作已保留。",
@@ -429,9 +429,9 @@ window.PLAN_BASE = {
     { id: "CPU_FEAT", lane: "x86", face: "arch/x86/mod.rs", title: "CPU 特性位检测（AVX / AVX-512F）",
       mods: ["arch/x86/mod"],
       todo: [
-        "#920：以每次调用的 ghost 采样表达叶支持与特性位；改用已有规约的 native_cpuid::cpuid_count。main 的 has_avx / has_avx512 / enable_cpu_features 均在注释里。",
+        "#920 使用 core CPUID 指令及 vstd_extra 的 CpuModel。has_avx 和 has_avx512 分别返回 cpu_model().supports_avx() 和 supports_avx512f()。核对平台上各逻辑 CPU 的最大基本叶和相关位在执行期间稳定且相同的假设。",
       ],
-      accept: "交付 has_avx/has_avx512 的采样位与返回值合同，供 CPU_ENABLE 使用；按 #920 的限定函数收尾验收。OSXSAVE/XCR0 配置归 CPU_ENABLE，跨次/跨核 CPUID 一致性按 TB_HW_OPS 单列。",
+      accept: "交付 CPU_ENABLE 可用的叶支持与 AVX/AVX-512F 位判断合同，登记 core CPUID 外部规约和跨核稳定假设。OSXSAVE、XCR0 和指令可执行条件由 CPU_ENABLE 验收。",
       src: "§4" },
     { id: "FPU_REPR", lane: "x86", face: "arch/x86/cpu/context", title: "FPU 表示、有效长度与 clone",
       mods: ["arch/x86/cpu"],
@@ -505,7 +505,7 @@ window.PLAN_BASE = {
     { id: "PCI_TYPES", lane: "common", face: "bus/pci", title: "PCI 数据类型 · getter · 位操作（#895）",
       mods: ["bus/pci"],
       todo: [
-        "#895：PCI 数据类型、IoBar getter、vendor len、set_bit(offset < 16)；枚举、BAR、capability / MSI-X 主体继续注释。",
+        "#895 已合入 11d378516，包含 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit。PCI 枚举和设备构造调用仍未接入已验证路径，需补一处实际调用的前置建立与结果使用证据。",
       ],
       accept: "交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。与 #706/#919 协调同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。",
       src: "§4 · §7" },
@@ -572,7 +572,7 @@ window.PLAN_BASE = {
     { id: "SA_RCU", lane: "common", face: "sync/rcu · 弱内存模型", title: "RCU 宽限期 / 静止点合同",
       mods: ["sync/rcu"],
       todo: [
-        "#860：显式 context 下的读保护、retirement、宽限期与回收，含 owning-link 与负例验收；scheduler / preemption 接线仍缺，callback allocation / type erasure / dispatch 保留 external_body。#487 是更早的大范围弱内存模型分支，disable_preempt 仍标“unsound”。二者都要迁移 #922 的 pool registry。",
+        "#860：显式 context 下的读保护、retirement、宽限期与回收，含 owning-link 与负例验收；scheduler / preemption 接线仍缺，callback allocation / type erasure / dispatch 保留 external_body。#487 是更早的大范围弱内存模型分支，disable_preempt 仍标“unsound”。核对 #860 更新后的 registry/lease 和原生 view 接口，#487 仍须对齐 #922。",
       ],
       accept: "交付读保护、retirement、宽限期和回收合同，供 switch_to_task::finish_grace_period 与 RCU 客户使用；迁移 #922 registry 并用真实 context/负例核对权限。scheduler/preemption 与 callback 分配/dispatch 的未连接部分必须说明，不能把 #487 的 unsound/桩作为运行证据。",
       src: "§7" },
@@ -606,14 +606,19 @@ window.PLAN_BASE = {
       todo: [
         "#931 在 to_flat_binary 上证明 ret@ == flat_binary_spec：按 program header 顺序扩容/复制，file_size <= mem_size 与地址上界作为 requires。新追加区间填零；重叠段的 memory-only 尾部保留旧字节，并非整段重新清零。make_bzimage 的尾部对齐与全链输入前置尚未覆盖。",
       ],
-      accept: "固定 head @d30c271708585a0ae89b5eafd1dd795bc98281a9 的 flat binary 局部合同可供 BZ_OUT 使用；输入谓词/结果 spec 当前私有，实际 make_bzimage 调用点未证明、外部 parser/get_data 仍可信。验收须补调用者可建立条件和输出区域合同，不把 #931 当完整 builder 已完成。",
+      accept: "#931 已合入 46d3b1e7e，flat_binary_prefix 用 fold_left 按段构造结果。输入谓词和结果规格仍私有。在实际 make_bzimage 调用处建立输入条件，并证明末端对齐和输出区间。parser/get_data 的来源随 BZ_ELF 验收。",
       src: "§2" },
+    { id: "BZ_PARSE", lane: "bzimage", face: "linux-bzimage/builder · encoder.rs", title: "payload 编码参数解析",
+      mods: ["libs/linux-bzimage"],
+      todo: ["#943 的 FromStr 精确匹配 raw、gzip、zlib，其他输入返回固定前缀接原字符串。补 From<OsString> 与 From<&OsStr> 对 to_string_lossy 和 unwrap 的调用条件。"],
+      accept: "用实际参数转换调用证明合法值的枚举结果，核对非法输入的完整错误文本、OS 字符串转换与 panic 行为。Serde 派生实现单列为外部边界。",
+      src: "§6" },
     { id: "BZ_ENCODE", lane: "bzimage", face: "libs/linux-bzimage · encoder.rs", title: "压缩 / 未压缩 payload 路径",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "encoder.rs::encode_kernel 的 Raw / Gzip / Zlib 结果与失败行为；PayloadEncoding 参数转换。",
+        "对 encode_kernel 的 Raw、Gzip、Zlib 分支证明输出字节、解码对应和写入或结束失败时的行为。入口直接接收 PayloadEncoding。",
       ],
-      accept: "交付 encode_kernel 的 Raw/Gzip/Zlib 输出对应、参数转换和失败合同，供外部构建工具使用；解压对应关系需有库合同或产物检查。与 make_bzimage 的实际连接尚待构建 manifest 证据，不能推定调用。",
+      accept: "交付 encode_kernel 的 Raw/Gzip/Zlib 输出对应和失败合同，供外部构建工具使用；解压对应关系需有库合同或产物检查。与 make_bzimage 的实际连接尚待构建 manifest 证据，不能推定调用。",
       src: "§2" },
     { id: "BZ_OUT", lane: "bzimage", face: "libs/linux-bzimage", title: "输出区间不重叠与失败行为",
       mods: ["libs/linux-bzimage"],
@@ -672,7 +677,7 @@ window.PLAN_BASE = {
     { id: "MM_FRAME", lane: "common", face: "mm/frame", title: "Frame / Segment 分配、元数据与释放",
       mods: ["mm/frame"],
       todo: [
-        "补 FrameAllocOptions、Frame/Segment 元数据初始化、引用计数/类型转换、所有权移交和释放合同；#720 的类型接口仅按实际调用复用。",
+        "#934 的七个测试函数覆盖成功分配、clone/drop、借用、raw 往返、单帧 Segment 和链表。复核元数据与计数保持，补分配失败、未覆盖的转换和实际释放义务。该分支已适配 #936 移除 ReprPerm 后的接口。",
       ],
       accept: "供栈、动态 CPU-local、页表和 DMA 使用：分配失败不伪造内存，成功给出对齐、存活、互不重叠和元数据权限。用户 GlobalFrameAllocator 实现属 TB_ALLOC；OSTD 包装与元数据义务仍在本项。",
       src: "r3 源码复核" },
@@ -765,7 +770,7 @@ window.PLAN_BASE = {
       todo: [
         "从 XSAVE 拆出 enable_cpu_features/enable_essential_features 的 CR0/CR4/EFER/XCR0、XSAVE 区大小与 Once 发布合同。",
       ],
-      accept: "供 BSP/AP 初始化和 FPU save/load 使用：特性采样到启用寄存器的条件闭合；同核/跨核 CPUID 一致性不能从两个布尔检测推得，硬件效果属 TB_HW_OPS。",
+      accept: "为 BSP/AP 和 FPU 调用方建立 OSXSAVE、XCR0 与寄存器启用条件。使用 #920 时，跨核 CPUID 稳定性作为 TB_HW_OPS 的平台输入核对。",
       src: "r3 源码复核" },
     { id: "VM_REPR", lane: "common", face: "libs/ostd-pod · mm/io", title: "Pod / buffer 与字节视图桥接",
       mods: ["libs/ostd-pod", "mm/io"],
@@ -837,6 +842,11 @@ window.PLAN_BASE = {
       ],
       accept: "交付实际创建、首次执行、调度/等待/唤醒和退出的资源证据，覆盖分配失败、无 scheduler 时的 FIFO fallback、CPU 选择与远端通知。客户调度策略/回调进展属 TB_CLIENT_HOOKS；内置 FIFO 和软件通知包装在本项范围内，不能由注入接口的可信边界豁免。",
       src: "§7 · r3 源码复核" },
+    { id: "KTEST_RESULT", lane: "common", face: "libs/ostd-test", title: "内核测试结果分类",
+      mods: ["libs/ostd-test"],
+      todo: ["#942 在 KtestItem::run 中调用 classify_test_result，验证正常返回、PanicInfo 和未知 payload 在各类 should_panic 期望下的结果，包括消息完全匹配。"],
+      accept: "以 run 的实际调用核对 outcome、期望消息、错误值及 panic 信息的保留。记录 catch_unwind_impl 与 Any::downcast 的输入条件及 ostd-test 的验证结果。",
+      src: "§7" },
     { id: "COMMON_AUDIT", lane: "common", face: "cpu/set · user · timer · util · 辅助库", title: "公共 API 与残留占位清单验收",
       mods: ["cpu/set", "user/user", "timer/mod", "util/ops", "console/console", "logger/logger", "panic/panic"],
       todo: [
@@ -904,11 +914,12 @@ window.PLAN_BASE = {
     {
       "id": "TB_HW_OPS",
       "provider": "CPUID / MSR / volatile / 汇编的外部规约",
-      "input": "has_xapic_spec 等 uninterp 的 spec、#905 的两条乘积上界 assume、CR3 与 invlpg 的 external_body。",
+      "input": "#920 的 core CPUID 规约假定所有逻辑 CPU 在执行期共享最大基本叶及受支持叶的 AVX/AVX-512F 位，包含虚拟化与 TDX 呈现的值。另有 has_xapic_spec 等 uninterp 的 spec、#905 的两条乘积上界 assume、CR3 与 invlpg 的 external_body。",
       "consumers": [
         "APIC_PROBE",
         "LAPIC_DEV",
         "CPU_FEAT",
+        "CPU_ENABLE",
         "CAL_FREQ",
         "PT_X86",
         "IO_PIO",
@@ -1004,7 +1015,12 @@ window.PLAN_BASE = {
   ],
 
   /* Open PRs inspected and deliberately NOT linked to any work item. */
-  reviewedCandidates: [{"n":930,"head":"5b25275eda60df30500cc5d2aea70c0e1d0f97bb","reviewedAt":"2026-11-16","note":"已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。"}],
+  reviewedCandidates: [{"n":930,"head":"5b25275eda60df30500cc5d2aea70c0e1d0f97bb","reviewedAt":"2026-11-16","note":"已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。"},
+    {"n":933,"head":"d99455d023bbfa4834ebf02cbeea95244dd45148","reviewedAt":"2026-11-18","note":"仅更新审阅技能中对证明角色与资源记账的检查，没有修改验证对象。"},
+    {"n":938,"head":"bc9132d66d943df4e039630d7dceadf3d03299fa","reviewedAt":"2026-11-18","note":"修改 when_used_as_spec 编码指南，没有变更合同或调用者。"},
+    {"n":941,"head":"6e5d854834f0b2a57ceb6bb5c725e96c4140eacb","reviewedAt":"2026-11-18","note":"已关闭未合并。#944 采用相同 head，共享 user.rs 的协调统一在 #944 跟踪。"},
+    {"n":946,"head":"5e44fbf2fca9f16a078e8ba0ad4fa8dd97316da5","reviewedAt":"2026-11-18","note":"仅修改编码指南和审阅规则，说明执行代码的注释要求以及如何为原调用补规格。"}
+  ],
 
   /* Work the roadmap deliberately does NOT show: RISC-V / LoongArch and multi-architecture
    * migration items (decision 2026-11-16: the page covers the x86, bzImage and common
@@ -1018,7 +1034,7 @@ window.PLAN_BASE = {
     { id: "RV_SLICE", lane: "common", face: "arch/riscv/{cpu,irq,trap,timer}", title: "RISC-V 平台垂直切片",
       mods: ["arch/riscv/cpu", "arch/riscv/irq", "arch/riscv/trap", "arch/riscv/timer"], needs: [], needsInf: ["LOC_ACC", "IRQ_DROP", "PT_CFG"], prs: [], reuse: [],
       todo: ["先选平台垂直切片，再扩展 API 覆盖。", "消费公共基础与内存的共享合同。"],
-      accept: "不假设硬件语义相同；跨架构合同修改应至少增加一个不同架构的验证目标；文档没有为该架构列出独立 PR。", src: "§1" },
+      accept: "不假设硬件语义相同；跨架构合同修改应至少增加一个不同架构的验证目标；#940 与 #944 分别覆盖 ISA 字符串解析和保存的用户上下文，#941 已关闭。", src: "§1" },
     { id: "LA_SLICE", lane: "common", face: "arch/loongarch/{cpu,irq,trap,timer}", title: "LoongArch 平台垂直切片",
       mods: ["arch/loongarch/cpu", "arch/loongarch/irq", "arch/loongarch/trap", "arch/loongarch/timer"], needs: [], needsInf: ["LOC_ACC", "IRQ_DROP", "PT_CFG"], prs: [], reuse: [],
       todo: ["先选平台垂直切片，再扩展 API 覆盖。", "消费公共基础与内存的共享合同。"],

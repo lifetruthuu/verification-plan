@@ -6,12 +6,12 @@
 window.PLAN_PR_CATALOG = [
   {
     "n": 920,
-    "scope": "AVX/AVX-512F 采样检测；收尾后供 CPU 特性启用消费",
+    "scope": "基于共享 CpuModel 的 AVX/AVX-512F 能力检测",
     "implements": ["CPU_FEAT"],
     "reuses": [],
-    "note": "自身改动只有 arch/x86/mod.rs 的 has_avx / has_avx512 / CpuidFeatureSamples；转为收尾任务。仍未证明 OSXSAVE / XCR0 条件、跨次 CPUID 一致性或完整 enable_cpu_features。",
-    "reviewedHead": "24b49326748e8a1488c4f79d4903be657b9c29df",
-    "reviewedAt": "2026-11-16"
+    "note": "代码已恢复 core::arch::x86_64::{__cpuid, __cpuid_count}，通过新增外部规约连接 cpu_model()；PR 正文仍描述旧的每次调用采样。最大基本叶、受支持叶的位在所有逻辑 CPU 上稳定一致是平台假设。OSXSAVE、XCR0 和实际启用留给 CPU_ENABLE。",
+    "reviewedHead": "d5764dad33a51a7686d34fe20c3a311d509ebdbe",
+    "reviewedAt": "2026-11-18"
   },
   {
     "n": 919,
@@ -24,28 +24,25 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 706,
-    "scope": "静态/动态 PIO、MMIO 分配/映射与 x86 PCI read32/write32 底座；多个接口前置，尚未验收",
+    "scope": "静态/动态 PIO、MMIO 窗口分配与 PCI 配置端口",
     "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL"],
     "reuses": ["IO_WIN", "PIT_CFG", "PCI_BAR"],
-    "note": "复核最新 7c710f060f7a5ed3330aba64a9f711e6dd5edac9：较 477db699e 合入 main，并将 allocator 的 PageFlags::RW() 改为关联常量，IO 合同未变。builder new/remove 局部权限已证；IoMem::new/acquire、VmIo/Once 与全局状态连接仍可信，obeys_vmio_* 为 false。静态端口不等动态 allocator；全宽硬件上界 65536，new 端点 <=65535。未改 BAR 主体，PCI_BAR 仅复用。宽度/重叠端口审阅已有 requires/说明回应，尚无新批准。最新 x86 CI 通过，两个非 x86 作业仍失败于 cpu/set.rs:300 assert(bit_at(seq,j))，根因未实验确认。",
-    "reviewedHead": "7c710f060f7a5ed3330aba64a9f711e6dd5edac9",
-    "reviewedAt": "2026-11-16",
+    "note": "builder::new 给出窗口视图和登记条件，实例 acquire 返回 FreePermit；PIO 用与 IdAlloc 关联的集合记录 claim。remove 缺少可供设备调用者使用的成功保留后置条件。公开 IoMem::new/acquire、全局 init 及实际设备效果仍可信。已保留 #895 的 capability/cfg_space 开关。当前三架构验证通过。",
+    "reviewedHead": "9bc9010cdd34339ebb2752f4991e22fee1eddae0",
+    "reviewedAt": "2026-11-18",
     "evidence": [
-      "ostd/src/io/io_mem/{mod,allocator}.rs::new,remove,acquire; ostd/src/arch/x86/{io,pci}.rs @7c710f060f7a5ed3330aba64a9f711e6dd5edac9",
-      "https://github.com/asterinas/vostd/pull/706#discussion_r4559437004",
-      "https://github.com/asterinas/vostd/pull/706#discussion_r4560880943",
-      "https://github.com/asterinas/vostd/actions/runs/43826147600/job/133160348725",
-      "https://github.com/asterinas/vostd/actions/runs/43826147600/job/133160348840"
+      "ostd/src/io/io_mem/allocator.rs::new,remove,acquire; ostd/src/io/io_port/allocator.rs::IoPortAllocInvariant @9bc9010cdd34339ebb2752f4991e22fee1eddae0",
+      "https://github.com/asterinas/vostd/actions/runs/44074778094"
     ]
   },
   {
     "n": 895,
-    "scope": "PCI 数据类型/getter/位操作；当前不提供 IRQ/trap 运行路径",
+    "scope": "已合入 main 11d378516 的 PCI 类型、getter 和位操作",
     "implements": ["PCI_TYPES"],
     "reuses": ["PCI_ENUM", "PCI_CAP", "PCI_MSIX"],
-    "note": "最新 b0db47c885eb9af77bf53233d0d80c5d277bcf9d 只合入 main，PCI 自身证明未变：zero、IoBar getter、vendor len、set_bit(offset < 16)。与 #706/#919 重叠 PciDeviceLocation 及模块开关；#895 启用 capability/cfg_space，#706 注释它们。冗余说明审阅已修改，GitHub 仍保留要求修改状态。",
-    "reviewedHead": "b0db47c885eb9af77bf53233d0d80c5d277bcf9d",
-    "reviewedAt": "2026-11-16"
+    "note": "核对 zero、IoBar getter、CapabilityVndrData::len 和 set_bit(offset < 16)。PciDeviceId::new 与 PCI 枚举/设备初始化调用仍被注释，location 的公共 u8 字段也未建立整个设备号范围不变式。PCI_TYPES 待补已验证消费者。",
+    "reviewedHead": "5ed7a2c167d0faaf215beb1b5844fefe125e2a65",
+    "reviewedAt": "2026-11-18"
   },
   {
     "n": 879,
@@ -58,12 +55,12 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 900,
-    "scope": "运行 IRQ/Drop 与 CPU core 模型；执行和 proof state 尚未连接",
+    "scope": "IRQ guard 的运行层与 CPU core 的嵌套记账",
     "implements": ["IRQ_MODEL", "IRQ_GUARD", "IRQ_DROP"],
     "reuses": ["LOC_ID", "PREEMPT_PIN"],
-    "note": "head 已更新；自身改动只有 specs/task/cpu_core.rs、arch/x86/irq.rs、trap/irq.rs。PR 标题与描述仍写“用 IRQ guard 作禁抢占后备”，但评审后该改动已撤回，当前 head 不改 task/preempt/guard.rs；main 与本 head 的 disable_preempt() 都是 unimplemented!()。执行 guard、Drop、trap 入口与 proof state 尚未连接；“Original comments are modified”意见已恢复。",
-    "reviewedHead": "c8b604c0ec69db3bdf4bac683c04218ea1184432",
-    "reviewedAt": "2026-11-16"
+    "note": "CpuCoreOwner 以 GhostSetAuth 和 token 标识 IRQ guard，新增 tracked_forget_local；运行层恢复 STI 后的 NOP。公开 guard/Drop 与 proof token、#879 的 owner 仍待连接。task/preempt/guard.rs 不在差异中。",
+    "reviewedHead": "0e5815a712827ef102d0509e64b20e385075fdf6",
+    "reviewedAt": "2026-11-18"
   },
   {
     "n": 802,
@@ -80,12 +77,12 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 887,
-    "scope": "上下文数据和异常分类；异常构造、FPU、用户态运行仍未覆盖",
+    "scope": "x86 用户上下文数据、异常分类与字段保持",
     "implements": ["TRAP_DATA"],
     "reuses": ["IDT_TABLE", "TRAP_EXC"],
-    "note": "自身改动七文件（cpu/context、cpu/mod、arch/x86/mod、trap/mod、cpu/mod、lib、user）；启用 CPU / context、trap 数据与 user trait，继续停用 GS local、GDT / IDT / syscall、分派、异常构造、FPU、UserMode。重复 cpu_count 与 returns 意见已处理；SelectorErrorCode accessor 未添加，作者主张另作 API 工作，尚无审阅者确认。activate_tls_pointer 仍是 external_body。",
-    "reviewedHead": "a47e745320e96a162052ee7d682a243b93359d2c",
-    "reviewedAt": "2026-11-16"
+    "note": "已按现有 bitflags 宏恢复 PageFaultErrorCode 原表达式，SelectorErrorCode accessor 讨论已解决。TLS 激活仍为 external_body；异常构造、分派、FPU 与 UserMode 仍在后续节点。",
+    "reviewedHead": "02fa63b7c260950c61471d66f220e41c05ab7b57",
+    "reviewedAt": "2026-11-18"
   },
   {
     "n": 855,
@@ -102,21 +99,21 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 927,
-    "scope": "Pod 与 VM I/O 测试；内容相等及部分成功性断言仍缺证明",
+    "scope": "已合入 main f0d568203 的 Pod 派生和 11 个 VM I/O 测试函数",
     "implements": ["VM_POD"],
     "reuses": ["F_BYTES", "FPU_REPR", "VM_REPR"],
-    "note": "复核 32635fe1eadb80cc31cf81442ef8b256742d7829：较 bb524ccfad 合入 main（含 #932 的 dv 内置），新增 dv/src/doc.rs 为直接 rustdoc 设置 CARGO_PKG_NAME，Pod/VM 测试和 Vec 规约没有新增证明。部分内容、成功返回与精确复制量断言仍被注释，运行期 #[ktest] 属性未恢复；cursor returns 与 Vec call_ensures 已落实。最新 CI 已通过，不能计作可失败拷贝闭环。",
-    "reviewedHead": "32635fe1eadb80cc31cf81442ef8b256742d7829",
-    "reviewedAt": "2026-11-16"
+    "note": "最终 head 保留 cursor 精确返回值、Vec 索引外部规约及失败边界测试。仍有内容相等、精确复制量和成功性断言被注释，部分 #[ktest] 未恢复。#934 继续增强条件断言。",
+    "reviewedHead": "06f92ec0f899d7d451531b0e0fb3902d7e4e9a55",
+    "reviewedAt": "2026-11-18"
   },
   {
     "n": 677,
-    "scope": "草稿，通用 TLB 请求/逻辑提交；需补硬件刷新与完成确认",
+    "scope": "草稿，TLB 请求与逻辑提交；部分设计已进入 #935",
     "implements": ["TLB_REQ"],
     "reuses": [],
-    "note": "草稿；OpsStack 不变式、push/merge/clear、请求覆盖与逻辑提交。TlbFlusher::new 已证明空请求覆盖，可信构造器具体是 OpsStack::new；硬件刷新、dispatch、sync 仍可信，CPU pin 与 page_keeper 未接入。",
+    "note": "旧分支证明 OpsStack 部分队列操作和逻辑提交；作者在讨论中确认 #935 采用部分设计。对照两个分支迁移可复用合同，frame 保留、CPU pin 和远端完成尚待证明。",
     "reviewedHead": "c00f702244e205c0f2394979cfabc356a4acc6ce",
-    "reviewedAt": "2026-11-16"
+    "reviewedAt": "2026-11-18"
   },
   {
     "n": 570,
@@ -156,13 +153,16 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 860,
-    "scope": "RCU/CPU core 模型；与 #922 及 IRQ 资源归属协调",
+    "scope": "IRC11 下的 RCU 读保护、宽限期与回收",
     "implements": ["SA_RCU"],
     "reuses": [],
-    "note": "旧九项意见中 import、Option 绑定、returns、辅助引理位置、重复谓词已修改，Send 泛型与 wf / type_inv 两项已被审阅者撤回；scheduler / preemption 接线仍缺，callback allocation / dispatch 保留 external_body；须迁移 #922 的 pool registry。IRC11 Build and verify 作业失败于 ostd/src/sync/rcu/irc11.rs:38，E0432：导入不存在的 NonNullPtrRef；同时存在合并冲突，二者分别记录。",
-    "reviewedHead": "63d0612b8f860c4ccf329c0fc53769807d790ac5",
-    "reviewedAt": "2026-11-16",
-    "evidence": ["https://github.com/asterinas/vostd/actions/runs/43140246165/job/130925206177"]
+    "note": "新 head 采用 NonNullPtr 和原生 view，更新 reader close 到回收的顺序及 Objective 内存权限。IRC11 Build and verify 与各目标验证已通过，当前失败项是 format。调度/禁抢占接线、回调分配与分派仍需独立证据。",
+    "reviewedHead": "aa4d1e466e62a7b32fe61fa868c6f2c9d983ca2c",
+    "reviewedAt": "2026-11-18",
+    "evidence": [
+      "https://github.com/asterinas/vostd/actions/runs/44002501505/job/133769749630",
+      "https://github.com/asterinas/vostd/actions/runs/44002501637/job/133769750094"
+    ]
   },
   {
     "n": 857,
@@ -184,12 +184,12 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 883,
-    "scope": "DMA stream 同步与设备地址；非当前 BSP 中断里程碑前置",
+    "scope": "DMA stream slice 的 sync 与设备地址计算",
     "implements": ["SA_DMA"],
     "reuses": ["DMA_MAP"],
-    "note": "最新 2c6a1a26653c9230780eef5ecd97a19ba0522e75 合入 main 并对齐 AnyFrameMeta import，slice 证明未新增。已有算术前置/is_valid_daddr 及 DmaStreamSlice::sync/daddr 证明；后置主要保持不变式，内层 sync 仍可信，未证明设备完成同步；coherent/registry 不由该 PR 覆盖。",
-    "reviewedHead": "2c6a1a26653c9230780eef5ecd97a19ba0522e75",
-    "reviewedAt": "2026-11-16"
+    "note": "dma_stream.rs 对齐 #939 的 avail()/remain() 规约调用。slice 的边界与设备地址算术可复用，内层 sync 仍为可信边界，coherent/registry 与设备完成仍待交付。",
+    "reviewedHead": "aa9c79977b8355ec06c090294d51ae9d98582e49",
+    "reviewedAt": "2026-11-18"
   },
   {
     "n": 617,
@@ -364,12 +364,12 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 931,
-    "scope": "to_flat_binary 的逐段扩容/覆盖合同；关联 BZ_RANGE 与 ELF 输入规约",
+    "scope": "已合入 main 46d3b1e7e 的 ELF 输入规约与 flat binary 逐段构造",
     "implements": ["BZ_ELF", "BZ_RANGE"],
     "reuses": [],
-    "note": "复核 d30c271708585a0ae89b5eafd1dd795bc98281a9：较 e3f13f01d 只恢复原注释，审阅修改已落实但未获新批准。ret@==flat_binary_spec；实际算法只将新扩展区域填零，重叠段的 memory-only tail 保留旧字节，原注释不能证明全 BSS 清零。输入谓词/结果 spec 私有，make_bzimage 未验证；parser/get_data、Vec/slice 外部规约可信。与 #927 重复 Vec::index_mut 的评论明确不是 change request，仅协调该声明，不依赖整个测试 PR。",
-    "reviewedHead": "d30c271708585a0ae89b5eafd1dd795bc98281a9",
-    "reviewedAt": "2026-11-16",
+    "note": "最终实现以 fold_left 描述按 PT_LOAD 顺序扩容、复制。新增区间清零，重叠段的 memory-only 尾部保留旧字节。输入/结果规格私有；实际 make_bzimage 未建立前置和输出区间，xmas_elf 仍可信。",
+    "reviewedHead": "0e945fc06469e7a7931080ec50d56522dc89470f",
+    "reviewedAt": "2026-11-18",
     "evidence": [
       "https://github.com/asterinas/vostd/pull/931#discussion_r4582797497",
       "https://github.com/asterinas/vostd/pull/931#discussion_r4582813072"
@@ -392,5 +392,95 @@ window.PLAN_PR_CATALOG = [
     "note": "核对 head d164e5596a1b6de6345051ffc181395c9229c1e3 的 dv/CI/Makefile/README 改动与合入内容一致。移除 dv 子模块和独立缓存，make fmt 增加 dv 格式化；OSTD 验证命令与默认目标仍保持，未修改 ostd/verified_libs。复用其构建入口，不作为证明工作的开工前置。",
     "reviewedHead": "d164e5596a1b6de6345051ffc181395c9229c1e3",
     "reviewedAt": "2026-11-16"
+  },
+  {
+    "n": 934,
+    "scope": "七个 frame 测试函数、元数据/链表合同及 VM I/O 分支断言",
+    "implements": ["MM_FRAME", "VM_POD"],
+    "reuses": [],
+    "note": "成功分配路径覆盖 clone/drop、借用、raw 往返、单帧 Segment 和链表 push/pop；对应 #[ktest] 仍注释。mm/io.rs 和 mm/test.rs 还补充 collect、部分复制的成功长度及 PageFault 计数与游标保持，未建立实际缓冲内容。需核对 move_prev 与 pop 的资源交接。",
+    "reviewedHead": "bdebc7e9fe0927957ea0c8cc72c89d3c6dd58b49",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 935,
+    "scope": "TLB 每核状态、陈旧条目和 FlushSet 请求记账",
+    "implements": ["TLB_REQ"],
+    "reuses": ["TLB_SHOOT", "TLB_FREE"],
+    "note": "issue_tlb_flush 和 OpsStack::push/push_from 使用 join 或 all_user；Range 从起点按页取地址。VmSpace 的调用相应移除入队时的 tracked model。dispatch/sync、当前 CPU、硬件失效仍待验证，page_keeper 仍关闭，传入 frame 在入队后即被丢弃。",
+    "reviewedHead": "d8d460998f66ee65f40c6cfe9ff1bcf558d81901",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 936,
+    "scope": "已合入的 Repr 接口调整，供 frame 和页表迁移",
+    "implements": [],
+    "reuses": ["MM_FRAME", "MM_PT"],
+    "note": "cast_ptr.rs 删除 ReprPerm 和执行层 from_repr，frame 元数据和页表节点调用者改用新的表示合同。#934 已在 d80c2a322 对齐该接口。",
+    "reviewedHead": "d2a91c33ea02d576aa608779494523ab7572ade5",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 937,
+    "scope": "cpu/set 采用 vstd 的 count_ones 规约",
+    "implements": [],
+    "reuses": ["COMMON_AUDIT"],
+    "note": "删除 vstd_extra 的本地 bits 规格，调整 cpu/set 的计数证明。公共 API 盘点记录该基线。",
+    "reviewedHead": "93db8d35efab9f3d1f6f4e8a3b7daf92212d44e6",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 939,
+    "scope": "共享 VM、页表与 DMA 的规格调用写法和 IRC11 CI",
+    "implements": [],
+    "reuses": ["VM_POD", "MM_PT", "SA_DMA"],
+    "note": "已合入 525267ea3，更新 when_used_as_spec 调用与 IRC11 workflow/patch。开放分支复用 avail()/remain() 等当前接口。",
+    "reviewedHead": "009947da42322aa48696a468801d8e7a0949f21a",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 940,
+    "scope": "公共 bitflags 的名称查询、未知位和复合赋值合同",
+    "implements": [],
+    "reuses": ["COMMON_AUDIT"],
+    "note": "ISA 文本与列表解析属于平台后续工作。当前范围复核 verified_libs/bitflags 的 from_name、known_bits、unknown_bits 与复合赋值接口。",
+    "reviewedHead": "f7becca72affdc5c3b99654bf7d7e4c5218b1c23",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 942,
+    "scope": "KtestItem::run 使用的测试结果分类",
+    "implements": ["KTEST_RESULT"],
+    "reuses": [],
+    "note": "classify_test_result 处理正常返回、已识别 panic 和未知 payload，包括 should_panic 及消息精确匹配。catch_unwind_impl 与 downcast 仍由普通 Rust 执行。",
+    "reviewedHead": "3b0821b71b068164347e7d52a8624daf17bd94db",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 943,
+    "scope": "PayloadEncoding::from_str 的三个合法值及完整错误文本",
+    "implements": ["BZ_PARSE"],
+    "reuses": [],
+    "note": "大小写敏感地接受 raw、gzip、zlib。其他输入返回 Invalid encoding format: 加原字符串。OsStr/OsString 包装、Serde 派生和 encode_kernel 的压缩字节均未在此 PR 验证。",
+    "reviewedHead": "53a020701cc05f8f99df03ed224e90bbe7ba234d",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 945,
+    "scope": "Rust 1.100.0 迁移与 RangeAllocator 空闲表不变式",
+    "implements": [],
+    "reuses": ["IO_ALLOC"],
+    "note": "rust-toolchain.toml 更新到 1.100.0，并切换 allocator_ext、workspace lints。range_alloc.rs 为 FreelistInvariant 和迭代证明补 btree_map_wf。#706 集成时核对 BTreeMap 接口；本 PR 未建立 MMIO 窗口来源或保留效果。",
+    "reviewedHead": "0913d1ce86e749b4a0f8c0a12ef6ef9b2d572cc2",
+    "reviewedAt": "2026-11-18"
+  },
+  {
+    "n": 944,
+    "scope": "与 #887 协调共享 UserContextApi 和 TrapFrame 声明",
+    "implements": [],
+    "reuses": ["TRAP_DATA"],
+    "note": "与已关闭的 #941 同一 head。平台寄存器与 TLS 证明单列在范围说明。两个分支都编辑 ostd/src/user.rs，#944 注释 trap_number/trap_error_code，集成时须保留 #887 的 x86 契约。",
+    "reviewedHead": "6e5d854834f0b2a57ceb6bb5c725e96c4140eacb",
+    "reviewedAt": "2026-11-18"
   }
 ];

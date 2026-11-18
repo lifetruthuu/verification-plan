@@ -5,7 +5,7 @@
  * Rows are grouped by consumer in node order. Record every change in plan-history.js (plan.mjs does it). */
 window.PLAN_EDGES = [
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "IO_WIN", "from": "IO_ALLOC", "gate": "accept", "need": "IoMemAllocatorBuilder::new 返回的窗口视图与 RangeAllocatorPermits 合同，以及 registered_io_mem_windows / state_matches 的规格", "ev": "ostd/src/io/io_mem/allocator.rs::new,state_matches,has_registered_windows @7c710f060f7a5ed3330aba64a9f711e6dd5edac9" },
+  { "to": "IO_WIN", "from": "IO_ALLOC", "gate": "accept", "need": "builder::new 返回输入窗口视图，并把 has_registered_windows 归约到 usize_ranges_match_registered。引导方须建立输入列表与登记窗口的对应关系。", "ev": "ostd/src/io/io_mem/allocator.rs::new,has_registered_windows,usize_ranges_match_registered @9bc9010cdd" },
 
   { "to": "IRQ_GUARD", "from": "IRQ_MODEL", "gate": "accept", "need": "同 CPU 的 inv / coherent、匹配的 authority、保存的 IF 与嵌套权限合同", "ev": "ostd/src/trap/irq.rs::DisabledLocalIrqGuard::new; ostd/specs/task/irq.rs::LocalIrqGuardOwner @6cec73d064" },
 
@@ -44,7 +44,7 @@ window.PLAN_EDGES = [
 
   { "to": "PIT_CFG", "from": "IO_PIO", "gate": "accept", "need": "0x43 / 0x40 敏感 PIO 的写权限与写合同", "ev": "ostd/src/arch/x86/timer/pit.rs::MODE_COMMAND_PORT,CHANNEL0_PORT,init @97963e831" },
 
-  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "IoMemAllocatorBuilder::remove 的 requires 与 ensures", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init（io_mem_builder.remove(base..base + 1024)） @97963e831" },
+  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "remove 成功后 xAPIC 的 1024 字节窗口已保留，其余区域保持。#706 的 remove 仍缺该后置条件。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init @11d378516; ostd/src/io/io_mem/allocator.rs::remove @9bc9010cdd34339ebb2752f4991e22fee1eddae0" },
   { "to": "APIC_RESERVE", "from": "IO_WIN", "gate": "accept", "need": "该 1024 字节范围属于登记窗口，且权限尚未被其他设备占用", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init @97963e831" },
 
   { "to": "APIC_PUB", "from": "APIC_PROBE", "gate": "accept", "need": "ApicId::from 读取 APIC_TYPE，须与 init 发布的模式一致，并保留 xAPIC 八位截断（value as u8）", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init,APIC_TYPE,ApicId::from @97963e831" },
@@ -232,7 +232,7 @@ window.PLAN_EDGES = [
   { "to": "SYNC_API", "from": "SYNC_GUARD", "gate": "accept", "need": "读写锁/RwArc 持锁期间的运行模式与释放合同", "ev": "ostd/src/sync/rwarc.rs; ostd/src/sync/guard.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "特性采样的叶支持与位判断合同", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512,enable_cpu_features @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
+  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "has_avx/has_avx512 的结果对应共享 CpuModel 中受支持叶的位；每核启用另需控制寄存器前置。", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512,enable_cpu_features; verified_libs/vstd_extra/src/external/x86.rs::cpu_model @d5764dad33a51a7686d34fe20c3a311d509ebdbe" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "PCI_DEVICE", "from": "PCI_ENUM", "gate": "accept", "need": "有效 location 遍历与无设备判断", "ev": "ostd/src/bus/pci/common_device.rs::PciCommonDevice::new; ostd/src/bus/pci/capability/mod.rs::device_capabilities @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -264,6 +264,8 @@ window.PLAN_EDGES = [
   { "to": "TASK_COMPOSE", "from": "SYNC_GUARD", "gate": "accept", "need": "默认 FIFO 通过 disable_irq().lock() 保护 run queue 的权限和恢复合同", "ev": "ostd/src/task/scheduler/fifo_scheduler.rs::enqueue,local_rq_with,mut_local_rq_with @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "TASK_COMPOSE", "from": "TRAP_DATA", "gate": "accept", "need": "TaskBuilder::build 用 UserContext::tls_pointer 初始化 TaskContext TLS 字段", "ev": "ostd/src/task/mod.rs::TaskBuilder::build; arch/x86/cpu/context.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
+  { "to": "COMMON_AUDIT", "from": "KTEST_RESULT", "gate": "accept", "need": "公共辅助库验收清单消费 KtestItem::run 的结果分类合同及捕获边界。", "ev": "ostd/libs/ostd-test/src/lib.rs::KtestItem::run,classify_test_result @3b0821b71b068164347e7d52a8624daf17bd94db" },
+
   /* ===== consumers in: x86 平台 ===== */
   { "to": "ACC_SCOPE", "from": "LOC_ACC", "gate": "accept", "need": "当前范围的 LOC_ACC 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序", "ev": "ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "ACC_SCOPE", "from": "VM_POD", "gate": "accept", "need": "当前范围的 VM_POD 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序", "ev": "ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -289,4 +291,5 @@ window.PLAN_EDGES = [
   { "to": "ACC_SCOPE", "from": "BOOT_COMMON", "gate": "accept", "need": "当前范围的 BOOT_COMMON 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序", "ev": "ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "ACC_SCOPE", "from": "COMMON_AUDIT", "gate": "accept", "need": "当前范围的 COMMON_AUDIT 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序", "ev": "ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "ACC_SCOPE", "from": "TASK_COMPOSE", "gate": "accept", "need": "任务创建、内置 FIFO 与远端通知的实际组合和可信输入记录", "ev": "ostd/src/task/{mod,processor}.rs; task/scheduler/{mod,fifo_scheduler}.rs（最终范围验收） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
+  { "to": "ACC_SCOPE", "from": "BZ_PARSE", "gate": "accept", "need": "核对 builder 公共参数解析的合法值、错误消息及两处 OS 字符串包装。", "ev": "ostd/libs/linux-bzimage/builder/src/encoder.rs::PayloadEncoding::from_str,From<OsString>,From<&OsStr> @53a020701cc05f8f99df03ed224e90bbe7ba234d" },
 ];
