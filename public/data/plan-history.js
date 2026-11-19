@@ -1203,5 +1203,52 @@ window.PLAN_HISTORY = [
       }
     ],
     "prs": "#934 同时实施 frame 和 VM I/O 测试。#935 吸收 #677 的部分设计。#940 和 #944 仅记录共享代码协调。#895、#927、#931 已合入，仍缺调用者、内容或实际 builder 证据。更新 #706、#860、#883、#887、#900、#920 的覆盖说明，并记入 #936/#937/#939 的主线接口改动。#945 跟踪 Rust 1.100.0 对 RangeAllocator 的影响。"
+  },
+  {
+    "revision": 6,
+    "date": "2026-11-19",
+    "reason": "按 11 月 19 日上游 PR 重排 bzImage 解码、段初始化与启动交接，更新 APIC/TSC、PIO 和公共模块的交付范围。",
+    "splits": [
+      {
+        "from": "BZ_SETUP",
+        "to": ["BZ_SETUP", "BZ_DECODE", "BZ_LOAD"],
+        "why": "#948 有独立的 EFI 解码和段初始化合同。保留原 ID 验收实际物理内存、启动入口和 BootParams。"
+      }
+    ],
+    "edgesAdded": [
+      {
+        "a": "BZ_LOAD",
+        "b": "BZ_SETUP",
+        "why": "两个入口共用 loader，启动交接还需建立目标内存的归属。"
+      },
+      {
+        "a": "BZ_DECODE",
+        "b": "ACC_SCOPE",
+        "why": "单列 EFI 解码的范围验收，legacy 可独立推进。"
+      }
+    ],
+    "edgesChanged": [
+      {
+        "a": "BZ_ENCODE",
+        "b": "BZ_IMG",
+        "why": "已经定位 setup 嵌入点，待提供生成端与产物之间的证据。"
+      },
+      {
+        "a": "CPU_FEAT",
+        "b": "CPU_ENABLE",
+        "why": "#920 将能力和 CPUID 规约迁入 ostd/specs/context.rs。"
+      },
+      {
+        "a": "IO_PIO_ALLOC",
+        "b": "IO_GLOBAL",
+        "why": "#706 的全局资源交接需要解释敏感端口预占与初始化权限的对应。"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "IO_PIO_ALLOC",
+        "why": "#706 已移除静态 new 的旧端点限制，核对与动态申请共用的全宽前置。"
+      }
+    ],
+    "prs": "新增 #948 的三项实施关联，#951 和 #952 按共享合同关联。#920 同时推进 APIC 探测和 TSC 采样。复核 #706、#720、#883、#934、#935、#944 的新 head，以及 #942 更新后的正文。#947、#949、#950 属工具和展示调整。"
   }
 ];

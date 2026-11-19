@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-18T20:38:43.507Z",
+  "generatedAt": "2026-11-19T06:52:43.471Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,44 +108,44 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "6c62fbb17ed2e18c4066088398360135e2de5ee9",
+      "head": "64fd64fb0325c8a2b66f1f0988804464019c4632",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\r\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\r\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\r\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\r\n\r\n---\r\n\r\nMaybe wait until the following PRs are merged:\r\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\r\n- [x] https://github.com/asterinas/vostd/pull/809",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-18T17:04:43Z",
+      "updatedAt": "2026-11-19T06:41:26Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "进行中"
     },
     {
       "n": 720,
       "kind": "open",
       "draft": false,
-      "head": "f3ca1d7d142e60dfe7f6adf087cc378e2d98e812",
+      "head": "d52f5863bd8e750955b274f45eb136aefbc5d9df",
       "title": "TypeId in Verus to support `Any`",
       "body": "This PR won't run on stock Verus. In order to run it, first apply `patches/0001-verus-type-identity.patch` to the Verus tree. That patch adds a `TypeIdSpec` type to Verus, such that each registered type in the program receives a unique ID. We then consume that ID in the `Any` trait, which exposes it as an exec object. The payoff can be seen in `Frame<dyn AnyFrameMeta>::try_from`, which casts the meta up to an `Any` and then checks its type ID and casts it down to the target type if correct.\r\n\r\nOne remaining gap in this setup is the up-cast. In Rust it is allowed as a normal cast, because `AnyFrameMeta: Any`. Verus forbids using user-defined traits as supertraits of traits that will have `dyn` usage. The current approach is to put the equivalent method in `AnyFrameMeta`.",
       "url": "https://github.com/asterinas/vostd/pull/720",
-      "updatedAt": "2026-11-11T19:47:08Z",
+      "updatedAt": "2026-11-19T01:49:14Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "SUCCESS",
+      "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
-      "ci": "成功"
+      "gate": "DIRTY",
+      "ci": "未知"
     },
     {
       "n": 802,
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -504,25 +504,25 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
       "n": 920,
       "kind": "open",
       "draft": false,
-      "head": "d5764dad33a51a7686d34fe20c3a311d509ebdbe",
+      "head": "2df520a575db6eae20000b83ca9e1d61888efe2a",
       "title": "prove: Verify x86 AVX feature detection",
       "body": "Enable and verify `has_avx()` and `has_avx512()` in the existing x86 module, adding 16 Verified executable LoC. Per-call ghost samples specify the original leaf-0 gate and the exact AVX/AVX-512F bit checks; other inactive code and existing comments are preserved.\n\nReplace the core CPUID intrinsics with the already specified `native_cpuid::cpuid_count`. The pinned x86/raw-cpuid implementation delegates to the same intrinsic and preserves all four registers, so query arguments and order are unchanged. No trusted boundary is added. The contracts describe this invocation's samples; they do not assume consistency across reads or prove all hardware and OS conditions for executing AVX instructions.\n\nPowered by fy0/Veriflow\n",
       "url": "https://github.com/asterinas/vostd/pull/920",
-      "updatedAt": "2026-11-18T08:29:51Z",
+      "updatedAt": "2026-11-19T06:44:20Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -756,7 +756,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -846,7 +846,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -864,7 +864,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -920,29 +920,61 @@ window.PLAN_PR_SNAPSHOT = {
       "review": "无汇总结论",
       "gate": "UNKNOWN",
       "ci": "失败"
-    }
-  ],
-  "candidates": [
-    {
-      "n": 952,
-      "title": "Sync the IRC11 vstd patch with upstream verus irc11",
-      "url": "https://github.com/asterinas/vostd/pull/952",
-      "head": "484a329664870e750463170f60d4c94bebe83667",
-      "updatedAt": "2026-11-18T19:01:33Z"
-    },
-    {
-      "n": 951,
-      "title": "refactor: express conditional panic guarantees with no_panic_when",
-      "url": "https://github.com/asterinas/vostd/pull/951",
-      "head": "80bbc5f5e1a4e8c97437a0efa7779f0df512f473",
-      "updatedAt": "2026-11-18T16:56:34Z"
     },
     {
       "n": 948,
+      "kind": "open",
+      "draft": false,
+      "head": "88172da38e3981d71a1a70316f40feae370114b6",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
+      "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "head": "fed604e93e25d74e8feb550b4504347c4f9913c3",
-      "updatedAt": "2026-11-18T11:54:58Z"
+      "updatedAt": "2026-11-19T02:48:57Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": "CHANGES_REQUESTED",
+      "ciState": "SUCCESS",
+      "review": "需修改",
+      "gate": "BLOCKED",
+      "ci": "成功"
+    },
+    {
+      "n": 951,
+      "kind": "open",
+      "draft": false,
+      "head": "bf076c06adc6d95ee3f203e832a9a1717c20de17",
+      "title": "refactor: express conditional panic guarantees with no_panic_when",
+      "body": "## Summary\n\n- Introduce the open spec function `no_panic_when(condition)` and keep the boolean panic marker in a private module. The condition describes when a call is guaranteed to be panic-free.\n- Use `no_panic_when(false)` for `panic_diverge` and migrate the existing conditional panic contracts and proof clauses across VOSTD.\n- Document how callers use conditional panic guarantees in the proof engineering guidelines.\n",
+      "url": "https://github.com/asterinas/vostd/pull/951",
+      "updatedAt": "2026-11-19T06:51:14Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "PENDING",
+      "review": "无汇总结论",
+      "gate": "UNSTABLE",
+      "ci": "进行中"
+    },
+    {
+      "n": 952,
+      "kind": "open",
+      "draft": false,
+      "head": "484a329664870e750463170f60d4c94bebe83667",
+      "title": "Sync the IRC11 vstd patch with upstream verus irc11",
+      "body": "Port the weak-memory core of verus-lang/verus@irc11 (d2b273e8):\n\nLocal changes on top of upstream:\n\n- Fix `compare_exchange{,_weak}`: on failure, `update_fail` now receives the value actually read rather than `current`. Upstream's version lets a failed CAS prove `false`.\n- Also make the legacy `cell::PointsTo` and `raw_ptr::PointsToRaw` non-`Objective`, and keep the bounded tuple/`Option` and `GhostVar` impls.\n- Keep the SC atomics (atomic.rs, atomic_ghost.rs) available under weak-memory so OSTD still builds; upstream compiles them out.\n\nBecause SC atomics model no views, the locks and owners that publish non-atomic permissions through them keep hand-written `Objective` impls. Mark each one as a trusted assumption with a TODO to port it to `atomic_weak`, and wrap `Mutex`'s cell permission in `MutexPerm` to do the same for `Mutex`. Restate the vstd_extra pointer wrapper's `compare_exchange/swap_release` with `update_success/update_fail`, and relax its examples to upstream's weaker post-access timestamp facts.\n\nAdd rejection tests for publishing a pcell permission through an atomic invariant and for proving false from a failed `compare_exchange`, and run them in the IRC11 workflow.",
+      "url": "https://github.com/asterinas/vostd/pull/952",
+      "updatedAt": "2026-11-18T19:01:33Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "FAILURE",
+      "review": "无汇总结论",
+      "gate": "UNSTABLE",
+      "ci": "失败"
     }
-  ]
+  ],
+  "candidates": []
 };

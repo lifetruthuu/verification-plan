@@ -6,12 +6,15 @@
 window.PLAN_PR_CATALOG = [
   {
     "n": 920,
-    "scope": "基于共享 CpuModel 的 AVX/AVX-512F 能力检测",
-    "implements": ["CPU_FEAT"],
+    "scope": "共享 CPUID 模型下的 AVX、APIC 探测与 TSC 采样",
+    "implements": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
     "reuses": [],
-    "note": "代码已恢复 core::arch::x86_64::{__cpuid, __cpuid_count}，通过新增外部规约连接 cpu_model()；PR 正文仍描述旧的每次调用采样。最大基本叶、受支持叶的位在所有逻辑 CPU 上稳定一致是平台假设。OSXSAVE、XCR0 和实际启用留给 CPU_ENABLE。",
-    "reviewedHead": "d5764dad33a51a7686d34fe20c3a311d509ebdbe",
-    "reviewedAt": "2026-11-18"
+    "note": "CpuFeatureModel 统一四个特性位和最大基本叶。xAPIC 改查 EDX[9]，两种 APIC 的结果合同以叶 1 可用为条件。TSC 频率寄存器仍按次采样；模式选择、频率发布和 OS 每核启用分别验收。",
+    "reviewedHead": "2df520a575db6eae20000b83ca9e1d61888efe2a",
+    "reviewedAt": "2026-11-19",
+    "evidence": [
+      "ostd/specs/context.rs::cpu_feature_model,cpuid_consistent；ostd/src/arch/x86/kernel/{apic/xapic,apic/x2apic,tsc}.rs @2df520a575"
+    ]
   },
   {
     "n": 919,
@@ -27,12 +30,12 @@ window.PLAN_PR_CATALOG = [
     "scope": "静态/动态 PIO、MMIO 窗口分配与 PCI 配置端口",
     "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL"],
     "reuses": ["IO_WIN", "PIT_CFG", "PCI_BAR"],
-    "note": "builder::new 给出窗口视图和登记条件，实例 acquire 返回 FreePermit；PIO 用与 IdAlloc 关联的集合记录 claim。remove 缺少可供设备调用者使用的成功保留后置条件。公开 IoMem::new/acquire、全局 init 及实际设备效果仍可信。已保留 #895 的 capability/cfg_space 开关。当前三架构验证通过。",
-    "reviewedHead": "9bc9010cdd34339ebb2752f4991e22fee1eddae0",
-    "reviewedAt": "2026-11-18",
+    "note": "静态 new 已允许合法宽度访问到最后一个端口。acquire 和 acquire_overlapping 的成功条件取决于检查时的占用集合，drop(self) 用 usize 范围消费分配 claim。MMIO 实例 acquire 返回 FreePermit；remove 仍缺可供设备调用的保留效果，全局初始化和真实设备访问待证。",
+    "reviewedHead": "64fd64fb0325c8a2b66f1f0988804464019c4632",
+    "reviewedAt": "2026-11-19",
     "evidence": [
-      "ostd/src/io/io_mem/allocator.rs::new,remove,acquire; ostd/src/io/io_port/allocator.rs::IoPortAllocInvariant @9bc9010cdd34339ebb2752f4991e22fee1eddae0",
-      "https://github.com/asterinas/vostd/actions/runs/44074778094"
+      "ostd/src/io/io_port/{mod,allocator}.rs::new,acquire,acquire_overlapping,drop,recycle,init @64fd64fb0",
+      "ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::remove @6c62fbb17"
     ]
   },
   {
@@ -178,18 +181,19 @@ window.PLAN_PR_CATALOG = [
     "scope": "TypeId/Any 与 frame/page table 的工具链及类型接口改动",
     "implements": [],
     "reuses": ["PT_CFG", "MM_FRAME", "MM_PT"],
-    "note": "TypeId / Any 查询及转换连接；仍依赖类型碰撞假设与 frame reparam / transmute 的 external_body；PR 正文的 TypeIdSpec 叙述已落后于 head 的 core::any::TypeId。",
-    "reviewedHead": "f3ca1d7d142e60dfe7f6adf087cc378e2d98e812",
-    "reviewedAt": "2026-11-16"
+    "note": "分支以 Rust 1.100.0 和七个 Verus 补丁提供 TypeId/Any、dyn trait 及 downcast 接口。Frame::into_dyn 的 transmute 仍在 external_body；与 #934 核对元数据和链表所有权合同。",
+    "reviewedHead": "d52f5863bd8e750955b274f45eb136aefbc5d9df",
+    "reviewedAt": "2026-11-19",
+    "evidence": ["patches/README.md；ostd/src/mm/frame/mod.rs::into_dyn @d52f5863b"]
   },
   {
     "n": 883,
     "scope": "DMA stream slice 的 sync 与设备地址计算",
     "implements": ["SA_DMA"],
     "reuses": ["DMA_MAP"],
-    "note": "dma_stream.rs 对齐 #939 的 avail()/remain() 规约调用。slice 的边界与设备地址算术可复用，内层 sync 仍为可信边界，coherent/registry 与设备完成仍待交付。",
-    "reviewedHead": "aa9c79977b8355ec06c090294d51ae9d98582e49",
-    "reviewedAt": "2026-11-18"
+    "note": "相对上次复核，两个 DMA 文件内容相同。复用 slice 的边界和设备地址算术；内层 sync、coherent/registry 和设备完成条件仍待交付。",
+    "reviewedHead": "d31f93d94a2454c0e0478eadbe8c0fef1fab3931",
+    "reviewedAt": "2026-11-19"
   },
   {
     "n": 617,
@@ -398,18 +402,22 @@ window.PLAN_PR_CATALOG = [
     "scope": "七个 frame 测试函数、元数据/链表合同及 VM I/O 分支断言",
     "implements": ["MM_FRAME", "VM_POD"],
     "reuses": [],
-    "note": "成功分配路径覆盖 clone/drop、借用、raw 往返、单帧 Segment 和链表 push/pop；对应 #[ktest] 仍注释。mm/io.rs 和 mm/test.rs 还补充 collect、部分复制的成功长度及 PageFault 计数与游标保持，未建立实际缓冲内容。需核对 move_prev 与 pop 的资源交接。",
-    "reviewedHead": "bdebc7e9fe0927957ea0c8cc72c89d3c6dd58b49",
-    "reviewedAt": "2026-11-18"
+    "note": "七个 frame 测试覆盖成功分配、借用、raw 往返和链表等路径。链表修改用 insert_slot_owner 描述区域权限。VM I/O 测试包含部分复制量和故障时的游标断言，缓冲字节内容、分配失败和运行期 ktest 仍需证据。",
+    "reviewedHead": "251a0f3f39cb36ec293f6c1808126c7a926eca11",
+    "reviewedAt": "2026-11-19",
+    "evidence": ["ostd/src/mm/frame/{test,linked_list}.rs；ostd/src/mm/test.rs @251a0f3f39"]
   },
   {
     "n": 935,
     "scope": "TLB 每核状态、陈旧条目和 FlushSet 请求记账",
     "implements": ["TLB_REQ"],
     "reuses": ["TLB_SHOOT", "TLB_FREE"],
-    "note": "issue_tlb_flush 和 OpsStack::push/push_from 使用 join 或 all_user；Range 从起点按页取地址。VmSpace 的调用相应移除入队时的 tracked model。dispatch/sync、当前 CPU、硬件失效仍待验证，page_keeper 仍关闭，传入 frame 在入队后即被丢弃。",
-    "reviewedHead": "d8d460998f66ee65f40c6cfe9ff1bcf558d81901",
-    "reviewedAt": "2026-11-18"
+    "note": "FlushSet::vas 与每核 resident/stale 使用有限 Set。issue_tlb_flush 和 push_from 保证 join 或等于 FlushSet::all_user()。dispatch、远端完成和当前 CPU 固定另验，page_keeper 仍注释，入队后即丢弃传入 frame。",
+    "reviewedHead": "76d55a69d34a7e4b10becf5003f4f3c8b696722e",
+    "reviewedAt": "2026-11-19",
+    "evidence": [
+      "ostd/specs/mm/tlb.rs::FlushSet；ostd/src/mm/tlb.rs::issue_tlb_flush_with,OpsStack::push_from @76d55a69d3"
+    ]
   },
   {
     "n": 936,
@@ -452,9 +460,9 @@ window.PLAN_PR_CATALOG = [
     "scope": "KtestItem::run 使用的测试结果分类",
     "implements": ["KTEST_RESULT"],
     "reuses": [],
-    "note": "classify_test_result 处理正常返回、已识别 panic 和未知 payload，包括 should_panic 及消息精确匹配。catch_unwind_impl 与 downcast 仍由普通 Rust 执行。",
+    "note": "按修订后的正文复核同一 head。run 将执行结果规范化后调用 classify_test_result，覆盖正常、PanicInfo、未知 payload 和消息精确匹配；catch_unwind_impl 与 downcast 在外部。",
     "reviewedHead": "3b0821b71b068164347e7d52a8624daf17bd94db",
-    "reviewedAt": "2026-11-18"
+    "reviewedAt": "2026-11-19"
   },
   {
     "n": 943,
@@ -479,8 +487,44 @@ window.PLAN_PR_CATALOG = [
     "scope": "与 #887 协调共享 UserContextApi 和 TrapFrame 声明",
     "implements": [],
     "reuses": ["TRAP_DATA"],
-    "note": "与已关闭的 #941 同一 head。平台寄存器与 TLS 证明单列在范围说明。两个分支都编辑 ostd/src/user.rs，#944 注释 trap_number/trap_error_code，集成时须保留 #887 的 x86 契约。",
-    "reviewedHead": "6e5d854834f0b2a57ceb6bb5c725e96c4140eacb",
-    "reviewedAt": "2026-11-18"
+    "note": "共享 user.rs 的声明与 #887 有交集。当前 head 调整另一平台的默认寄存器、上下文初始化与异常分类写法，trap_number/trap_error_code 仍注释。集成时核对 x86 trait 入口及字段保持。",
+    "reviewedHead": "2980e2cee7bf4abdee9e715248c9d8356d478fd3",
+    "reviewedAt": "2026-11-19"
+  },
+  {
+    "n": 948,
+    "scope": "builder 编码、EFI payload 识别与解码、ELF 段初始化",
+    "implements": ["BZ_ENCODE", "BZ_DECODE", "BZ_LOAD"],
+    "reuses": ["BZ_SETUP", "BZ_IMG"],
+    "note": "Raw 保持输入，gzip/zlib 由库规格连接到解码结果。load_elf 按段记录复制和清零快照；alloc_at 只保证返回长度。真实嵌入字节、物理区间归属、BootParams 与入口仍需证据。",
+    "reviewedHead": "88172da38e3981d71a1a70316f40feae370114b6",
+    "reviewedAt": "2026-11-19",
+    "evidence": [
+      "ostd/libs/linux-bzimage/builder/src/encoder.rs::encode_kernel；setup/src/x86/amd64_efi/decoder.rs::decode_payload；setup/src/loader.rs::load_elf @88172da38"
+    ]
+  },
+  {
+    "n": 951,
+    "scope": "frame、页表、虚拟区间和 VM I/O 的条件 panic 合同",
+    "implements": [],
+    "reuses": ["MM_FRAME", "MM_PT", "MM_KVA", "VM_CONTENT"],
+    "note": "当前代码公开 allowed_to_panic_if(condition)，条件为真时调用者需允许 panic。检查对齐、范围与饱和条件；实际成功、内存内容与资源保持继续由对应节点证明。",
+    "reviewedHead": "bf076c06adc6d95ee3f203e832a9a1717c20de17",
+    "reviewedAt": "2026-11-19",
+    "evidence": [
+      "verified_libs/vstd_extra/src/panic.rs::allowed_to_panic_if；ostd/src/mm/{io,frame/segment}.rs @bf076c06a"
+    ]
+  },
+  {
+    "n": 952,
+    "scope": "IRC11 原子模型更新及锁、RCU 的权限发布条件",
+    "implements": [],
+    "reuses": ["SA_RCU", "SYNC_API", "SYNC_GUARD", "MM_FRAME"],
+    "note": "更新弱内存模型与拒绝用例。SC 原子不传递线程视图，MutexPerm、RcuPtrGhost 和其他资源仍借助手写 Objective；各消费者需说明跨线程发布权限的依据。",
+    "reviewedHead": "484a329664870e750463170f60d4c94bebe83667",
+    "reviewedAt": "2026-11-19",
+    "evidence": [
+      "tools/patches/verus-irc11.patch；ostd/src/sync/{mutex,rcu/mod}.rs；ostd/specs/mm/frame/frame_specs.rs @484a329664"
+    ]
   }
 ];

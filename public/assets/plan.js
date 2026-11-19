@@ -297,6 +297,26 @@
   }
   let ready_ = [], closeChipPop = null;
   document.addEventListener("click", () => closeChipPop?.());
+  function lanePrList() {
+    const rows = [];
+    const openPrs = [...M.prMap.values()].filter((p) => p.kind === "open").sort((a, b) => b.n - a.n);
+    const links = (label, nodes) => nodes.length
+      ? h("div", { class: "chips" }, h("span", { class: "hint" }, label), nodes.map((n) => nodeChip(n)))
+      : null;
+    for (const p of openPrs) {
+      const implementsHere = V.nodes.filter((n) => n.prs.includes(p.n));
+      const reusedHere = V.nodes.filter((n) => n.reuse.includes(p.n));
+      if (!implementsHere.length && !reusedHere.length) continue;
+      rows.push(h("li", null,
+        h("div", { class: "prline" }, prChip(p.n), h("b", null, p.scope || p.title)),
+        p.note ? h("div", null, p.note) : null,
+        p.needsReview ? h("div", { class: "hint" }, "PR 已更新，覆盖范围待复核") : null,
+        links("实施", implementsHere), links("复用或协调", reusedHere)));
+    }
+    if (!rows.length) return null;
+    return h("details", { class: "fold", id: "lane-prs", open: $("#lane-prs")?.open },
+      h("summary", null, `本路线关联的开放 PR（${rows.length}）`), h("ul", { class: "lane-pr-list" }, rows));
+  }
   function renderSummary() {
     const l = LANE[lane];
     const c = M.counts[lane];
@@ -337,6 +357,7 @@
             ? h("div", { class: "chips" }, ready_.map((n) => nodeChip(n, [n.star ? h("span", { class: "starmark", title: n.star }, "★") : null, M.waits(n.id).length ? h("span", { class: "inftag", title: "有推断 / 待确认的前置，不算阻塞" }, "待确认") : null])))
             : h("p", { class: "hint" }, c.active ? `可查看「PR 进行中」的 ${c.active} 项。` : c.waiting || c.blocked ? "其余工作都在等前置，见各工作项详情。" : "本路线工作已验收。"),
           h("div", { class: "extsum" }, ext))),
+      lanePrList(),
       h("div", { class: "sum-legend" },
         h("span", { class: "lgt" }, "卡片"),
         cn("up", "↑2", "未完成前置", "还有 2 项已确认的前置未完成，类型见详情"),

@@ -2,6 +2,8 @@
 
 一个静态网站，展示 [VOSTD](https://github.com/asterinas/vostd) 中 x86、bzImage 和 OSTD 公共模块的验证工作项、依赖关系、关联 PR 与验收状态。
 
+每条路线的总览可展开关联的开放 PR，查看覆盖范围，再点进实施或复用该 PR 的工作项。
+
 网站：https://lifetruthuu.github.io/verification-plan/
 
 ## 目录结构
@@ -37,6 +39,8 @@ npm run sync             # 刷新 PR 快照、同步文档并列出待办
 npm run plan -- help     # 查看全部维护命令
 npm run plan -- show ID  # 查看某个工作项（ID 换成实际 ID）
 ```
+
+在 Codex 中可用 `$refresh-vostd-roadmap` 按最新上游 PR 更新计划。指令随仓库保存在 [.agents/skills/refresh-vostd-roadmap](.agents/skills/refresh-vostd-roadmap/SKILL.md)。
 
 修改计划的流程：
 

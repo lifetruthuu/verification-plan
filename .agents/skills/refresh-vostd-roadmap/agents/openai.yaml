@@ -1,0 +1,4 @@
+interface:
+  display_name: "更新 VOSTD 验证路线图"
+  short_description: "核对上游 PR 的实际合同，同步验证路线图中的后续节点、依赖和验收范围"
+  default_prompt: "使用 $refresh-vostd-roadmap 核对最新 VOSTD PR，并按实际交付更新验证路线图。"

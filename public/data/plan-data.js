@@ -13,8 +13,8 @@ window.PLAN_BASE = {
   repo: "https://github.com/asterinas/vostd",
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
-    date: "2026-11-18",
-    sha: "11d378516c021b68e3fd08298426935e10851cb3",
+    date: "2026-11-19",
+    sha: "6449bf6b5832792ba861a893878bd27627ca7a83",
     snapshotAt: "2026-11-13 17:44（北京时间）",
     snapshotSha: "90087275ebd4b974596947d11d3da27d722e05d3",
   },
@@ -30,8 +30,8 @@ window.PLAN_BASE = {
     {
       "key": "bzimage",
       "name": "bzImage 启动链",
-      "sub": "PE/COFF · ELF 解析 · 加载地址 · 输出区间 · 最终镜像检查",
-      "note": "builder、ELF、压缩与 setup 独立推进，只在最终镜像、运行与范围验收处连接 x86。"
+      "sub": "PE/COFF · payload 编解码 · ELF 段加载 · 启动交接 · 镜像检查",
+      "note": "先分别核对编码字节、EFI 解码结果和 ELF 段初始化。setup 在所选启动模式建立输入条件，并交接物理内存、入口和 BootParams。"
     },
     {
       "key": "common",
@@ -61,14 +61,14 @@ window.PLAN_BASE = {
     { id: "IO_PIO", lane: "common", face: "io/io_port", title: "静态 PIO 端口构造与访问合同",
       mods: ["io/io_port"],
       todo: [
-        "#706 的 IoPort::new/read/write 与外部 PortRead/PortWrite 规格供 PIC、PIT、PCI 配置访问使用。硬件全宽边界是 port + size <= 65536；new 的可表示释放端点更严格，为 <= u16::MAX。动态权限与显式释放拆为 IO_PIO_ALLOC。",
+        "#706 的 IoPort::new/read/write 与外部 PortRead/PortWrite 规格供 PIC、PIT、PCI 配置访问使用。静态 new 使用 valid_io_port_access，要求访问宽度为 1、2 或 4 字节且排他端点最多为 65536。动态权限与显式释放拆为 IO_PIO_ALLOC。",
       ],
       accept: "完成条件：u8/u16/u32 的宽度、读写权限、端口不越界与静态调用点可证明；PIC/PIT/PCI 的静态端口无需等全局 allocator 初始化。端口读值及写设备效果仍属 TB_HW_OPS，由消费者补协议合同。",
       src: "§4 · §5 阶段 B" },
     { id: "IO_WIN", lane: "x86", face: "boot/memory_region · arch/x86/io", title: "引导 MMIO 窗口 → 登记权限",
       mods: ["boot/memory_region", "arch/x86/io"],
       todo: [
-        "construct_io_mem_allocator_builder 从 EARLY_INFO.memory_regions 筛选区域并计算低、高 MMIO 窗口；目前未被验证，也没有建立与 registered_io_mem_windows() 的相等关系（arch/x86/io.rs，#706 head 9bc9010cdd）。",
+        "construct_io_mem_allocator_builder 从 EARLY_INFO.memory_regions 筛选区域并计算低、高 MMIO 窗口；目前未被验证，也没有建立与 registered_io_mem_windows() 的相等关系（#706 的 arch/x86/io.rs）。",
         "#706 对 x86 builder 构造函数本身的改动不足以建立这条端到端关系；MemoryRegion 的局部证明补不出固件布局的真实性。",
       ],
       accept: "交付：builder 返回的权限与实际引导 MMIO 窗口一一对应的证明。窗口列表来自未纳入计划的 arch/x86/boot，属可信边界 TB_BOOT_INPUT；动态显式释放资格仍须逐消费者验收。",
@@ -158,7 +158,7 @@ window.PLAN_BASE = {
       mods: ["mm/io"],
       todo: [
         "连接 read_val 的返回值与底层字节：目前返回值与实际字节内容没有关系。",
-        "补齐关闭内容相等断言所需的关系。",
+        "补齐内容相等断言；对照 #951 的 allowed_to_panic_if，在真实调用处建立对齐等避开 panic 的条件。",
       ],
       accept: "交付 read_val/write_val、reader/writer 拷贝的值与底层字节关系，供 F_BYTES 和 Pod 调用者证明内容相等；覆盖边界、失败状态和游标推进。以实际调用实例建立前置，Pod 表示与底层内存操作按 VM_REPR 的边界记录。",
       src: "§4 · §5 阶段 C" },
@@ -166,7 +166,7 @@ window.PLAN_BASE = {
       mods: ["mm/tlb"],
       todo: [
         "#677：OpsStack 不变式、push / merge / clear、请求覆盖与逻辑提交；OpsStack::new、硬件刷新、dispatch、sync 仍可信，CPU locality 与 frame 保留未建模。#570：tracked update / flush 规格，须与 #677 的模型协调（main 仍有对应公理，不能称已被取代）。",
-        "#935 吸收 #677 的部分设计，以 FlushSet 表示请求、CpuTlb/TlbModel 区分驻留映射与陈旧条目。Range 按 PAGE_SIZE 建模，入队和升级为 all_user 已有合同。协调 #570 的映射更新接口，补 dispatch/sync 及当前 CPU 的固定证明。",
+        "#935 吸收 #677 的部分设计，以 FlushSet 表示请求、CpuTlb/TlbModel 区分驻留映射与陈旧条目。Range 用有限地址集合按 PAGE_SIZE 取点。入队后 pending 等于原集合与请求的 join，或精确等于 FlushSet::all_user()。协调 #570 的映射更新接口，补 dispatch/sync 及当前 CPU 的固定证明。",
       ],
       accept: "交付请求集合覆盖、队列 push/merge/clear 和 tracked 映射更新合同，供 TLB_SHOOT/TLB_FREE 使用；验证零请求、Range 全范围和队列所有请求，协调 #935、#677、#570 与 main 的模型。逻辑提交不代表远端完成；OpsStack::new 的可信构造与硬件操作分开登记。",
       src: "§5 阶段 C · §7" },
@@ -238,10 +238,8 @@ window.PLAN_BASE = {
     /* ============================================================== APIC */
     { id: "APIC_PROBE", lane: "x86", face: "arch/x86/kernel/apic", title: "APIC 模式探测（x2APIC 优先 / xAPIC 回退）",
       mods: ["arch/x86/kernel"],
-      todo: [
-        "交付 CPUID 采样到候选模式/NoApic 的分支合同；可独立证明，实际 init 的发布由 APIC_PUB 组合窗口保留结果。",
-      ],
-      accept: "探测只消费 CPUID，不消费 IO 窗口；xAPIC 窗口保留已拆为 APIC_RESERVE，因此不再等待 IO 分配器。",
+      todo: ["#920 在 max_basic_leaf >= 1 时把 has_x2apic 和 has_xapic 分别接到共享模型的 ECX[21] 和 EDX[9]，并将原 xAPIC 的 EDX[8] 检查改为 EDX[9]。在 init 的选择处建立叶 1 可用，证明 x2APIC 优先、xAPIC 回退与 NoApic 三个分支。"],
+      accept: "核对所选平台支持叶 1 的根据，以及模式选择与两个探测合同的一致性。XApic::new 的 MMIO 映射和全局模式发布分别在 APIC_RESERVE、APIC_PUB 核对。",
       src: "§5 阶段 A" },
     { id: "APIC_RESERVE", lane: "x86", face: "arch/x86/kernel/apic", title: "xAPIC 寄存器窗口保留",
       mods: ["arch/x86/kernel", "io/io_mem"],
@@ -428,9 +426,7 @@ window.PLAN_BASE = {
     /* ================================================================ USER */
     { id: "CPU_FEAT", lane: "x86", face: "arch/x86/mod.rs", title: "CPU 特性位检测（AVX / AVX-512F）",
       mods: ["arch/x86/mod"],
-      todo: [
-        "#920 使用 core CPUID 指令及 vstd_extra 的 CpuModel。has_avx 和 has_avx512 分别返回 cpu_model().supports_avx() 和 supports_avx512f()。核对平台上各逻辑 CPU 的最大基本叶和相关位在执行期间稳定且相同的假设。",
-      ],
+      todo: ["#920 的 has_avx 和 has_avx512 返回 cpu_feature_model().supports 对 Avx、Avx512F 的判定。把受支持叶、跨核稳定的特性位和 core CPUID 外部规约接到每核启用调用处。"],
       accept: "交付 CPU_ENABLE 可用的叶支持与 AVX/AVX-512F 位判断合同，登记 core CPUID 外部规约和跨核稳定假设。OSXSAVE、XCR0 和指令可执行条件由 CPU_ENABLE 验收。",
       src: "§4" },
     { id: "FPU_REPR", lane: "x86", face: "arch/x86/cpu/context", title: "FPU 表示、有效长度与 clone",
@@ -572,7 +568,7 @@ window.PLAN_BASE = {
     { id: "SA_RCU", lane: "common", face: "sync/rcu · 弱内存模型", title: "RCU 宽限期 / 静止点合同",
       mods: ["sync/rcu"],
       todo: [
-        "#860：显式 context 下的读保护、retirement、宽限期与回收，含 owning-link 与负例验收；scheduler / preemption 接线仍缺，callback allocation / type erasure / dispatch 保留 external_body。#487 是更早的大范围弱内存模型分支，disable_preempt 仍标“unsound”。核对 #860 更新后的 registry/lease 和原生 view 接口，#487 仍须对齐 #922。",
+        "#860：显式 context 下的读保护、retirement、宽限期与回收，含 owning-link 与负例验收；scheduler / preemption 接线仍缺，callback allocation / type erasure / dispatch 保留 external_body。#487 是更早的大范围弱内存模型分支，disable_preempt 仍标“unsound”。将 #860 的 registry/lease 与 #952 的 IRC11 权限模型对照，核对 RcuPtrGhost 的 Objective 假设以及回收前的跨线程交接。#487 仍须对齐 #922。",
       ],
       accept: "交付读保护、retirement、宽限期和回收合同，供 switch_to_task::finish_grace_period 与 RCU 客户使用；迁移 #922 registry 并用真实 context/负例核对权限。scheduler/preemption 与 callback 分配/dispatch 的未连接部分必须说明，不能把 #487 的 unsound/桩作为运行证据。",
       src: "§7" },
@@ -613,12 +609,10 @@ window.PLAN_BASE = {
       todo: ["#943 的 FromStr 精确匹配 raw、gzip、zlib，其他输入返回固定前缀接原字符串。补 From<OsString> 与 From<&OsStr> 对 to_string_lossy 和 unwrap 的调用条件。"],
       accept: "用实际参数转换调用证明合法值的枚举结果，核对非法输入的完整错误文本、OS 字符串转换与 panic 行为。Serde 派生实现单列为外部边界。",
       src: "§6" },
-    { id: "BZ_ENCODE", lane: "bzimage", face: "libs/linux-bzimage · encoder.rs", title: "压缩 / 未压缩 payload 路径",
+    { id: "BZ_ENCODE", lane: "bzimage", face: "libs/linux-bzimage · encoder.rs", title: "builder 的 Raw、Gzip、Zlib 编码",
       mods: ["libs/linux-bzimage"],
-      todo: [
-        "对 encode_kernel 的 Raw、Gzip、Zlib 分支证明输出字节、解码对应和写入或结束失败时的行为。入口直接接收 PayloadEncoding。",
-      ],
-      accept: "交付 encode_kernel 的 Raw/Gzip/Zlib 输出对应和失败合同，供外部构建工具使用；解压对应关系需有库合同或产物检查。与 make_bzimage 的实际连接尚待构建 manifest 证据，不能推定调用。",
+      todo: ["#948 的 encode_kernel 保持 Raw 字节，Gzip/Zlib 的结果带指定魔数，按 libflate 模型解码可还原输入。核对 Vec 与默认编解码器的外部规格如何支持 new、write_all、finish 的 unwrap。"],
+      accept: "在实际构建调用处核对输入内核、所选格式与输出字节，记录库模型和失败条件。BZ_IMG 验收时仍需将编码结果与嵌入 setup 的 PAYLOAD_FILE 对上。",
       src: "§2" },
     { id: "BZ_OUT", lane: "bzimage", face: "libs/linux-bzimage", title: "输出区间不重叠与失败行为",
       mods: ["libs/linux-bzimage"],
@@ -629,9 +623,7 @@ window.PLAN_BASE = {
       src: "§2" },
     { id: "BZ_IMG", lane: "bzimage", face: "libs/linux-bzimage", title: "核对生成镜像的区域范围与加载地址",
       mods: ["libs/linux-bzimage"],
-      todo: [
-        "最终集成验收：核对生成镜像的区域范围和实际加载地址。",
-      ],
+      todo: ["从实际构建记录取得内核 ELF、编码文件和 setup ELF，核对 PAYLOAD_FILE 经 .incbin 进入 .payload 的字节、加载范围和入口。"],
       accept: "交付实际产物 manifest、PT_LOAD/entry/加载地址匹配、压缩解码和 setup 协议检查。静态检查器可以先编写，不等待 builder 或 setup 全部证明；最终范围验收 ACC_SCOPE 汇合形式证明与产物证据。",
       src: "§2" },
 
@@ -655,10 +647,8 @@ window.PLAN_BASE = {
       src: "§8" },
     { id: "IO_PIO_ALLOC", lane: "common", face: "io/io_port/allocator", title: "动态 PIO 分配、保留与显式释放",
       mods: ["io/io_port"],
-      todo: [
-        "#706 的 acquire/acquire_overlapping、reserve_io_port_range、动态 claim 和 consuming drop(self)；核对自动 Drop 改写后的真实调用者。",
-      ],
-      accept: "供动态 IoPort 消费者使用：冲突/越界失败不丢权限，释放只能消费本 allocator 发出的 claim。硬件可访问范围与 allocator 的 u16 排他端点分别证明；硬件效果属 TB_HW_OPS。",
+      todo: ["#706 的 acquire 与 acquire_overlapping 在全宽不越界时，分别按整段或首端口与 checked 集合是否相交决定成功。成功时携带分配 claim，显式 drop(self) 用 usize 区间交还权限。核对真实消费者的释放路径及最末端口。"],
+      accept: "在动态调用处验证冲突与越界失败、普通与重叠模式的回收宽度，以及排他端点 65536；仅持有本分配器 claim 的实例可显式释放。敏感端口初始集合由 IO_GLOBAL 验收。",
       src: "r3 源码复核" },
     { id: "IO_MMIO", lane: "common", face: "io/io_mem", title: "IoMem 映射、切片与设备访问合同",
       mods: ["io/io_mem"],
@@ -669,15 +659,13 @@ window.PLAN_BASE = {
       src: "r3 源码复核" },
     { id: "IO_GLOBAL", lane: "common", face: "io/mod", title: "PIO/MMIO 全局初始化与权限交接",
       mods: ["io/mod"],
-      todo: [
-        "把局部 builder/PIO allocator 与 io::init 的 Once 状态、注册窗口和动态分配权限相连，验证全局入口能获得所需资源。",
-      ],
+      todo: ["#706 的 PIO init 从链接段预占敏感端口，再用 tracked_empty 构造锁内资源。补齐初始 IdAlloc 位图与权限集合的对应、Once 发布和消费者取得已初始化分配器的证据。MMIO 另核对已登记窗口与全局权限。"],
       accept: "交付 io_mem_allocator_initialized/io_port_allocator_initialized 的真实来源以及初始化一次、系统设备保留与失败合同；设备调用者仅在使用全局 acquire 时消费它。不能把 IO_GLOBAL 当静态 PIO 或 unsafe IoMem::new 的统一前置。",
       src: "r3 源码复核" },
     { id: "MM_FRAME", lane: "common", face: "mm/frame", title: "Frame / Segment 分配、元数据与释放",
       mods: ["mm/frame"],
       todo: [
-        "#934 的七个测试函数覆盖成功分配、clone/drop、借用、raw 往返、单帧 Segment 和链表。复核元数据与计数保持，补分配失败、未覆盖的转换和实际释放义务。该分支已适配 #936 移除 ReprPerm 后的接口。",
+        "#934 的七个测试函数覆盖成功分配、clone/drop、借用、raw 往返、单帧 Segment 和链表。复核元数据与计数保持，补分配失败、未覆盖的转换和实际释放义务。链表以 insert_slot_owner 描述区域权限变化。集成 #720 时核对 dyn 元数据转换所需的工具链补丁与 transmute 边界。",
       ],
       accept: "供栈、动态 CPU-local、页表和 DMA 使用：分配失败不伪造内存，成功给出对齐、存活、互不重叠和元数据权限。用户 GlobalFrameAllocator 实现属 TB_ALLOC；OSTD 包装与元数据义务仍在本项。",
       src: "r3 源码复核" },
@@ -754,7 +742,7 @@ window.PLAN_BASE = {
     { id: "SYNC_API", lane: "common", face: "sync/mutex · rwmutex · rwarc", title: "Mutex / RwMutex / RwArc 公共接口验收",
       mods: ["sync/mutex", "sync/rwmutex", "sync/rwarc"],
       todo: [
-        "核对阻塞锁、升级/降级、借用及解锁 API 与 WaitQueue 的执行合同，登记 RwArc 外部体；不把 LOC 已验证比例当 API 组合完成。",
+        "核对阻塞锁、升级/降级、借用及解锁 API 与 WaitQueue 的执行合同，登记 RwArc 外部体。按 #952 检查 MutexPerm 等非原子权限在锁交接时如何随线程视图发布，记录尚依赖手写 Objective 的部分。",
       ],
       accept: "供 task 与 OSTD 客户使用：竞争/等待/唤醒时资源保持和权限转移成立；已有局部锁证明直接复用。调度公平性和底层原子模型属于显式前提，硬件执行资源由 SYNC_GUARD 接入。",
       src: "r3 源码复核" },
@@ -781,9 +769,7 @@ window.PLAN_BASE = {
       src: "r3 源码复核" },
     { id: "TSC_VALUE", lane: "x86", face: "arch/x86/kernel/tsc", title: "tsc_freq 采样结果与发布合同",
       mods: ["arch/x86/kernel"],
-      todo: [
-        "从 CAL_FREQ 拆出采样频率的 Hz 单位、非零/范围以及 TSC_FREQ Once 发布/读取合同；给定合格采样即可证明消费者。",
-      ],
+      todo: ["#920 将 #905 采样合同中的最大基本叶改为共享模型字段，叶 0x15/0x16 的频率值仍按本次调用采样。在 tsc_freq 的真实消费者处建立非零 Hz 和范围，补 TSC_FREQ 的 Once 发布与读取。"],
       accept: "供 deadline timer 使用。已合入 #905 可能返回 Some(0)，需保留原输入边界并证明选定平台的非零来源；物理时钟精度和 CPUID 输入属 TB_HW_OPS。完整回退仍在 CAL_FREQ 验收。",
       src: "r3 源码复核" },
     { id: "PCI_DEVICE", lane: "common", face: "bus/pci/common_device · bus/pci/mod", title: "PCI 设备构造、能力初始化与总线登记",
@@ -814,12 +800,20 @@ window.PLAN_BASE = {
       ],
       accept: "交付 OSTD 堆包装的布局、分配失败和回收资源合同；Box/Vec 的局部消费者仍可使用 alloc 外部规约，无需等待本项。用户提供 allocator 的实现属于 TB_ALLOC。",
       src: "r3 源码复核" },
-    { id: "BZ_SETUP", lane: "bzimage", face: "libs/linux-bzimage/setup", title: "x86 setup / loader / BootParams",
+    { id: "BZ_DECODE", lane: "bzimage", face: "setup/x86/amd64_efi/decoder.rs", title: "EFI payload 识别与解码",
       mods: ["libs/linux-bzimage"],
-      todo: [
-        "纳入 linux-bzimage/setup 与 boot-params 的 x86 legacy/EFI 入口、loader、Raw/Gzip/Zlib decoder、内存分配和 BootParams 传递；架构 boot 目录排除不等于 setup 排除。",
-      ],
-      accept: "交付所选启动模式的段加载/清零/入口与 BootParams 合同；EFI 服务、firmware 内存与压缩库是逐项记录的外部边界。入口固定地址与 kernel ELF 的吻合在 BZ_IMG 检查；运行所需模式配置仍待提供。",
+      todo: ["#948 的 MagicNumber::try_from 按 ELF、gzip 和 78 9c zlib 前缀识别输入。decode_payload 在 decoded_payload 为 Some 时返回对应字节。核对 EFI 调用处如何排除截断、未知前缀和解码失败。"],
+      accept: "从实际 EFI payload 建立解码前置，核对 Raw 字节保持及压缩输入还原内核 ELF 的证据，记录 libflate 对切片和默认解码器的假设。legacy 路径直接读取 ELF。",
+      src: "§6" },
+    { id: "BZ_LOAD", lane: "bzimage", face: "setup/loader.rs", title: "ELF 段复制与尾部清零",
+      mods: ["libs/linux-bzimage"],
+      todo: ["#948 的 load_elf 按 program header 记录快照。对可读的 64 位 PT_LOAD 且 file_size <= mem_size，load_segment 复制文件前缀并将剩余字节清零；非加载段对应空快照。"],
+      accept: "在传入内核 ELF 的调用处建立解析、可读性与段长前置，核对每段返回的初始化快照。alloc_at 正常返回只保证长度；请求物理地址的归属、段间覆盖与最终内存对应留给启动交接。",
+      src: "§6" },
+    { id: "BZ_SETUP", lane: "bzimage", face: "libs/linux-bzimage/setup", title: "setup 物理内存、入口与 BootParams 交接",
+      mods: ["libs/linux-bzimage"],
+      todo: ["EFI 的 efi_phase_boot 将解码结果交给 load_elf，legacy 直接传入 payload。按选定模式核对物理地址、分配与段间覆盖，连接段初始化快照、控制权转移和 BootParams。"],
+      accept: "用选定镜像说明 PT_LOAD 最终驻留地址、入口可执行和 BootParams 有效的依据。EFI 路径另需解码输入合同；记录 alloc_at、固件服务与初始 CPU 状态的边界。",
       src: "r3 源码复核" },
     { id: "BOOT_COMMON", lane: "common", face: "boot/mod · lib", title: "通用 BootInfo 与 OSTD 入口编排",
       mods: ["boot/mod", "lib/lib"],
@@ -914,12 +908,13 @@ window.PLAN_BASE = {
     {
       "id": "TB_HW_OPS",
       "provider": "CPUID / MSR / volatile / 汇编的外部规约",
-      "input": "#920 的 core CPUID 规约假定所有逻辑 CPU 在执行期共享最大基本叶及受支持叶的 AVX/AVX-512F 位，包含虚拟化与 TDX 呈现的值。另有 has_xapic_spec 等 uninterp 的 spec、#905 的两条乘积上界 assume、CR3 与 invlpg 的 external_body。",
+      "input": "#920 的 core 和 native CPUID 规约假定各逻辑 CPU 共享最大基本叶及受支持叶的 AVX、AVX-512F、xAPIC、x2APIC 位。核对虚拟化或 TDX 的呈现值。频率叶仍按次采样，#905 的两条乘积上界、CR3 与 invlpg 的硬件效果需独立依据。",
       "consumers": [
         "APIC_PROBE",
         "LAPIC_DEV",
         "CPU_FEAT",
         "CPU_ENABLE",
+        "TSC_VALUE",
         "CAL_FREQ",
         "PT_X86",
         "IO_PIO",
@@ -1005,21 +1000,27 @@ window.PLAN_BASE = {
     {
       "id": "TB_SETUP_ENV",
       "provider": "EFI/legacy 固件服务、解压库与链接布局",
-      "input": "setup 所需服务返回内存、BootParams 输入、解压正确性和起始 CPU 状态。",
+      "input": "EFI/legacy 分配服务、BootParams 和初始 CPU 状态。#948 的 alloc_at 正常返回只约束切片长度；编解码对应依赖 libflate 对指定 Vec、切片及默认 codec 的外部模型。",
       "consumers": [
+        "BZ_ENCODE",
+        "BZ_DECODE",
+        "BZ_LOAD",
         "BZ_SETUP",
         "BZ_IMG"
       ],
-      "record": "ostd/libs/linux-bzimage/setup/src @8e681282d19b29bdc1b6e715930fe9224a0c88dc；选择启动模式和产物后补可运行检查。"
+      "record": "setup/src/{loader,x86/amd64_efi/decoder}.rs、verified_libs/vstd_extra/src/external/libflate.rs @88172da38；用选定镜像单独检查嵌入文件和段布局。"
     }
   ],
 
-  /* Open PRs inspected and deliberately NOT linked to any work item. */
+  /* Reviewed upstream PRs without a separate implementation assignment. */
   reviewedCandidates: [{"n":930,"head":"5b25275eda60df30500cc5d2aea70c0e1d0f97bb","reviewedAt":"2026-11-16","note":"已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。"},
     {"n":933,"head":"d99455d023bbfa4834ebf02cbeea95244dd45148","reviewedAt":"2026-11-18","note":"仅更新审阅技能中对证明角色与资源记账的检查，没有修改验证对象。"},
     {"n":938,"head":"bc9132d66d943df4e039630d7dceadf3d03299fa","reviewedAt":"2026-11-18","note":"修改 when_used_as_spec 编码指南，没有变更合同或调用者。"},
-    {"n":941,"head":"6e5d854834f0b2a57ceb6bb5c725e96c4140eacb","reviewedAt":"2026-11-18","note":"已关闭未合并。#944 采用相同 head，共享 user.rs 的协调统一在 #944 跟踪。"},
-    {"n":946,"head":"5e44fbf2fca9f16a078e8ba0ad4fa8dd97316da5","reviewedAt":"2026-11-18","note":"仅修改编码指南和审阅规则，说明执行代码的注释要求以及如何为原调用补规格。"}
+    {"n":941,"head":"6e5d854834f0b2a57ceb6bb5c725e96c4140eacb","reviewedAt":"2026-11-18","note":"已关闭未合并。#944 最初采用相同 head，共享 user.rs 的后续变更在 #944 跟踪。"},
+    {"n":946,"head":"5e44fbf2fca9f16a078e8ba0ad4fa8dd97316da5","reviewedAt":"2026-11-18","note":"仅修改编码指南和审阅规则，说明执行代码的注释要求以及如何为原调用补规格。"},
+    {"n":947,"head":"eea1266a2ccaf258a6766f6040503e0b2575d65e","reviewedAt":"2026-11-19","note":"更新 IRC11 CI 与 dv 文档构建，未引入新的验证交付。"},
+    {"n":949,"head":"d0886c0348a9e1e14079d7e500b277ed8d6a7673","reviewedAt":"2026-11-19","note":"更新上游仪表盘、统计和报告；LOC 与 API 统计单独展示。"},
+    {"n":950,"head":"2aa48686cd8af2c44f3647342b8f4fff13d276d7","reviewedAt":"2026-11-19","note":"修正上游仪表盘的已验证行数展示，节点验收仍使用固定源码与消费者证据。"}
   ],
 
   /* Work the roadmap deliberately does NOT show: RISC-V / LoongArch and multi-architecture

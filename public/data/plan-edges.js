@@ -180,7 +180,7 @@ window.PLAN_EDGES = [
 
   { "to": "BZ_IMG", "from": "BZ_OUT", "gate": "accept", "need": "产物检查消费生成文件与期望区间；只有验收同时承诺 builder 正确性时才需要输出合同已证明", "ev": "ostd/libs/linux-bzimage/builder/src/lib.rs::make_bzimage,to_flat_binary @97963e831" },
   { "to": "BZ_IMG", "from": "BZ_ELF", "gate": "accept", "need": "核对实际 PT_LOAD、entry、文件偏移与加载地址；setup loader 按 physical_addr 装载而入口采用固定地址，二者必须核对。静态检查不要求解析器先被形式证明", "ev": "ostd/libs/linux-bzimage/setup/src/loader.rs::load_segment; setup/src/x86/legacy_i386/mod.rs::ASTER_ENTRY_POINT @97963e831" },
-  { "to": "BZ_IMG", "from": "BZ_ENCODE", "tag": "待确认", "missing": "make_bzimage 只读取已链接的 setup ELF，不调用 encode_kernel。编码结果如何经外部构建工具进入 setup payload 尚缺具体构建调用链和产物 manifest；只在该证据补齐后确定组合关系。" },
+  { "to": "BZ_IMG", "from": "BZ_ENCODE", "tag": "待确认", "missing": "setup 用 .incbin 将 PAYLOAD_FILE 放入 .payload。缺实际构建记录将 encode_kernel 输出与该文件、所选内核及镜像一一对应。" },
 
   { "to": "ACC_IMG", "from": "BZ_IMG", "gate": "accept", "need": "依赖选定镜像及其内核 ELF 的身份与加载布局；该检查不消费 builder 的 Verus 证明", "ev": "ostd/libs/linux-bzimage/builder/src/lib.rs::make_bzimage @97963e831" },
   { "to": "ACC_IMG", "from": "F_ASM", "gate": "accept", "need": "ABI、恢复目标与 ExTable 表项的链接检查需要汇编符号与段存在；不要求缺页恢复路径先证明", "ev": "ostd/src/arch/x86/ex_table.rs::ExTable::init; ostd/src/arch/x86/mm/util.rs::memcpy_fallible @97963e831" },
@@ -191,13 +191,13 @@ window.PLAN_EDGES = [
   { "to": "ACC_RUN", "from": "F_BYTES", "gate": "accept", "need": "成功、部分复制与故障结果可观察", "ev": "ostd/src/mm/io.rs::VmReader::read_fallible @97963e831" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
-  { "to": "IO_PIO_ALLOC", "from": "IO_PIO", "gate": "accept", "need": "typed port 的 valid_io_port_access、宽度与构造合同", "ev": "ostd/src/io/io_port/{mod,allocator}.rs::acquire,new_overlapping @477db699e56654e7813a910b9a25b747d80b6370" },
+  { "to": "IO_PIO_ALLOC", "from": "IO_PIO", "gate": "accept", "need": "动态申请与 new_overlapping 使用同一 typed port 合同，宽度为 1、2 或 4 字节且排他端点可到 65536。", "ev": "ostd/src/io/io_port/{mod,allocator}.rs::acquire,new_overlapping；verified_libs/vstd_extra/src/external/io_port.rs::axiom_io_port_access_spec @64fd64fb0" },
 
   { "to": "IO_MMIO", "from": "MM_KVA", "gate": "accept", "need": "IoMem::new 的 KVirtArea::map_untracked_frames 结果、映射存活与范围合同", "ev": "ostd/src/io/io_mem/mod.rs::IoMem::new @477db699e56654e7813a910b9a25b747d80b6370" },
 
   { "to": "IO_GLOBAL", "from": "IO_ALLOC", "gate": "accept", "need": "已登记窗口的 builder 与保留状态", "ev": "ostd/src/io/io_mem/allocator.rs::init @477db699e56654e7813a910b9a25b747d80b6370" },
   { "to": "IO_GLOBAL", "from": "IO_WIN", "gate": "accept", "need": "builder.has_registered_windows() 的引导来源", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder; ostd/src/io/mod.rs::init @477db699e56654e7813a910b9a25b747d80b6370" },
-  { "to": "IO_GLOBAL", "from": "IO_PIO_ALLOC", "gate": "accept", "need": "敏感端口保留后发布全局 allocator 的权限状态", "ev": "ostd/src/io/io_port/allocator.rs::init @477db699e56654e7813a910b9a25b747d80b6370" },
+  { "to": "IO_GLOBAL", "from": "IO_PIO_ALLOC", "gate": "accept", "need": "init 预留敏感端口后发布 Once；须证明初始权限集合与预占 IdAlloc 位图一致，并与 acquire/recycle 共享同一实例。", "ev": "ostd/src/io/io_port/allocator.rs::init,IoPortAllocation::tracked_empty,acquire,recycle @6c62fbb17" },
 
   { "to": "MM_PT", "from": "PT_CFG", "gate": "accept", "need": "PageTableConfig 布局/顶层范围引理与当前 x86 PagingConstsTrait", "ev": "ostd/src/mm/page_table/mod.rs::PageTableConfig; cursor/mod.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "MM_PT", "from": "MM_FRAME", "gate": "accept", "need": "页表节点和映射 frame 的有效元数据、引用计数及所有权转移合同", "ev": "ostd/src/mm/page_table/node/mod.rs; ostd/src/mm/vm_space.rs::UserPtConfig @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -232,7 +232,7 @@ window.PLAN_EDGES = [
   { "to": "SYNC_API", "from": "SYNC_GUARD", "gate": "accept", "need": "读写锁/RwArc 持锁期间的运行模式与释放合同", "ev": "ostd/src/sync/rwarc.rs; ostd/src/sync/guard.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "has_avx/has_avx512 的结果对应共享 CpuModel 中受支持叶的位；每核启用另需控制寄存器前置。", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512,enable_cpu_features; verified_libs/vstd_extra/src/external/x86.rs::cpu_model @d5764dad33a51a7686d34fe20c3a311d509ebdbe" },
+  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "has_avx/has_avx512 返回 CpuFeatureModel 中受支持叶的能力位。实际启用还需每核控制寄存器条件。", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512,enable_cpu_features；ostd/specs/context.rs::CpuFeatureModel::supports @2df520a575" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "PCI_DEVICE", "from": "PCI_ENUM", "gate": "accept", "need": "有效 location 遍历与无设备判断", "ev": "ostd/src/bus/pci/common_device.rs::PciCommonDevice::new; ostd/src/bus/pci/capability/mod.rs::device_capabilities @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -251,6 +251,10 @@ window.PLAN_EDGES = [
   { "to": "HEAP_GLOBAL", "from": "SA_HEAP", "gate": "accept", "need": "slab 自由槽的 LIFO、独占内存与布局合同", "ev": "ostd/src/mm/heap/slab.rs; ostd/src/mm/heap/mod.rs::AllocDispatch @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "HEAP_GLOBAL", "from": "MM_FRAME", "gate": "accept", "need": "slab/大分配使用 frame/Segment 的存活与回收合同", "ev": "ostd/src/mm/heap/mod.rs; ostd/src/mm/heap/slab.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
+  /* ===== consumers in: bzImage 启动链 ===== */
+  { "to": "BZ_SETUP", "from": "BZ_LOAD", "gate": "accept", "need": "EFI 和 legacy 都调用 load_elf。启动交接需将已复制、清零的段快照连接到实际物理内存。", "ev": "ostd/libs/linux-bzimage/setup/src/{loader,x86/amd64_efi/efi,x86/legacy_i386/mod}.rs::load_elf 及两个调用处 @88172da38" },
+
+  /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "DMA_MAP", "from": "SYNC_GUARD", "gate": "accept", "need": "DMA_MAPPING_SET 的 SpinLock 与 DmaCoherent/DmaStream 的 RwArc 使用 PreemptDisabled，需真实 guard 生命周期", "ev": "ostd/src/mm/dma/{mod,dma_coherent,dma_stream}.rs::init,map,read_inner @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "DMA_MAP", "from": "MM_PT", "gate": "accept", "need": "非一致性 coherent 路径的 cache policy 修改需要 protect_next 的映射保持合同；当前调用在注释中", "ev": "ostd/src/mm/dma/dma_coherent.rs::DmaCoherent::map; mm/page_table/mod.rs::protect_flush_tlb @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "DMA_MAP", "from": "PT_X86", "gate": "accept", "need": "protect_flush_tlb 的现存注释实现逐次调用 tlb_flush_addr(range.start)，只确认本地失效接口", "ev": "ostd/src/mm/page_table/mod.rs::protect_flush_tlb @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -292,4 +296,5 @@ window.PLAN_EDGES = [
   { "to": "ACC_SCOPE", "from": "COMMON_AUDIT", "gate": "accept", "need": "当前范围的 COMMON_AUDIT 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序", "ev": "ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "ACC_SCOPE", "from": "TASK_COMPOSE", "gate": "accept", "need": "任务创建、内置 FIFO 与远端通知的实际组合和可信输入记录", "ev": "ostd/src/task/{mod,processor}.rs; task/scheduler/{mod,fifo_scheduler}.rs（最终范围验收） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "ACC_SCOPE", "from": "BZ_PARSE", "gate": "accept", "need": "核对 builder 公共参数解析的合法值、错误消息及两处 OS 字符串包装。", "ev": "ostd/libs/linux-bzimage/builder/src/encoder.rs::PayloadEncoding::from_str,From<OsString>,From<&OsStr> @53a020701cc05f8f99df03ed224e90bbe7ba234d" },
+  { "to": "ACC_SCOPE", "from": "BZ_DECODE", "gate": "accept", "need": "汇总 EFI payload 识别、解码和库边界的独立交付。legacy 路径直接加载 ELF。", "ev": "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/{decoder,efi}.rs::decode_payload,efi_phase_boot @88172da38" },
 ];
