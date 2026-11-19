@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T13:33:40.336Z",
+  "generatedAt": "2026-11-19T20:45:02.651Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -126,7 +126,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -504,26 +504,26 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 920,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
       "head": "56c04a329786066a820c083a3a556302f01264f6",
       "title": "prove: Verify x86 AVX feature detection",
       "body": "Enable and verify `has_avx()` and `has_avx512()` in the existing x86 module, adding 16 Verified executable LoC. Per-call ghost samples specify the original leaf-0 gate and the exact AVX/AVX-512F bit checks; other inactive code and existing comments are preserved.\n\nReplace the core CPUID intrinsics with the already specified `native_cpuid::cpuid_count`. The pinned x86/raw-cpuid implementation delegates to the same intrinsic and preserves all four registers, so query arguments and order are unchanged. No trusted boundary is added. The contracts describe this invocation's samples; they do not assume consistency across reads or prove all hardware and OS conditions for executing AVX instructions.\n\nPowered by fy0/Veriflow\n",
       "url": "https://github.com/asterinas/vostd/pull/920",
-      "updatedAt": "2026-11-19T13:26:38Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
+      "updatedAt": "2026-11-19T13:38:36Z",
+      "mergedAt": "2026-11-19T13:38:35Z",
+      "closedAt": "2026-11-19T13:38:35Z",
+      "mergeCommit": "eb1a9d044617c2abff58f959ccc50f9571d561e9",
       "reviewDecision": null,
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
-      "ci": "进行中"
+      "gate": "UNKNOWN",
+      "ci": "成功"
     },
     {
       "n": 921,
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -774,7 +774,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -864,7 +864,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -1001,7 +1001,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: specify the x86 context switch FFI contract",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/954",
-      "updatedAt": "2026-11-19T12:08:05Z",
+      "updatedAt": "2026-11-19T13:53:30Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
