@@ -1250,5 +1250,82 @@ window.PLAN_HISTORY = [
       }
     ],
     "prs": "新增 #948 的三项实施关联，#951 和 #952 按共享合同关联。#920 同时推进 APIC 探测和 TSC 采样。复核 #706、#720、#883、#934、#935、#944 的新 head，以及 #942 更新后的正文。#947、#949、#950 属工具和展示调整。"
+  },
+  {
+    "revision": 7,
+    "date": "2026-11-19",
+    "reason": "区分 MMIO 窗口保留与发布后的分配，纳入 x86 任务切换 FFI，并按新提交修订 TSC 校准和公共库调用条件。",
+    "splits": [
+      {
+        "from": "IO_ALLOC",
+        "to": ["IO_ALLOC", "IO_MMIO_ALLOC"],
+        "why": "设备初始化消费逐窗口保留效果，运行期 IoMem 申请和显式回收消费已发布的分配器与 FreePermit。两组调用者可分别验收。"
+      }
+    ],
+    "edgesAdded": [
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_MMIO_ALLOC",
+        "why": "运行期分配器需接收 builder 保留后的状态。"
+      },
+      {
+        "a": "IO_GLOBAL",
+        "b": "IO_MMIO_ALLOC",
+        "why": "把全局发布条件接到安全申请入口，PCI BAR 的直接映射可独立验收。"
+      },
+      {
+        "a": "IO_MMIO_ALLOC",
+        "b": "ACC_SCOPE",
+        "why": "公开申请与回收独立纳入验收清单。"
+      }
+    ],
+    "edgesChanged": [
+      {
+        "a": "IO_ALLOC",
+        "b": "APIC_RESERVE",
+        "why": "xAPIC 调用者可以使用更新后的精确保留效果。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IOAPIC_REG",
+        "why": "IOAPIC 可从给定合法窗口核对设备保留。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_WIN",
+        "why": "窗口构造已能交出逐窗口初始化的 tracked 状态。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_GLOBAL",
+        "why": "顶层已传递状态，全局初始化的外部体仍待核对。"
+      },
+      {
+        "a": "IO_PIO_ALLOC",
+        "b": "IO_GLOBAL",
+        "why": "区分永久预占的位图项与动态分配的权限。"
+      },
+      {
+        "a": "CPU_FEAT",
+        "b": "CPU_ENABLE",
+        "why": "能力值改由参考 CPU 构造的字段直接交付。"
+      },
+      {
+        "a": "TASK_CTX",
+        "b": "TASK_SW",
+        "why": "以新 FFI 声明为起点验证真实调度器的资源交接。"
+      },
+      {
+        "a": "BZ_LOAD",
+        "b": "BZ_SETUP",
+        "why": "loader 已用 MaybeUninit 的内容合同给出逐字节证据。"
+      },
+      {
+        "a": "TSC_VALUE",
+        "b": "CAL_FREQ",
+        "why": "将采样模型与实际选择 CPUID 或 PIT 的调用处分清。"
+      }
+    ],
+    "prs": "#706 分开验收设备保留和运行期申请，动态 PIO 调用处按精简后的成功条件复核。新增 #954 关联 TASK_CTX 和 TASK_SW。#920 区分共享叶 0x15 和本核回退基频；TSC_FREQ 使用 AtomicU64，APIC 定时器的 CONFIG 使用 Once。#948 补逐字节段内容和 PE 辅助引理，#934 更换测试元数据。#951、#953 已合入，按实际调用处复用。#944 本轮活动未改变 x86 范围。"
   }
 ];

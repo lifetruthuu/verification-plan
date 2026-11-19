@@ -14,7 +14,7 @@ window.PLAN_BASE = {
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
     date: "2026-11-19",
-    sha: "6449bf6b5832792ba861a893878bd27627ca7a83",
+    sha: "2f0e2563216548791d23d1fb28fe2bab478f23c4",
     snapshotAt: "2026-11-13 17:44（北京时间）",
     snapshotSha: "90087275ebd4b974596947d11d3da27d722e05d3",
   },
@@ -51,12 +51,13 @@ window.PLAN_BASE = {
 
   nodes: [
     /* ================================================================ IO */
-    { id: "IO_ALLOC", lane: "common", face: "io/io_mem · util/range_alloc", title: "MMIO 窗口分配与 remove 资源合同",
+    { id: "IO_ALLOC", lane: "common", face: "io/io_mem · util/range_alloc", title: "MMIO 初始窗口与设备区间保留",
       mods: ["util/range_alloc", "io/io_mem"],
       todo: [
-        "#706 的 builder::new 证明窗口视图与输入一致，将 has_registered_windows 归约到输入窗口匹配。实例 acquire 成功返回对应区间的 FreePermit。remove 只要求非空区间和 may_panic()，还需向调用方提供成功保留、冲突及其他区间保持的合同。",
+        "#706 的 builder::new 从边界有序、两两分离的输入窗口生成匹配的 IoMemBuilderState，每个窗口起初整段可用。以调用者的设备区间证明 can_remove，即一个窗口覆盖整段且每个地址尚可用。",
+        "remove 正常返回后，该窗口的可用集合精确减去设备区间，其余窗口保持原状。无法建立 can_remove 时调用者须允许 panic。",
       ],
-      accept: "交付可供 IO_WIN、APIC_RESERVE、IOAPIC_REG 使用的局部窗口和权限合同；以给定合法窗口证明范围移除、互不重叠、失败状态保持及回收资格即可验收。不能要求下游 APIC/IOAPIC 已全部完成才关闭本项。固件区域真实性属 TB_BOOT_INPUT。",
+      accept: "在实际设备保留调用处建立非空区间、匹配状态与 can_remove，核对正常返回后的逐窗口状态。引导窗口来源归 IO_WIN，发布后的申请和回收归 IO_MMIO_ALLOC。",
       src: "§4 · §5 阶段 A" },
     { id: "IO_PIO", lane: "common", face: "io/io_port", title: "静态 PIO 端口构造与访问合同",
       mods: ["io/io_port"],
@@ -68,10 +69,10 @@ window.PLAN_BASE = {
     { id: "IO_WIN", lane: "x86", face: "boot/memory_region · arch/x86/io", title: "引导 MMIO 窗口 → 登记权限",
       mods: ["boot/memory_region", "arch/x86/io"],
       todo: [
-        "construct_io_mem_allocator_builder 从 EARLY_INFO.memory_regions 筛选区域并计算低、高 MMIO 窗口；目前未被验证，也没有建立与 registered_io_mem_windows() 的相等关系（#706 的 arch/x86/io.rs）。",
-        "#706 对 x86 builder 构造函数本身的改动不足以建立这条端到端关系；MemoryRegion 的局部证明补不出固件布局的真实性。",
+        "从 EARLY_INFO.memory_regions 构造低、高窗口，在 construct_io_mem_allocator_builder 建立窗口边界、互不重叠和与 registered_io_mem_windows() 的对应，再向设备保留及初始化交出匹配状态。",
+        "#953 的迭代器 min/max 合同要求比较律。MemoryRegion 的区域合并助手已为 MemoryRegionType 建立 obeys_cmp；x86 窗口计算及固件输入仍需各自的证据。",
       ],
-      accept: "交付：builder 返回的权限与实际引导 MMIO 窗口一一对应的证明。窗口列表来自未纳入计划的 arch/x86/boot，属可信边界 TB_BOOT_INPUT；动态显式释放资格仍须逐消费者验收。",
+      accept: "对照引导输入逐窗口核对地址区间、初始可用集合与设备保留前的状态。平台提供的内存布局归 TB_BOOT_INPUT。",
       src: "§5 阶段 A" },
 
     /* ============================================================== IRQ */
@@ -143,7 +144,7 @@ window.PLAN_BASE = {
     { id: "PT_X86", lane: "x86", face: "arch/x86/mm", title: "x86 页表寄存器与刷新效果",
       mods: ["arch/x86/mm"],
       todo: [
-        "PTE 编码已有证明；CR3 激活 / 读取、按地址及非全局刷新是 external_body + unimplemented!()，全局刷新函数体只剩注释，都没有硬件效果后置条件。",
+        "PTE 的 parse_flags 对非零掩码使用 ilog2，#953 的 no_unwind 以正输入为条件。CR3 激活 / 读取、按地址及非全局刷新是 external_body + unimplemented!()，全局刷新函数体只剩注释，都没有硬件效果后置条件。",
       ],
       accept: "交付 CR3 根页激活/读取、单页/范围/全局刷新效果，供栈、MM_BOOT、TLB_SHOOT 使用；范围循环证明可独立开展。验收恢复执行包装并将地址对齐/有效根页前置接到消费者，硬件指令效果逐条列入 TB_HW_OPS。",
       src: "§4" },
@@ -215,7 +216,7 @@ window.PLAN_BASE = {
     { id: "IOAPIC_REG", lane: "x86", face: "arch/x86/kernel/irq/ioapic.rs", title: "IOAPIC：寄存器访问",
       mods: ["arch/x86/kernel"],
       todo: [
-        "间接寄存器选择 / 数据访问互斥。基地址可作为参数，寄存器级证明不必等 MADT；MADT 提供基址属于 irq::init 的组合（见 ROUTE_MAP）。",
+        "IoApicAccess::new 保留 [base,base+0x20)，须证明端点有界且整段在一个窗口内可用。寄存器选择和数据访问须组成互斥事务。可用给定基址先做局部证明，MADT 地址由 ROUTE_MAP 交付。",
       ],
       accept: "交付给 IOAPIC_ENTRY 的间接寄存器读写合同：选择/数据事务互斥、偏移有界、max_redirection_entry 的含义及映射存活。以给定合法窗口证明，固件地址到该窗口的对应由 ROUTE_MAP 组合；寄存器效果属 TB_HW_OPS。",
       src: "§5 阶段 B" },
@@ -244,10 +245,10 @@ window.PLAN_BASE = {
     { id: "APIC_RESERVE", lane: "x86", face: "arch/x86/kernel/apic", title: "xAPIC 寄存器窗口保留",
       mods: ["arch/x86/kernel", "io/io_mem"],
       todo: [
-        "xAPIC 从实际 MSR 采样取地址，保留对应 1024 字节范围，其他窗口权限不变。",
-        "XApic::new 用 mm::paddr_to_vaddr(get_xapic_base_address()) 取寄存器指针，且是 external_body；寄存器读写用无分配权限的 volatile wrapper，不经 IoMem，因此这一项才是 APIC 与 IO 分配器的唯一接点。",
+        "在 xAPIC 分支从 MSR 基址证明 base+1024 有界，且整个非空区间在同一窗口内仍可用；传入匹配的 builder 状态，用 remove 的后置条件更新后续设备看到的可用集合。",
+        "XApic::new 用 paddr_to_vaddr 和 volatile wrapper 访问寄存器，其映射与访问效果须按该路径核对。",
       ],
-      accept: "MSR 地址对齐与上界只是局部事实，还需证明该地址属于登记窗口。x2APIC 分支不消费窗口。",
+      accept: "在使用 xAPIC 的平台证明 can_remove 并核对实际保留结果。x2APIC 模式可独立验收。",
       src: "§5 阶段 A" },
     { id: "APIC_PUB", lane: "x86", face: "arch/x86/kernel/apic", title: "APIC 发布模式与 ApicId",
       mods: ["arch/x86/kernel"],
@@ -353,7 +354,7 @@ window.PLAN_BASE = {
       mods: ["arch/x86/kernel", "arch/x86/timer"],
       todo: [
         "PIT 校准，再接完整 init_tsc_freq。main 已证明 CPUID 采样计算（#905），但保留两个乘积上界 assume；PIT 校准、init_tsc_freq、TSC_FREQ 发布均在注释里。",
-        "整数截断、采样边界、频率发布、CONFIG / Once 状态、临时 PIT 映射释放与原模式选择。",
+        "证明整数截断、采样边界、临时 PIT 映射释放和原模式选择，核对 init_tsc_freq 对 TSC_FREQ 的 Relaxed 写入。APIC 定时器的 CONFIG 单独使用 Once。",
       ],
       accept: "频率为零、计数减法的边界不能由“频率初始化完成”这一名称隐含保证。局部证明可先假定 IRQ0 回调合同；最终接线才需要 PITIRQ 完成。",
       src: "§3 P2 · §5 阶段 C" },
@@ -426,7 +427,9 @@ window.PLAN_BASE = {
     /* ================================================================ USER */
     { id: "CPU_FEAT", lane: "x86", face: "arch/x86/mod.rs", title: "CPU 特性位检测（AVX / AVX-512F）",
       mods: ["arch/x86/mod"],
-      todo: ["#920 的 has_avx 和 has_avx512 返回 cpu_feature_model().supports 对 Avx、Avx512F 的判定。把受支持叶、跨核稳定的特性位和 core CPUID 外部规约接到每核启用调用处。"],
+      todo: [
+        "#920 用参考 CPU 构造 CpuFeatureModel。has_avx、has_avx512 分别返回 supports_avx、supports_avx512f；从支持的叶 1、7 跟踪到各核实际启用调用，并登记跨核一致性的来源。",
+      ],
       accept: "交付 CPU_ENABLE 可用的叶支持与 AVX/AVX-512F 位判断合同，登记 core CPUID 外部规约和跨核稳定假设。OSXSAVE、XCR0 和指令可执行条件由 CPU_ENABLE 验收。",
       src: "§4" },
     { id: "FPU_REPR", lane: "x86", face: "arch/x86/cpu/context", title: "FPU 表示、有效长度与 clone",
@@ -453,7 +456,7 @@ window.PLAN_BASE = {
     { id: "TASK_SW", lane: "x86", face: "arch/x86/task · task/processor", title: "processor 任务切换资源交接",
       mods: ["arch/x86/task", "task/processor"],
       todo: [
-        "任务切换的资源交接与地址空间切换。main 已有 #870 的寄存器数据证明；汇编 context_switch 与 processor 执行路径未证明。",
+        "#954 尚未接入模块树中停用的 task::processor。在 switch_to_task 调用处取得两个任务的独占权限，建立 IRQ、栈和入口条件，跟踪暂停至恢复期间的资源归属，并在恢复后使用 cur 的令牌。",
       ],
       accept: "验证上下文独占、当前/前一任务交接、栈刷新、RCU 静止点与 IRQ 权限恢复。PRE/POST_SCHEDULE_HANDLER 是注入接口，当前源码不能证明它实际切换 VmSpace；地址空间效果作为 TB_CLIENT_HOOKS 的具体调用者合同待核对，不强制绑定整个 PT_X86。",
       src: "§3 P3 · §5 阶段 C" },
@@ -647,25 +650,40 @@ window.PLAN_BASE = {
       src: "§8" },
     { id: "IO_PIO_ALLOC", lane: "common", face: "io/io_port/allocator", title: "动态 PIO 分配、保留与显式释放",
       mods: ["io/io_port"],
-      todo: ["#706 的 acquire 与 acquire_overlapping 在全宽不越界时，分别按整段或首端口与 checked 集合是否相交决定成功。成功时携带分配 claim，显式 drop(self) 用 usize 区间交还权限。核对真实消费者的释放路径及最末端口。"],
-      accept: "在动态调用处验证冲突与越界失败、普通与重叠模式的回收宽度，以及排他端点 65536；仅持有本分配器 claim 的实例可显式释放。敏感端口初始集合由 IO_GLOBAL 验收。",
+      todo: [
+        "#706 的公开 acquire/acquire_overlapping 保证全宽越界返回 Err。成功时给出端口、重叠模式和持有的分配 claim。调用者若依赖无冲突时必定成功，须另给占用状态与申请结果的对应证据。",
+        "跟踪实际调用者的显式 drop(self)。普通模式释放整段，重叠模式只释放首端口，排他端点可达 65536。",
+      ],
+      accept: "从一个动态端口调用处核对所需的成功或失败条件、模式与释放宽度，消费同一分配器签发的 claim。敏感端口的初始预占由 IO_GLOBAL 验收。",
       src: "r3 源码复核" },
+    { id: "IO_MMIO_ALLOC", lane: "common", face: "io/io_mem/allocator", title: "MMIO 分配器发布后的申请与显式回收",
+      mods: ["io/io_mem", "util/range_alloc"],
+      todo: [
+        "#706 的 IoMemAllocator::new 消费保留后的 builder 状态，将 pending 转成已发布令牌。实例 acquire 成功时给出起始地址、长度和对应分配器与区间的 FreePermit，返回 None 时没有 permit。",
+        "公开 IoMem::acquire 仍是 external_body。核对登记窗口、初始化和页对齐算术前置，将实例申请接到全局包装，说明 permit 的去向。显式 recycle 要求区间及分配器身份匹配；当前 IoMem::drop 没有调用它。",
+      ],
+      accept: "以实际申请调用处证明成功和失败两支的资源归属，说明由谁持有 permit，以及显式回收如何消费它。系统设备窗口保留归 IO_ALLOC，设备映射、切片和访问归 IO_MMIO。",
+      src: "§4 · §7" },
     { id: "IO_MMIO", lane: "common", face: "io/io_mem", title: "IoMem 映射、切片与设备访问合同",
       mods: ["io/io_mem"],
       todo: [
-        "#706 的 IoMem::new/acquire/slice、VmIo/VmIoOnce 与映射存活；当前 new/acquire/设备访问仍 external，obeys_vmio_* 为 false，不能向设备调用者提供完整访问保证。",
+        "PCI 的 MemoryBar::new 直接使用 unsafe IoMem::new。核对给定设备区间的映射存活、切片别名、VmIo/VmIoOnce 读写范围和硬件效果；经全局分配器进入的安全申请归 IO_MMIO_ALLOC。",
       ],
       accept: "供 PCI BAR、MSI-X 消费地址/长度、访问边界和映射生命周期。new 的形式 requires 目前没有 registered-window 条件；其 unsafe 设备区域合法性须另交证据。Drop 当前不回收 MMIO，不能宣称释放回 allocator；设备寄存器效果属 TB_HW_OPS。HPET 直接使用 VolatileRef，另按其真实路径验收。",
       src: "r3 源码复核" },
     { id: "IO_GLOBAL", lane: "common", face: "io/mod", title: "PIO/MMIO 全局初始化与权限交接",
       mods: ["io/mod"],
-      todo: ["#706 的 PIO init 从链接段预占敏感端口，再用 tracked_empty 构造锁内资源。补齐初始 IdAlloc 位图与权限集合的对应、Once 发布和消费者取得已初始化分配器的证据。MMIO 另核对已登记窗口与全局权限。"],
+      todo: [
+        "#706 的 io::init 已将匹配的 builder 状态传给 io_mem::allocator::init。该入口仍是 external_body，须从已保留系统设备的窗口建立 Once 发布、初始化谓词与全局取得实例的对应。",
+        "PIO 从链接段预占敏感端口，tracked_empty 从空的动态分配记录起步。证明这些记录是位图已占用端口的子集，并区分永久预占和可回收的 claim。",
+      ],
       accept: "交付 io_mem_allocator_initialized/io_port_allocator_initialized 的真实来源以及初始化一次、系统设备保留与失败合同；设备调用者仅在使用全局 acquire 时消费它。不能把 IO_GLOBAL 当静态 PIO 或 unsafe IoMem::new 的统一前置。",
       src: "r3 源码复核" },
     { id: "MM_FRAME", lane: "common", face: "mm/frame", title: "Frame / Segment 分配、元数据与释放",
       mods: ["mm/frame"],
       todo: [
-        "#934 的七个测试函数覆盖成功分配、clone/drop、借用、raw 往返、单帧 Segment 和链表。复核元数据与计数保持，补分配失败、未覆盖的转换和实际释放义务。链表以 insert_slot_owner 描述区域权限变化。集成 #720 时核对 dyn 元数据转换所需的工具链补丁与 transmute 边界。",
+        "#934 的七个 frame 测试覆盖成功分配、clone/drop、借用、raw 往返、单帧 Segment 和链表。类型化测试使用 MockFrameMeta，untyped 路径仍使用 U32FrameMeta。核对真实元数据的生命周期、分配失败和释放义务。",
+        "Segment::slice 的条件 panic 和克隆后的引用计数证明来自已合入的 #951。集成 #720 时另核对 dyn 元数据转换与 transmute 边界。",
       ],
       accept: "供栈、动态 CPU-local、页表和 DMA 使用：分配失败不伪造内存，成功给出对齐、存活、互不重叠和元数据权限。用户 GlobalFrameAllocator 实现属 TB_ALLOC；OSTD 包装与元数据义务仍在本项。",
       src: "r3 源码复核" },
@@ -746,12 +764,13 @@ window.PLAN_BASE = {
       ],
       accept: "供 task 与 OSTD 客户使用：竞争/等待/唤醒时资源保持和权限转移成立；已有局部锁证明直接复用。调度公平性和底层原子模型属于显式前提，硬件执行资源由 SYNC_GUARD 接入。",
       src: "r3 源码复核" },
-    { id: "TASK_CTX", lane: "x86", face: "arch/x86/task/switch.S", title: "TaskContext 切换汇编 ABI",
+    { id: "TASK_CTX", lane: "x86", face: "arch/x86/task/mod.rs · switch.S", title: "TaskContext 切换汇编 ABI",
       mods: ["arch/x86/task"],
       todo: [
-        "在有效的 cur/nxt 上下文、独占资源和栈输入条件下建立保存恢复寄存器、RSP/RIP/FSBASE 与返回约定；复用 #870 的数据方法证明。",
+        "#954 的可信 context_switch FFI 借入 cur 的可变 PointsTo，按值接收已初始化的 nxt 权限，要求指针对应且地址不同。cur 恢复后，其令牌指回原址且已初始化，保存的 RSP 满足 rsp % 16 == 8。",
+        "对照 switch.S、TaskContext 布局与 #870 的字段合同核对保存和恢复的寄存器值。追踪返回槽、有效入口和挂起栈的寿命，说明下一任务权限如何在后续切换中再次取得。",
       ],
-      accept: "交付 processor::switch_to_task 可调用的 context_switch 边界合同和汇编/布局检查。局部证明不等待 scheduler/RCU/syscall；汇编指令效果属 TB_HW_OPS。",
+      accept: "给 processor 提供可消费的 ABI 合同。逐项核对栈、IRQ、FSBASE/FSGSBASE 及适用时的 shadow stack 条件，记录汇编与 assume_specification 的可信范围。",
       src: "r3 源码复核" },
     { id: "CPU_ENABLE", lane: "x86", face: "arch/x86/mod · cpu/context", title: "每核 CPU 控制寄存器与特性初始化",
       mods: ["arch/x86/mod", "arch/x86/cpu"],
@@ -769,7 +788,10 @@ window.PLAN_BASE = {
       src: "r3 源码复核" },
     { id: "TSC_VALUE", lane: "x86", face: "arch/x86/kernel/tsc", title: "tsc_freq 采样结果与发布合同",
       mods: ["arch/x86/kernel"],
-      todo: ["#920 将 #905 采样合同中的最大基本叶改为共享模型字段，叶 0x15/0x16 的频率值仍按本次调用采样。在 tsc_freq 的真实消费者处建立非零 Hz 和范围，补 TSC_FREQ 的 Once 发布与读取。"],
+      todo: [
+        "#920 将受支持叶 0x15 的分母、分子和晶振 Hz 绑定到共享模型。仅回退时读取当前逻辑 CPU 的叶 0x16 基频，结果由 tsc_frequency_hz(base_eax) 计算。",
+        "在实际消费者建立非零 Hz 和范围，核对 max_basic_leaf <= 0x15 的拒绝条件、Some(0) 和两条乘积上界假设，再核对注释路径中 TSC_FREQ 的 AtomicU64 写入与读取，以及读取者何时可排除初始零值。",
+      ],
       accept: "供 deadline timer 使用。已合入 #905 可能返回 Some(0)，需保留原输入边界并证明选定平台的非零来源；物理时钟精度和 CPUID 输入属 TB_HW_OPS。完整回退仍在 CAL_FREQ 验收。",
       src: "r3 源码复核" },
     { id: "PCI_DEVICE", lane: "common", face: "bus/pci/common_device · bus/pci/mod", title: "PCI 设备构造、能力初始化与总线登记",
@@ -807,7 +829,10 @@ window.PLAN_BASE = {
       src: "§6" },
     { id: "BZ_LOAD", lane: "bzimage", face: "setup/loader.rs", title: "ELF 段复制与尾部清零",
       mods: ["libs/linux-bzimage"],
-      todo: ["#948 的 load_elf 按 program header 记录快照。对可读的 64 位 PT_LOAD 且 file_size <= mem_size，load_segment 复制文件前缀并将剩余字节清零；非加载段对应空快照。"],
+      todo: [
+        "#948 的 load_segment 用 MaybeUninit 的逐元素初始化和 map_values(contents) 合同证明 PT_LOAD 前缀等于文件字节、尾部均为零。load_elf 按 program header 记录快照，非加载段对应空快照。",
+        "在 EFI 和 legacy 的真实调用处分别建立 ELF 可读、段类型和 file_size <= mem_size 的前置，再将段快照交给 BZ_SETUP。",
+      ],
       accept: "在传入内核 ELF 的调用处建立解析、可读性与段长前置，核对每段返回的初始化快照。alloc_at 正常返回只保证长度；请求物理地址的归属、段间覆盖与最终内存对应留给启动交接。",
       src: "§6" },
     { id: "BZ_SETUP", lane: "bzimage", face: "libs/linux-bzimage/setup", title: "setup 物理内存、入口与 BootParams 交接",
@@ -908,7 +933,7 @@ window.PLAN_BASE = {
     {
       "id": "TB_HW_OPS",
       "provider": "CPUID / MSR / volatile / 汇编的外部规约",
-      "input": "#920 的 core 和 native CPUID 规约假定各逻辑 CPU 共享最大基本叶及受支持叶的 AVX、AVX-512F、xAPIC、x2APIC 位。核对虚拟化或 TDX 的呈现值。频率叶仍按次采样，#905 的两条乘积上界、CR3 与 invlpg 的硬件效果需独立依据。",
+      "input": "#920 假定各逻辑 CPU 共享最大基本叶、受支持的四个特性位及叶 0x15 的三个频率字段，回退时叶 0x16 的基频取本核采样。两条乘积上界与虚拟化平台的 CPUID 值须另给依据。#954 将 context_switch 的 cur 权限和栈对齐写为可信 FFI 合同；保存恢复的汇编效果、CR3 和 invlpg 按使用处核对。",
       "consumers": [
         "APIC_PROBE",
         "LAPIC_DEV",
@@ -1008,7 +1033,7 @@ window.PLAN_BASE = {
         "BZ_SETUP",
         "BZ_IMG"
       ],
-      "record": "setup/src/{loader,x86/amd64_efi/decoder}.rs、verified_libs/vstd_extra/src/external/libflate.rs @88172da38；用选定镜像单独检查嵌入文件和段布局。"
+      "record": "setup/src/{loader,x86/amd64_efi/decoder}.rs、verified_libs/vstd_extra/src/external/{libflate,maybe_uninit}.rs @331a41772；用选定镜像单独检查嵌入文件和段布局。"
     }
   ],
 

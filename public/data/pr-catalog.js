@@ -6,14 +6,14 @@
 window.PLAN_PR_CATALOG = [
   {
     "n": 920,
-    "scope": "共享 CPUID 模型下的 AVX、APIC 探测与 TSC 采样",
+    "scope": "共享 CPUID 能力与叶 0x15 的 TSC 参数，回退时采样本核基频",
     "implements": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
     "reuses": [],
-    "note": "CpuFeatureModel 统一四个特性位和最大基本叶。xAPIC 改查 EDX[9]，两种 APIC 的结果合同以叶 1 可用为条件。TSC 频率寄存器仍按次采样；模式选择、频率发布和 OS 每核启用分别验收。",
-    "reviewedHead": "2df520a575db6eae20000b83ca9e1d61888efe2a",
+    "note": "参考 CPU 给出最大基本叶、四个特性位及叶 0x15 的分母、分子和晶振 Hz。叶 1 可用时探测 xAPIC/x2APIC；仅回退时读取本核叶 0x16。结果仍可能是 Some(0)，有两条乘积上界假设。模式选择、频率发布和每核启用仍待调用处验证。",
+    "reviewedHead": "56c04a329786066a820c083a3a556302f01264f6",
     "reviewedAt": "2026-11-19",
     "evidence": [
-      "ostd/specs/context.rs::cpu_feature_model,cpuid_consistent；ostd/src/arch/x86/kernel/{apic/xapic,apic/x2apic,tsc}.rs @2df520a575"
+      "ostd/specs/context.rs::CpuFeatureModel::from_cpuid,cpuid_consistent；ostd/src/arch/x86/{mod,kernel/tsc,kernel/apic/xapic,kernel/apic/x2apic}.rs @56c04a329"
     ]
   },
   {
@@ -27,15 +27,15 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 706,
-    "scope": "静态/动态 PIO、MMIO 窗口分配与 PCI 配置端口",
-    "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL"],
-    "reuses": ["IO_WIN", "PIT_CFG", "PCI_BAR"],
-    "note": "静态 new 已允许合法宽度访问到最后一个端口。acquire 和 acquire_overlapping 的成功条件取决于检查时的占用集合，drop(self) 用 usize 范围消费分配 claim。MMIO 实例 acquire 返回 FreePermit；remove 仍缺可供设备调用的保留效果，全局初始化和真实设备访问待证。",
-    "reviewedHead": "64fd64fb0325c8a2b66f1f0988804464019c4632",
+    "scope": "MMIO 初始窗口、设备保留与运行期申请，静态和动态 PIO 及 PCI 配置端口",
+    "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL", "IO_MMIO_ALLOC"],
+    "reuses": ["IO_WIN", "PIT_CFG", "PCI_BAR", "APIC_RESERVE", "IOAPIC_REG"],
+    "note": "builder::new 交出逐窗口匹配的状态，remove 正常返回后仅从覆盖窗口减去整段。设备调用者需建立 can_remove。实例 acquire/recycle 使用匹配的 FreePermit，公开 IoMem::acquire 及全局 MMIO 初始化仍可信。公开动态 PIO 保证越界失败和成功时的端口与分配模式，无冲突时能否取得端口须另证。",
+    "reviewedHead": "6b8511ba253528331d8dfbccb3a8c5d6f1600e7c",
     "reviewedAt": "2026-11-19",
     "evidence": [
-      "ostd/src/io/io_port/{mod,allocator}.rs::new,acquire,acquire_overlapping,drop,recycle,init @64fd64fb0",
-      "ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::remove @6c62fbb17"
+      "ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::{new,remove,can_remove},IoMemAllocator::{new,acquire,recycle} @6b8511ba2",
+      "ostd/src/io/{mod,io_mem/mod,io_port/mod,io_port/allocator}.rs::init,acquire,acquire_overlapping,drop @6b8511ba2"
     ]
   },
   {
@@ -399,13 +399,15 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 934,
-    "scope": "七个 frame 测试函数、元数据/链表合同及 VM I/O 分支断言",
+    "scope": "七个 frame 测试、MockFrameMeta 与 VM I/O 分支断言",
     "implements": ["MM_FRAME", "VM_POD"],
     "reuses": [],
-    "note": "七个 frame 测试覆盖成功分配、借用、raw 往返和链表等路径。链表修改用 insert_slot_owner 描述区域权限。VM I/O 测试包含部分复制量和故障时的游标断言，缓冲字节内容、分配失败和运行期 ktest 仍需证据。",
-    "reviewedHead": "251a0f3f39cb36ec293f6c1808126c7a926eca11",
+    "note": "类型化测试改用 MockFrameMeta，untyped 测试使用 U32FrameMeta。七个 frame 测试与 VM I/O 的部分复制量、故障游标证据继续分别使用。Segment::slice 的引用计数更新随 #951 进入主线。分配失败、缓冲字节内容与运行期 ktest 待核对。",
+    "reviewedHead": "b277ee4e64472305f56fb91bf12c05a9bc3e4af8",
     "reviewedAt": "2026-11-19",
-    "evidence": ["ostd/src/mm/frame/{test,linked_list}.rs；ostd/src/mm/test.rs @251a0f3f39"]
+    "evidence": [
+      "ostd/specs/mm/frame/meta_owners.rs；ostd/src/mm/frame/{test,linked_list}.rs；ostd/src/mm/test.rs @b277ee4e6"
+    ]
   },
   {
     "n": 935,
@@ -493,26 +495,27 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 948,
-    "scope": "builder 编码、EFI payload 识别与解码、ELF 段初始化",
+    "scope": "builder 编码、EFI 解码、ELF 段逐字节初始化及 PE 节布局辅助证明",
     "implements": ["BZ_ENCODE", "BZ_DECODE", "BZ_LOAD"],
-    "reuses": ["BZ_SETUP", "BZ_IMG"],
-    "note": "Raw 保持输入，gzip/zlib 由库规格连接到解码结果。load_elf 按段记录复制和清零快照；alloc_at 只保证返回长度。真实嵌入字节、物理区间归属、BootParams 与入口仍需证据。",
-    "reviewedHead": "88172da38e3981d71a1a70316f40feae370114b6",
+    "reuses": ["BZ_SETUP", "BZ_IMG", "BZ_PE"],
+    "note": "load_segment 用 MaybeUninit 元素状态及内容序列证明文件前缀和零尾部。alloc_at 只约束返回长度。PE 内部引理说明节长度、对齐与指定基址的偏移关系。调用方仍需证明 ELF 前置、目标内存归属，并核对实际 payload 和启动入口。",
+    "reviewedHead": "331a417721d31290d5094860761a1b662f73d435",
     "reviewedAt": "2026-11-19",
     "evidence": [
-      "ostd/libs/linux-bzimage/builder/src/encoder.rs::encode_kernel；setup/src/x86/amd64_efi/decoder.rs::decode_payload；setup/src/loader.rs::load_elf @88172da38"
+      "ostd/libs/linux-bzimage/setup/src/loader.rs::load_segment,load_elf；verified_libs/vstd_extra/src/external/maybe_uninit.rs @331a41772",
+      "ostd/libs/linux-bzimage/{builder/src/pe_header.rs::lemma_pe_section_layout,builder/src/encoder.rs,setup/src/x86/amd64_efi/decoder.rs} @331a41772"
     ]
   },
   {
     "n": 951,
-    "scope": "frame、页表、虚拟区间和 VM I/O 的条件 panic 合同",
+    "scope": "已合入 0195b8176 的条件 panic 合同与 Segment::slice 引用计数证明",
     "implements": [],
     "reuses": ["MM_FRAME", "MM_PT", "MM_KVA", "VM_CONTENT"],
-    "note": "当前代码公开 allowed_to_panic_if(condition)，条件为真时调用者需允许 panic。检查对齐、范围与饱和条件；实际成功、内存内容与资源保持继续由对应节点证明。",
-    "reviewedHead": "bf076c06adc6d95ee3f203e832a9a1717c20de17",
+    "note": "allowed_to_panic_if 表达调用者何时需允许 panic。Segment::slice 在克隆引用后恢复计数不变式。frame、页表、虚拟区间和 VM I/O 的真实调用处仍须建立对齐、范围或饱和条件。",
+    "reviewedHead": "f20b8ff79ea80b9929fc6e12ec85d510ceb55a43",
     "reviewedAt": "2026-11-19",
     "evidence": [
-      "verified_libs/vstd_extra/src/panic.rs::allowed_to_panic_if；ostd/src/mm/{io,frame/segment}.rs @bf076c06a"
+      "verified_libs/vstd_extra/src/panic.rs::allowed_to_panic_if；ostd/src/mm/{io,frame/segment}.rs @f20b8ff79"
     ]
   },
   {
@@ -525,6 +528,31 @@ window.PLAN_PR_CATALOG = [
     "reviewedAt": "2026-11-19",
     "evidence": [
       "tools/patches/verus-irc11.patch；ostd/src/sync/{mutex,rcu/mod}.rs；ostd/specs/mm/frame/frame_specs.rs @484a329664"
+    ]
+  },
+  {
+    "n": 953,
+    "scope": "已合入 2f0e25632 的 Rust 1.100 比较与 ilog2 外部合同",
+    "implements": [],
+    "reuses": ["IO_WIN", "PT_X86"],
+    "note": "Iterator::min/max 的元素归属和极值后置以 obeys_cmp 为条件。most_restrictive_type 显式建立 MemoryRegionType 的比较律。x86 页表 parse_flags 使用非零掩码，满足无符号 ilog2 的正输入 no_unwind 条件。两处按公共合同复用。",
+    "reviewedHead": "a9c118ae0e38f9fe27ab9f4f31166c16f259ea6e",
+    "reviewedAt": "2026-11-19",
+    "evidence": [
+      "verified_libs/vstd_extra/src/external/{iter,ilog2}.rs @a9c118ae0",
+      "ostd/src/boot/memory_region.rs::max_region_end,most_restrictive_type,next_region_boundary；ostd/src/arch/x86/mm/mod.rs::parse_flags @2f0e25632"
+    ]
+  },
+  {
+    "n": 954,
+    "scope": "x86 context_switch 的可信 FFI 权限与返回栈对齐",
+    "implements": ["TASK_CTX"],
+    "reuses": ["TASK_SW"],
+    "note": "要求 cur/nxt 地址不同且各自匹配 PointsTo，按值接收已初始化的 next。cur 恢复后原址令牌已初始化，保存的 RSP 模 16 为 8。需核对 switch.S 的保存恢复和安全条件，并在 processor 的真实切换路径交接权限。",
+    "reviewedHead": "54972ccc4b3a2f66e532b27413af0c17d553503e",
+    "reviewedAt": "2026-11-19",
+    "evidence": [
+      "ostd/src/arch/x86/task/{mod.rs::context_switch,switch.S}；ostd/src/task/{mod.rs,processor.rs::switch_to_task} @54972ccc4"
     ]
   }
 ];
