@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T20:45:02.651Z",
+  "generatedAt": "2026-11-20T07:26:10.867Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,26 +108,26 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "6b8511ba253528331d8dfbccb3a8c5d6f1600e7c",
+      "head": "98bc023295399964a94d265a04202e368978c86a",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\r\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\r\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\r\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\r\n\r\n---\r\n\r\nMaybe wait until the following PRs are merged:\r\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\r\n- [x] https://github.com/asterinas/vostd/pull/809",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-19T10:27:38Z",
+      "updatedAt": "2026-11-20T07:06:44Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
-      "ci": "成功"
+      "gate": "BLOCKED",
+      "ci": "失败"
     },
     {
       "n": 720,
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "失败"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -504,7 +504,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -749,7 +749,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: verify seven frame ktests",
       "body": "## Summary\n\nBring seven frame-management test functions into Verus verification. Cover allocation, cloning, release, borrowing, raw-pointer round trips, single-frame segment conversion, and linked-list push/pop operations.\n\nVerification covers successful allocation paths. Metadata-content assertions are retained for the migrated tests, while unsupported tests remain commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Frame allocation and reference management | `frame_allocation`, `frame_clone`, `frame_drop` |\n| Borrowing and raw-pointer permissions | `frame_ref_preserves_refcnt`, `frame_impls_non_null_ptr` |\n| Frame-to-segment conversion and iteration | `frame_to_segment` |\n| Linked-list insertion, traversal, and removal | `linked_list_push_pop` |\n\nThe frame tests check metadata values, reference counts, sizes, and addresses where supported. The raw-pointer test preserves the original `into_raw` → `from_raw` → `raw_as_ref` order, obtaining a borrowed pointer and reading permission from the restored frame before calling `raw_as_ref`.\n\nThe segment test proves that conversion preserves the frame's address, produces a page-sized segment, and yields the original metadata value during iteration.\n\nThe linked-list test retains all assertions on its successful allocation path, including cursor traversal in the order `2 → 1 → 3`, the terminal cursor state, pop results, and list sizes.\n\n## 2. Metadata representations\n\nAdd separate concrete representations for typed and untyped metadata carrying a `u32` value. Share their structure and representation implementations through `define_u32_frame_meta!`, while keeping their enum variants and typed/untyped trait behavior distinct.\n\nThe tests reuse these concrete types through `MockFrameMeta` and `MockUFrameMeta` aliases. The metadata model does not depend on the test module, and the original `Untyped` variant remains unchanged.\n\nExtend `MetaSlotSmall` to represent the linked-list test metadata. Use compact model layouts to retain the existing 64-byte size and 8-byte alignment checks for `MetaSlot`.\n\n## 3. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `Frame::borrow` | Specify that borrowing preserves the metadata-slot permission, supporting reference-count checks through the borrowed handle. |\n| `UniqueFrame::try_from_shared` | Expose the successful conversion's permissions, reference-count transition, and preservation of unrelated slots. |\n| Linked-list queries and cursor movement | Borrow owner permissions rather than consuming them, so callers can continue using the list or cursor. |\n| Linked-list insertion and removal | Specify metadata-value ordering and preservation of unrelated region entries. |\n| `CursorMut::current_meta` | Relate the returned metadata to the current element and preserve the list/region invariants after the mutable borrow ends. |\n| Frame-to-segment conversion | Add a proved bridge exposing the converted segment's invariant, address, size, and singleton iteration sequence without opening its internal representation. |\n| Segment iteration | Expose the finite iteration metric and add the test's metadata/permission invariant. |",
       "url": "https://github.com/asterinas/vostd/pull/934",
-      "updatedAt": "2026-11-19T08:14:33Z",
+      "updatedAt": "2026-11-20T06:51:19Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -774,7 +774,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -864,7 +864,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -925,19 +925,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "331a417721d31290d5094860761a1b662f73d435",
+      "head": "8c1af9ec56ee5dc79c06bf5dc930dbda4ba2e47b",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-19T11:43:03Z",
+      "updatedAt": "2026-11-20T07:08:22Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "进行中"
     },
     {
       "n": 951,
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "失败"
     },
     {
@@ -997,19 +997,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 954,
       "kind": "open",
       "draft": false,
-      "head": "54972ccc4b3a2f66e532b27413af0c17d553503e",
+      "head": "402a1e8799ea46d25c648eeee25d9de88d666f81",
       "title": "prove: specify the x86 context switch FFI contract",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/954",
-      "updatedAt": "2026-11-19T13:53:30Z",
+      "updatedAt": "2026-11-20T07:17:14Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "FAILURE",
+      "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
-      "ci": "失败"
+      "gate": "CLEAN",
+      "ci": "成功"
     }
   ],
   "candidates": []
