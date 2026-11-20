@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-20T07:26:10.867Z",
+  "generatedAt": "2026-11-20T20:28:55.093Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -115,19 +115,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "98bc023295399964a94d265a04202e368978c86a",
+      "head": "08e2c939974862a29d07ff802ceec9309e4ee559",
       "title": "prove: arch::pci (x86) & io",
-      "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\r\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\r\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\r\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\r\n\r\n---\r\n\r\nMaybe wait until the following PRs are merged:\r\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\r\n- [x] https://github.com/asterinas/vostd/pull/809",
+      "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\n\n---\n\nMaybe wait until the following PRs are merged:\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\n- [x] https://github.com/asterinas/vostd/pull/809\n\n**Update**: I've decided not to verify whether `acquire` will succeed in both the `IoMemAllocator` and `IoPortAllocator`, because it needs to expose a series of tokens, and there are currently no users. But one can still verify that two successful `acquire` calls cannot overlap because we model the permission to free.\n**Update**: `IoMem` is verified under the assumption that different `IoMem` instances will not overlap, which is desired, but not achieved even in the latest Asterinas. The `clone` and `slice` methods are therefore skipped because they conflict with the exclusive ownership model.",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-20T07:06:44Z",
+      "updatedAt": "2026-11-20T13:33:03Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "FAILURE",
-      "review": "需修改",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
       "gate": "BLOCKED",
-      "ci": "失败"
+      "ci": "成功"
     },
     {
       "n": 720,
@@ -295,11 +295,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 883,
       "kind": "open",
       "draft": false,
-      "head": "d31f93d94a2454c0e0478eadbe8c0fef1fab3931",
+      "head": "f2ed581e00830b6eb21a9167e55a4f78349169e2",
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-18T09:44:28Z",
+      "updatedAt": "2026-11-20T07:42:40Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -925,19 +925,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "8c1af9ec56ee5dc79c06bf5dc930dbda4ba2e47b",
+      "head": "ac0691d8cfbd4fcee5dba4d0497858e6f8bd5828",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-20T07:08:22Z",
+      "updatedAt": "2026-11-20T14:56:46Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "进行中"
+      "ci": "成功"
     },
     {
       "n": 951,
@@ -1012,5 +1012,20 @@ window.PLAN_PR_SNAPSHOT = {
       "ci": "成功"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 956,
+      "title": "prove: verify EFI setup relocation validation",
+      "url": "https://github.com/asterinas/vostd/pull/956",
+      "head": "0832326fb235b045a7c3df5e5584d72a5a50c726",
+      "updatedAt": "2026-11-20T14:24:38Z"
+    },
+    {
+      "n": 955,
+      "title": "prove: x86 idt construction",
+      "url": "https://github.com/asterinas/vostd/pull/955",
+      "head": "70af479cadf4a584953b2e0742ae35672cd826f3",
+      "updatedAt": "2026-11-20T09:06:23Z"
+    }
+  ]
 };
