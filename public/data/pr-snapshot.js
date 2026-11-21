@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-20T20:28:55.093Z",
+  "generatedAt": "2026-11-21T07:18:54.670Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -1017,8 +1017,8 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 956,
       "title": "prove: verify EFI setup relocation validation",
       "url": "https://github.com/asterinas/vostd/pull/956",
-      "head": "0832326fb235b045a7c3df5e5584d72a5a50c726",
-      "updatedAt": "2026-11-20T14:24:38Z"
+      "head": "70eb9b12475006757730bb672af61637c007c37f",
+      "updatedAt": "2026-11-21T04:38:43Z"
     },
     {
       "n": 955,
