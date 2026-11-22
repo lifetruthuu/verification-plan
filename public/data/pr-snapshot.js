@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-21T19:23:40.550Z",
+  "generatedAt": "2026-11-22T06:59:17.804Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -1013,6 +1013,13 @@ window.PLAN_PR_SNAPSHOT = {
     }
   ],
   "candidates": [
+    {
+      "n": 958,
+      "title": "breaking change: remove fmt-req",
+      "url": "https://github.com/asterinas/vostd/pull/958",
+      "head": "6ea044c0a5b32b56b8a3509289668d6bdca1356f",
+      "updatedAt": "2026-11-22T04:16:16Z"
+    },
     {
       "n": 956,
       "title": "prove: verify EFI setup relocation validation",
