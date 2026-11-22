@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T06:59:17.804Z",
+  "generatedAt": "2026-11-22T19:47:08.750Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -108,26 +108,26 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "08e2c939974862a29d07ff802ceec9309e4ee559",
+      "head": "537dd72cd4eacc76f372e25b06081d346592f538",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\n\n---\n\nMaybe wait until the following PRs are merged:\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\n- [x] https://github.com/asterinas/vostd/pull/809\n\n**Update**: I've decided not to verify whether `acquire` will succeed in both the `IoMemAllocator` and `IoPortAllocator`, because it needs to expose a series of tokens, and there are currently no users. But one can still verify that two successful `acquire` calls cannot overlap because we model the permission to free.\n**Update**: `IoMem` is verified under the assumption that different `IoMem` instances will not overlap, which is desired, but not achieved even in the latest Asterinas. The `clone` and `slice` methods are therefore skipped because they conflict with the exclusive ownership model.",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-20T13:33:03Z",
+      "updatedAt": "2026-11-22T15:42:12Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "SUCCESS",
+      "ciState": "FAILURE",
       "review": "无汇总结论",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "失败"
     },
     {
       "n": 720,
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -504,7 +504,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -756,7 +756,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -774,7 +774,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -846,7 +846,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -864,7 +864,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -1014,11 +1014,11 @@ window.PLAN_PR_SNAPSHOT = {
   ],
   "candidates": [
     {
-      "n": 958,
-      "title": "breaking change: remove fmt-req",
-      "url": "https://github.com/asterinas/vostd/pull/958",
-      "head": "6ea044c0a5b32b56b8a3509289668d6bdca1356f",
-      "updatedAt": "2026-11-22T04:16:16Z"
+      "n": 959,
+      "title": "prove: Verify x86 FPU initialization and context representation",
+      "url": "https://github.com/asterinas/vostd/pull/959",
+      "head": "33763edf9a8f3d74e5717e4cfb340c07dcb0d119",
+      "updatedAt": "2026-11-22T15:36:05Z"
     },
     {
       "n": 956,
@@ -1032,7 +1032,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: x86 idt construction",
       "url": "https://github.com/asterinas/vostd/pull/955",
       "head": "70af479cadf4a584953b2e0742ae35672cd826f3",
-      "updatedAt": "2026-11-20T09:06:23Z"
+      "updatedAt": "2026-11-22T12:00:45Z"
     }
   ]
 };
