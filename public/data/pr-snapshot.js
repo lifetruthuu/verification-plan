@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T07:45:15.891Z",
+  "generatedAt": "2026-11-23T07:47:48.224Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
+      "gate": "BLOCKED",
       "ci": "失败"
     },
     {
