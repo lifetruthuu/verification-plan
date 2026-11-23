@@ -14,7 +14,7 @@ window.PLAN_BASE = {
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
     date: "2026-11-23",
-    sha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
+    sha: "8c8ef39c4ab2883be5b994680dcc39957998dfed",
     snapshotAt: "2026-11-23 11:39（北京时间）",
     snapshotSha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
   },
@@ -25,7 +25,7 @@ window.PLAN_BASE = {
       "key": "x86",
       "name": "x86 平台",
       "sub": "APIC · IRQ · 陷阱 · CPU-local · x86 页表 · 定时器 · 故障恢复 · 用户态",
-      "note": "PIC 和 PIT 配置可使用已验收的静态端口合同。APIC 仍需校正特性位并证明模式选择，xAPIC 和 IOAPIC 的设备窗口还需保留。"
+      "note": "PIC 和 PIT 配置可复用静态端口合同。#963 正在验证 xAPIC 基址对齐与窗口端点。主线已修正探测位，下一步验证模式选择和设备窗口保留。"
     },
     {
       "key": "bzimage",
@@ -239,13 +239,13 @@ window.PLAN_BASE = {
     /* ============================================================== APIC */
     { id: "APIC_PROBE", lane: "x86", face: "arch/x86/kernel/apic", title: "APIC 模式探测（x2APIC 优先 / xAPIC 回退）",
       mods: ["arch/x86/kernel"],
-      todo: ["主线 b94500acd 的 has_xapic 读取叶 1 的 EDX[8]（0x100），与本函数规格注释的 APIC 位 EDX[9] 不符。has_x2apic 读取 ECX[21]，两个探测都通过外部体返回独立谓词。参考 #920 校正 xAPIC 位，把结果连到有效的叶 1 采样，再在 init 验证 x2APIC 优先、xAPIC 回退和 NoApic。"],
+      todo: ["#961 恢复了 CPUID 叶 1 可用时的探测合同。has_xapic 读取 EDX[9]，has_x2apic 读取 ECX[21]。在 init 建立叶 1 可用的前提，并证明 x2APIC 优先、xAPIC 回退和 NoApic 三个分支。"],
       accept: "核对所选平台支持叶 1 的根据，以及模式选择与两个探测合同的一致性。XApic::new 的 MMIO 映射和全局模式发布分别在 APIC_RESERVE、APIC_PUB 核对。",
       src: "§5 阶段 A" },
     { id: "APIC_RESERVE", lane: "x86", face: "arch/x86/kernel/apic", title: "xAPIC 寄存器窗口保留",
       mods: ["arch/x86/kernel", "io/io_mem"],
       todo: [
-        "在 xAPIC 分支从 MSR 基址证明 base+1024 有界，且整段在同一窗口内可用。#706 的 remove 已注释，须接入设备保留合同，证明后续分配不能再取得这一段。",
+        "#963 在 get_xapic_base_address 证明物理基址按 4 KiB 对齐且 base + 1024 ≤ usize::MAX。apic::init 的保留调用仍在注释中。接通 builder::remove 时，须证明 [base, base + 1024) 完整落在同一个可用窗口内，且保留后不能再分配。",
         "XApic::new 用 paddr_to_vaddr 和 volatile wrapper 访问寄存器，其映射与访问效果须按该路径核对。",
       ],
       accept: "在使用 xAPIC 的平台核对实际保留结果及其他窗口的可用性。x2APIC 模式可独立验收。",
@@ -353,7 +353,7 @@ window.PLAN_BASE = {
     { id: "CAL_FREQ", lane: "x86", face: "arch/x86/kernel/tsc.rs · timer", title: "PIT 校准与完整 init_tsc_freq",
       mods: ["arch/x86/kernel", "arch/x86/timer"],
       todo: [
-        "主线按本次调用的 CpuidSamples 计算频率，回退计算保留两个乘积上界假设。恢复 PIT 校准、init_tsc_freq 和 TSC_FREQ 发布时，核对 Some(0) 与 None 的不同处理以及读取频率的 CPU。",
+        "主线以共享叶 0x15 的参数计算频率，回退时读取本核叶 0x16。验证 PIT 校准和 TSC_FREQ 发布时须区分 None 与 Some(0)，核对回退计算的两条乘积上界假设。",
         "证明整数截断、采样边界、临时 PIT 映射释放和原模式选择，核对 init_tsc_freq 对 TSC_FREQ 的 Relaxed 写入。APIC 定时器的 CONFIG 单独使用 Once。",
       ],
       accept: "频率为零、计数减法的边界不能由“频率初始化完成”这一名称隐含保证。局部证明可先假定 IRQ0 回调合同；最终接线才需要 PITIRQ 完成。",
@@ -428,7 +428,7 @@ window.PLAN_BASE = {
     { id: "CPU_FEAT", lane: "x86", face: "arch/x86/mod.rs", title: "CPU 特性位检测（AVX / AVX-512F）",
       mods: ["arch/x86/mod"],
       todo: [
-        "主线 b94500acd 已移除 specs/context.rs，has_avx、has_avx512 和 enable_cpu_features 都在注释内。参考 #920 恢复叶 1 的 ECX[28]、叶 7 的 EBX[16] 和对应的叶支持条件。#959 的 XCR0 选择仍消费旧模型，需在集成版本从执行核重新建立两项探测合同。",
+        "#961 恢复 has_avx 和 has_avx512 的共享模型合同。核对选定 BSP/AP 访问叶 1 ECX[28]、叶 7 EBX[16] 的条件，并在接入 #959 的 XCR0 选择时建立执行核与模型的对应。",
       ],
       accept: "交付 CPU_ENABLE 可用的叶支持与 AVX/AVX-512F 位判断合同，登记 core CPUID 外部规约和跨核稳定假设。OSXSAVE、XCR0 和指令可执行条件由 CPU_ENABLE 验收。",
       src: "§4" },
@@ -787,7 +787,7 @@ window.PLAN_BASE = {
       mods: ["arch/x86/mod", "arch/x86/cpu"],
       todo: [
         "#959 的 enable_cpu_features 在给定 X86CpuRegisterOwner、XSAVE、叶 0xD、合法 XCR0 和 576..=4096 容量等前提下更新 CR0/CR4/EFER/XCR0 与 x87，返回绑定本核的 FpuInitialization。用三处 Once 的见证读取特性、掩码及保存区长度。",
-        "#959 仍基于 #920 的 CpuFeatureModel。先在合入 #706 的主线上建立 CPU_FEAT，再从 BSP/AP 入口取得本核 owner，核对 XSTATE 能力和缓存大小。该分支的 enable_essential_features 要求 XCR0 可读，正文提及的 tracked_legacy_initialization 在已查 head 中缺失。",
+        "#959 仍基于 #920 的 CpuFeatureModel。主线 #961 已恢复探测合同，仍须从 BSP/AP 入口取得本核 owner，核对 XSTATE 能力和缓存大小。该分支的 enable_essential_features 要求 XCR0 可读，正文提及的 tracked_legacy_initialization 在已查 head 中缺失。",
       ],
       accept: "将实际启动 CPU、寄存器权限和完成见证对应起来，在同核与跨核使用时分别说明配置兼容性。对采用 legacy FXSAVE 的机器补齐 512 字节模式的见证来源。",
       src: "r3 源码复核" },
@@ -801,7 +801,7 @@ window.PLAN_BASE = {
     { id: "TSC_VALUE", lane: "x86", face: "arch/x86/kernel/tsc", title: "tsc_freq 采样结果与发布合同",
       mods: ["arch/x86/kernel"],
       todo: [
-        "主线恢复 #905 的逐次采样合同。determine_tsc_freq_via_cpuid 返回本次 CpuidSamples::frequency_hz() 对应的结果，记录最大叶、按条件采样的叶 0x15 和回退时的叶 0x16 基频。不同调用、不同核之间的频率一致性需要单独证据。",
+        "#961 恢复共享模型的叶 0x15 分母、分子和晶振频率。回退时读取执行核的叶 0x16 基频，结果由 tsc_frequency_hz(base_eax) 给出。",
         "在实际消费者建立非零 Hz 和范围，核对 max_leaf <= 0x15 的拒绝条件、Some(0) 和两条乘积上界假设。接通 TSC_FREQ 的 AtomicU64 写入和读取，说明读取者何时可排除初始零值。",
       ],
       accept: "供 deadline timer 使用。已合入 #905 可能返回 Some(0)，需保留原输入边界并证明选定平台的非零来源；物理时钟精度和 CPUID 输入属 TB_HW_OPS。完整回退仍在 CAL_FREQ 验收。",
@@ -953,9 +953,10 @@ window.PLAN_BASE = {
     {
       "id": "TB_HW_OPS",
       "provider": "CPUID / MSR / volatile / 汇编的外部规约",
-      "input": "主线的 APIC 探测返回独立的外部谓词，TSC 的 cpuid_count 按调用采样，回退时的两个乘积上界仍是假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。",
+      "input": "主线的 APIC 与 AVX 探测依赖共享 CPUID 模型，TSC 回退时的叶 0x16 基频来自执行核。#963 的地址算术对任意 MSR 读值成立，物理地址对应实际设备仍依赖硬件输入。TSC 回退计算保留两条乘积上界假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。",
       "consumers": [
         "APIC_PROBE",
+        "APIC_RESERVE",
         "LAPIC_DEV",
         "CPU_FEAT",
         "CPU_ENABLE",

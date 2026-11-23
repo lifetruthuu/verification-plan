@@ -83,7 +83,7 @@ window.PLAN_EDGES = [
 
   { "to": "CAL_FREQ", "from": "PITIRQ", "gate": "accept", "need": "IRQ0 周期回调、EOI 与等待进展合同：determine_tsc_freq_via_pit 用 IrqLine::alloc + on_active(pit_callback) 注册回调，再用 enable_local_and_halt 等待，不是端口轮询", "ev": "ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_pit（第 180–194 行） @97963e831" },
   { "to": "CAL_FREQ", "from": "PIT_CFG", "gate": "accept", "need": "pit::init(RateGenerator) 的周期合同", "ev": "ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_pit @97963e831" },
-  { "to": "CAL_FREQ", "from": "TSC_VALUE", "gate": "accept", "need": "用本次 CpuidSamples::frequency_hz() 区分 None、Some(0) 和可用频率，才能在 init_tsc_freq 组合 PIT 回退和发布。", "ev": "ostd/src/arch/x86/kernel/tsc.rs::CpuidSamples,determine_tsc_freq_via_cpuid,init_tsc_freq @b94500acd" },
+  { "to": "CAL_FREQ", "from": "TSC_VALUE", "gate": "accept", "need": "校准入口须区分基于共享叶 0x15 和可选本核基频的 None、Some(0) 与非零 Hz，再组合 PIT 回退与发布。", "ev": "ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_cpuid,init_tsc_freq @8c8ef39c4" },
 
   { "to": "TMR_DEADLINE", "from": "LAPIC_DEV", "gate": "accept", "need": "Apic::set_lvt_timer 与 deadline MSR 的效果", "ev": "ostd/src/arch/x86/timer/apic.rs::init_deadline_mode @97963e831" },
   { "to": "TMR_DEADLINE", "from": "IRQLINE", "gate": "accept", "need": "IrqLine 分配与回调注册", "ev": "ostd/src/arch/x86/timer/apic.rs::init_bsp,init_timer @97963e831" },
@@ -234,7 +234,7 @@ window.PLAN_EDGES = [
   { "to": "SYNC_API", "from": "SYNC_GUARD", "gate": "accept", "need": "读写锁/RwArc 持锁期间的运行模式与释放合同", "ev": "ostd/src/sync/rwarc.rs; ostd/src/sync/guard.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "#959 使用 has_avx/has_avx512 选择 XCR0 位，集成时须恢复叶支持与本核能力的联系，另取得本核寄存器权限。", "ev": "ostd/src/arch/x86/mod.rs::enable_cpu_features，ostd/specs/context.rs::CpuFeatureModel @ce76e7de2，对照主线 arch/x86/mod.rs @b94500acd" },
+  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "XCR0 的选择使用已恢复的 AVX 与 AVX-512F 探测合同，仍须建立本核寄存器权限。", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512 @8c8ef39c4，enable_cpu_features @ce76e7de2" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "PCI_DEVICE", "from": "PCI_ENUM", "gate": "accept", "need": "有效 location 遍历与无设备判断", "ev": "ostd/src/bus/pci/common_device.rs::PciCommonDevice::new; ostd/src/bus/pci/capability/mod.rs::device_capabilities @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },

@@ -6,16 +6,17 @@
 window.PLAN_PR_CATALOG = [
   {
     "n": 920,
-    "scope": "原共享 CPUID 模型、APIC 位修正与 TSC 共享参数的历史实现",
-    "implements": [],
-    "reuses": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
-    "note": "eb1a9d044 曾启用 AVX 探测、校正 xAPIC 的 EDX[9]，并为 TSC 建立共享叶模型。b94500acd 删除该模型、注释两个 AVX 探测，xAPIC 重新读取 EDX[8]，TSC 恢复 #905 的逐次采样。#959 分支仍消费旧合同，集成时须补回实际 CPU 的证据。",
+    "scope": "AVX 与 APIC 探测、共享叶 0x15 的 TSC 参数",
+    "implements": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
+    "reuses": [],
+    "note": "原实现由 #706 撤回，#961 在 2711a2627 恢复。APIC 叶 1 条件和模式选择需在真实调用处建立。",
     "reviewedHead": "56c04a329786066a820c083a3a556302f01264f6",
     "reviewedAt": "2026-11-23",
     "evidence": [
       "ostd/specs/context.rs::CpuFeatureModel::from_cpuid，ostd/src/arch/x86/{mod.rs,kernel/tsc.rs,kernel/apic/{xapic,x2apic}.rs} @eb1a9d044",
       "ostd/src/arch/x86/mod.rs::enable_cpu_features @ce76e7de2",
-      "ostd/src/arch/x86/{mod.rs,kernel/apic/{xapic,x2apic}.rs,kernel/tsc.rs} 与 ostd/specs/mod.rs @b94500acd"
+      "ostd/src/arch/x86/{mod.rs,kernel/apic/{xapic,x2apic}.rs,kernel/tsc.rs} 与 ostd/specs/mod.rs @b94500acd",
+      "ostd/specs/context.rs，ostd/src/arch/x86/{mod.rs,kernel/apic/{xapic,x2apic}.rs,kernel/tsc.rs} @2711a2627"
     ]
   },
   {
@@ -47,7 +48,7 @@ window.PLAN_PR_CATALOG = [
       "PCI_TYPES",
       "PT_X86"
     ],
-    "note": "最终 head 31813f542 与合入 b94500acd 的源码树相同。PCI read32/write32 已消费静态 PIO，设备事务仍缺互斥与效果合同。MMIO 成功申请返回 FreePermit，builder::remove、IoMem::clone/slice 和自动回收均缺。最终提交保留 #958 的格式化改动，但撤回 #920 的共享 CPUID，xAPIC 实际读取 EDX[8]。",
+    "note": "最终 head 31813f542 与合入 b94500acd 的源码树相同。PCI read32/write32 已消费静态 PIO，设备事务仍缺互斥与效果合同。MMIO 成功申请返回 FreePermit，builder::remove、IoMem::clone/slice 和自动回收均缺。最终提交保留 #958 的格式化改动，但撤回 #920 的共享 CPUID，xAPIC 实际读取 EDX[8]。 #961 已恢复对应模型与位修正。",
     "reviewedHead": "31813f542ecb1e3190faa152407a5d0218996afa",
     "reviewedAt": "2026-11-23",
     "evidence": [
@@ -320,10 +321,10 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 905,
-    "scope": "主线使用的单次 CPUID 采样及 TSC 频率计算",
-    "implements": ["TSC_VALUE"],
-    "reuses": [],
-    "note": "PR head 1055d52e7、当时合入的 35a5722f5 及主线 b94500acd 的 tsc.rs 文件相同。CpuidSamples 记录本次采样，保留 max_leaf <= 0x15 拒绝、Some(0) 及回退时两条 u32 乘积上界假设。实际发布与读取的非零频率仍待核对。",
+    "scope": "TSC 单次采样与算术的历史实现",
+    "implements": [],
+    "reuses": ["TSC_VALUE"],
+    "note": "PR head 1055d52e7、当时合入的 35a5722f5 及主线 b94500acd 的 tsc.rs 文件相同。CpuidSamples 记录本次采样，保留 max_leaf <= 0x15 拒绝、Some(0) 及回退时两条 u32 乘积上界假设。实际发布与读取的非零频率仍待核对。 #961 将频率合同重新接到共享 CPUID 模型。",
     "reviewedHead": "1055d52e751b6c380377fc4a78853078a5943bf0",
     "reviewedAt": "2026-11-23",
     "evidence": [
@@ -632,6 +633,28 @@ window.PLAN_PR_CATALOG = [
     "evidence": [
       "ostd/src/arch/x86/{mod.rs::enable_cpu_features,cpu/context/mod.rs::enable_essential_features,FpuInitialization,FpuContext}，ostd/specs/context.rs::CpuFeatureModel::matches_xstates @ce76e7de2",
       "ostd/libs/ostd-pod/src/lib.rs::Pod::as_bytes_mut，verified_libs/vstd_extra/src/external/x86.rs::X86CpuRegisterOwner,FpuOnce @ce76e7de2"
+    ]
+  },
+  {
+    "n": 963,
+    "scope": "xAPIC 物理基址的页对齐与 1024 字节窗口端点上界",
+    "implements": ["APIC_RESERVE"],
+    "reuses": [],
+    "note": "对任意 MSR 读值，结果按 PAGE_SIZE 对齐且 base + 1024 ≤ usize::MAX。apic::init 的 remove 调用仍被注释，窗口归属、排他保留与虚拟映射有效性仍待核对。",
+    "reviewedHead": "b5d4b4ea9ba9f33ba346822c2b9bcf75637cbcdc",
+    "reviewedAt": "2026-11-23",
+    "evidence": ["ostd/src/arch/x86/kernel/apic/{xapic.rs::get_xapic_base_address,mod.rs::init} @b5d4b4ea9"]
+  },
+  {
+    "n": 961,
+    "scope": "恢复共享 CPUID、APIC 探测和 TSC 参数合同",
+    "implements": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
+    "reuses": [],
+    "note": "合入 2711a2627，恢复 #920 的共享 CPUID、EDX[9]、AVX 与 TSC 参数合同。APIC 模式选择、CPU 启动权限和频率发布仍待接通。",
+    "reviewedHead": "f481a8292f00e7a062ec79458de37abf24adbd3e",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/specs/context.rs，ostd/src/arch/x86/{mod.rs,kernel/apic/{xapic,x2apic}.rs,kernel/tsc.rs} @2711a2627"
     ]
   }
 ];

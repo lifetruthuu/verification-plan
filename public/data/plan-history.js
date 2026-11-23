@@ -1481,5 +1481,23 @@ window.PLAN_HISTORY = [
       }
     ],
     "prs": "从 r8 的 3283081b3 至 b94500acd，主线只合入 #706。核对最终 head 31813f542 与合入提交的源码树相同。以实际 PCI 调用及上游 x86 验证验收 IO_PIO；设备预占、MMIO 保留和配置事务继续跟踪。#919 在主线编码上补字段恢复。#920 改列历史参考，TSC_VALUE 的逐次采样关联 #905。#887、#948、#954、#955、#956 同步了该主线，原有上下文、编解码与装载、FFI、IDT 和 EFI 重定位合同分别对照过相应文件。#934 适配 Frame 的 Debug，#948 的 EFI 分配 panic 另列入 BZ_SETUP。三条路线的离线行数快照同步到本次合入提交。"
+  },
+  {
+    "revision": 10,
+    "date": "2026-11-23",
+    "reason": "跟踪 #963 的 xAPIC 物理基址证明，并按 #961 恢复后的主线更新 APIC、AVX 与 TSC 合同。",
+    "edgesChanged": [
+      {
+        "a": "TSC_VALUE",
+        "b": "CAL_FREQ",
+        "why": "校准入口须区分基于共享叶 0x15 和可选本核基频的 None、Some(0) 与非零 Hz，再组合 PIT 回退与发布。"
+      },
+      {
+        "a": "CPU_FEAT",
+        "b": "CPU_ENABLE",
+        "why": "XCR0 的选择使用已恢复的 AVX 与 AVX-512F 探测合同，仍须建立本核寄存器权限。"
+      }
+    ],
+    "prs": "#963 @b5d4b4ea9 实施 APIC_RESERVE 的物理地址算术。设备保留调用和窗口所有权仍待接通。#961 合入后复核了 APIC、AVX 和 TSC 的共享 CPUID 合同。"
   }
 ];
