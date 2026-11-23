@@ -5,7 +5,7 @@
  * Rows are grouped by consumer in node order. Record every change in plan-history.js (plan.mjs does it). */
 window.PLAN_EDGES = [
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "IO_WIN", "from": "IO_ALLOC", "gate": "accept", "need": "由实际引导输入建立 ranges_separated 与各区间边界，再取回匹配状态，将初始可用集合与登记窗口逐一对应。", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder；ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::new @6b8511ba2" },
+  { "to": "IO_WIN", "from": "IO_ALLOC", "gate": "accept", "need": "引导函数须建立两个窗口内部端点有序、窗口间分离、与登记序列对应，才能从 builder::new 取得 has_registered_windows。", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::new @e9d1287b7" },
 
   { "to": "IRQ_GUARD", "from": "IRQ_MODEL", "gate": "accept", "need": "同 CPU 的 inv / coherent、匹配的 authority、保存的 IF 与嵌套权限合同", "ev": "ostd/src/trap/irq.rs::DisabledLocalIrqGuard::new; ostd/specs/task/irq.rs::LocalIrqGuardOwner @6cec73d064" },
 
@@ -37,14 +37,14 @@ window.PLAN_EDGES = [
 
   { "to": "PIC", "from": "IO_PIO", "gate": "accept", "need": "敏感 PIO 端口 IoPort<u8, WriteOnlyAccess>::write 的权限与写入合同；端口 0x20 / 0x21 / 0xA0 / 0xA1", "ev": "ostd/src/arch/x86/kernel/irq/pic.rs::MASTER_CMD,MASTER_DATA,SLAVE_CMD,SLAVE_DATA,set_mask @97963e831" },
 
-  { "to": "IOAPIC_REG", "from": "IO_ALLOC", "gate": "accept", "need": "IoApicAccess::new 需建立 base+0x20 有界且 [base,base+0x20) 整段可用，并交接 remove 更新后的 builder 状态。", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new；ostd/src/io/io_mem/allocator.rs::remove @6b8511ba2" },
+  { "to": "IOAPIC_REG", "from": "IO_ALLOC", "gate": "accept", "need": "IoApicAccess::new 需要排除 [base,base+0x20) 并取得独占访问依据。当前设备和 builder 的 remove 尚待接通。", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @e9d1287b7" },
 
   { "to": "IOAPIC_ENTRY", "from": "IOAPIC_REG", "gate": "accept", "need": "寄存器选择 / 数据访问合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable,disable @97963e831" },
   { "to": "IOAPIC_ENTRY", "from": "IRQLINE", "gate": "accept", "need": "IrqLine::num / remapping_index，以及重定向项被禁用前 IRQ 不被释放的生命周期合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable; ostd/src/trap/irq.rs::IrqLine @97963e831" },
 
   { "to": "PIT_CFG", "from": "IO_PIO", "gate": "accept", "need": "0x43 / 0x40 敏感 PIO 的写权限与写合同", "ev": "ostd/src/arch/x86/timer/pit.rs::MODE_COMMAND_PORT,CHANNEL0_PORT,init @97963e831" },
 
-  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "从当前逐窗口状态建立 xAPIC 1024 字节的 can_remove，继承覆盖窗口减去该段、其他窗口不变的后置条件。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init；ostd/src/io/io_mem/allocator.rs::can_remove,remove @6b8511ba2" },
+  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "xAPIC 初始化需要从可用窗口永久排除基址起的 1024 字节。须补可调用的保留接口并证明同一区间不会再分配。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder（remove 已注释） @e9d1287b7" },
   { "to": "APIC_RESERVE", "from": "IO_WIN", "gate": "accept", "need": "该 1024 字节范围属于登记窗口，且权限尚未被其他设备占用", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init @97963e831" },
 
   { "to": "APIC_PUB", "from": "APIC_PROBE", "gate": "accept", "need": "ApicId::from 读取 APIC_TYPE，须与 init 发布的模式一致，并保留 xAPIC 八位截断（value as u8）", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init,APIC_TYPE,ApicId::from @97963e831" },
@@ -59,11 +59,11 @@ window.PLAN_EDGES = [
 
   { "to": "GDT", "from": "LOC_ID", "gate": "accept", "need": "LOCAL_TSS.as_ptr() 指向当前 CPU 的永久 TSS，且执行期间不迁移", "ev": "ostd/src/arch/x86/trap/gdt.rs::init,LOCAL_TSS @97963e831" },
 
-  { "to": "IDT_LOAD", "from": "IDT_TABLE", "gate": "accept", "need": "有效、永久（'static）的 IDT 切片与表界限合同", "ev": "ostd/src/arch/x86/trap/idt.rs::init（GLOBAL_IDT、lidt） @97963e831" },
+  { "to": "IDT_LOAD", "from": "IDT_TABLE", "gate": "accept", "need": "load_idtr 需要静态表的 256 个可用门，init 用 Idt::wf 证明逐项属性，并从同一切片计算基址和 4095 界限。", "ev": "ostd/src/arch/x86/trap/idt.rs::Idt::wf,init,published_idt，verified_libs/vstd_extra/src/external/x86_idt.rs::load_idtr @c9a85a789" },
 
   { "to": "TRAP_EXC", "from": "TRAP_DATA", "gate": "accept", "need": "异常数据类型与 PageFaultErrorCode::from_bits 合同；无需等全部 UserContext getter", "ev": "ostd/src/arch/x86/cpu/context/mod.rs::CpuException::new @a47e745320" },
 
-  { "to": "TRAP_DISP", "from": "IDT_LOAD", "gate": "accept", "need": "入口已安装、有效的代码选择子与表项", "ev": "ostd/src/arch/x86/trap/trap.S::trap_common; arch/x86/trap/mod.rs::trap_handler @97963e831" },
+  { "to": "TRAP_DISP", "from": "IDT_LOAD", "gate": "accept", "need": "实际 trap 分派需在执行核上加载对应入口表，并遵守每个 stub 的错误码和栈约定。IdtrLoad 可描述已安装的表，启动调用和分派还须恢复。", "ev": "ostd/src/arch/x86/trap/{idt.rs::init,mod.rs::init,trap.S::trap_common}，verified_libs/vstd_extra/src/external/x86_idt.rs::IdtrLoad @c9a85a789" },
   { "to": "TRAP_DISP", "from": "GDT", "gate": "accept", "need": "有效的 TSS / 栈布局合同", "ev": "ostd/src/arch/x86/trap/gdt.rs::LOCAL_TSS; trap.S::trap_common @97963e831" },
   { "to": "TRAP_DISP", "from": "IRQ_GUARD", "gate": "accept", "need": "IF、嵌套、bottom-half guard 交接及返回时禁中断合同", "ev": "ostd/src/trap/handler.rs::process_bottom_half,call_irq_callback_functions @97963e831" },
   { "to": "TRAP_DISP", "from": "TRAP_EXC", "gate": "accept", "need": "CpuException::new 的分类与载荷合同：trap_handler 第 166 行调用 CpuException::new(f.trap_num, f.error_code)", "ev": "ostd/src/arch/x86/trap/mod.rs::trap_handler @97963e831" },
@@ -125,8 +125,10 @@ window.PLAN_EDGES = [
   { "to": "SMP_IPI", "from": "SYNC_GUARD", "gate": "accept", "need": "CALL_QUEUES 的 SpinLock 保持原子模式、队列互斥和释放合同", "ev": "ostd/src/smp.rs::inter_processor_call,do_inter_processor_call @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "SMP_IPI", "from": "SMP_AP", "gate": "accept", "need": "construct_hw_cpu_id_mapping 给出 CpuId 索引到在线 HwCpuId 的完整映射", "ev": "ostd/src/smp.rs::init; ostd/src/boot/smp.rs::construct_hw_cpu_id_mapping @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
-  { "to": "XSAVE", "from": "FPU_REPR", "gate": "accept", "need": "保存区对齐、容量与初始化有效性", "ev": "ostd/src/arch/x86/cpu/context/mod.rs::FpuContext::save,load @97963e831" },
-  { "to": "XSAVE", "from": "CPU_ENABLE", "gate": "accept", "need": "已启用控制寄存器和保存区掩码/长度合同", "ev": "ostd/src/arch/x86/cpu/context/mod.rs::FpuContext::save,load @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
+  { "to": "FPU_REPR", "from": "CPU_ENABLE", "gate": "accept", "need": "真实调用 FpuContext::new/default/clone 时要交付与当前 CPU 配置相符的 FpuInitialization。构造与复制的局部证明可以先给定 enabled_on(cpu)，512 字节模式须单独建立见证。", "ev": "ostd/src/arch/x86/{mod.rs::enable_cpu_features,cpu/context/mod.rs::FpuInitialization::enabled_on,FpuContext::new,FpuContext::clone} @ce76e7de2" },
+
+  { "to": "XSAVE", "from": "FPU_REPR", "gate": "accept", "need": "save/load 使用 as_bytes_mut/as_bytes 的活动范围和底层对齐。硬件写入或恢复还需证明缓冲充足，恢复镜像的保留字段合法。", "ev": "ostd/src/arch/x86/cpu/context/mod.rs::FpuContext::{as_bytes_mut,as_bytes,save,load} @ce76e7de2" },
+  { "to": "XSAVE", "from": "CPU_ENABLE", "gate": "accept", "need": "保存恢复按 CPU_FEATURES 和 XSTATE_MAX_FEATURES 选择指令与掩码，须把执行核的 XCR0 和实际保存大小与 Once 的值对应。", "ev": "ostd/src/arch/x86/cpu/context/mod.rs::FpuInitialization::enabled_on,enable_essential_features,FpuContext::save,FpuContext::load @ce76e7de2" },
 
   { "to": "SYSCALL", "from": "TRAP_DISP", "gate": "accept", "need": "用户返回的寄存器 ABI 与异常 / IRQ 返回合同", "ev": "ostd/src/arch/x86/trap/syscall.rs::RawUserContext::run; ostd/src/arch/x86/cpu/context/mod.rs::UserContextApiInternal::execute @97963e831" },
   { "to": "SYSCALL", "from": "GDT", "gate": "accept", "need": "syscall::init 的安全条件要求 GDT 已初始化：选择子合同", "ev": "ostd/src/arch/x86/trap/syscall.rs::init @97963e831" },
@@ -193,12 +195,11 @@ window.PLAN_EDGES = [
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "IO_PIO_ALLOC", "from": "IO_PIO", "gate": "accept", "need": "动态申请与 new_overlapping 使用同一 typed port 合同，宽度为 1、2 或 4 字节且排他端点可到 65536。", "ev": "ostd/src/io/io_port/{mod,allocator}.rs::acquire,new_overlapping；verified_libs/vstd_extra/src/external/io_port.rs::axiom_io_port_access_spec @64fd64fb0" },
 
-  { "to": "IO_MMIO_ALLOC", "from": "IO_ALLOC", "gate": "accept", "need": "实例 new 消费与分离窗口匹配的保留后状态，将 pending 转成 acquire/recycle 使用的发布令牌。", "ev": "ostd/src/io/io_mem/allocator.rs::IoMemAllocator::new,acquire,recycle @6b8511ba2" },
-  { "to": "IO_MMIO_ALLOC", "from": "IO_GLOBAL", "gate": "accept", "need": "安全入口 IoMem::acquire 从 Once 取实例，调用者需建立 io_mem_allocator_initialized() 和登记区间。实例证明可从已发布分配器开始。", "ev": "ostd/src/io/io_mem/{mod.rs::IoMem::acquire,allocator.rs::init} @6b8511ba2" },
+  { "to": "IO_MMIO_ALLOC", "from": "IO_GLOBAL", "gate": "accept", "need": "IoMem::acquire 从全局 Once 取得实例，须将初始化谓词、登记窗口与同一实例交出的 FreePermit 对应。", "ev": "ostd/src/io/io_mem/mod.rs::IoMem::acquire，ostd/src/io/io_mem/allocator.rs::init,IoMemAllocator::acquire @e9d1287b7" },
 
   { "to": "IO_MMIO", "from": "MM_KVA", "gate": "accept", "need": "IoMem::new 的 KVirtArea::map_untracked_frames 结果、映射存活与范围合同", "ev": "ostd/src/io/io_mem/mod.rs::IoMem::new @477db699e56654e7813a910b9a25b747d80b6370" },
 
-  { "to": "IO_GLOBAL", "from": "IO_ALLOC", "gate": "accept", "need": "全局 MMIO init 需要已登记的 builder 和保留系统设备后与之匹配的 IoMemBuilderState。", "ev": "ostd/src/io/mod.rs::init；ostd/src/io/io_mem/allocator.rs::init @6b8511ba2" },
+  { "to": "IO_GLOBAL", "from": "IO_ALLOC", "gate": "accept", "need": "io::init 的安全条件要求系统设备窗口已排除。当前形式前置只检查 has_registered_windows，仍须证明发布的分配器保留排除效果。", "ev": "ostd/src/io/mod.rs::init，ostd/src/io/io_mem/allocator.rs::init,IoMemAllocatorBuilder @e9d1287b7" },
   { "to": "IO_GLOBAL", "from": "IO_WIN", "gate": "accept", "need": "builder.has_registered_windows() 的引导来源", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder; ostd/src/io/mod.rs::init @477db699e56654e7813a910b9a25b747d80b6370" },
   { "to": "IO_GLOBAL", "from": "IO_PIO_ALLOC", "gate": "accept", "need": "全局 PIO init 在位图预占敏感端口后以空动态权限初始化锁。需建立动态权限是已占用位图的子集，并交给同一实例后续申请和释放。", "ev": "ostd/src/io/io_port/allocator.rs::init,IoPortAllocation::tracked_empty,acquire,recycle @6b8511ba2" },
 
@@ -235,7 +236,7 @@ window.PLAN_EDGES = [
   { "to": "SYNC_API", "from": "SYNC_GUARD", "gate": "accept", "need": "读写锁/RwArc 持锁期间的运行模式与释放合同", "ev": "ostd/src/sync/rwarc.rs; ostd/src/sync/guard.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "每核启用从 has_avx/has_avx512 取得 supports_avx、supports_avx512f，并另行建立控制寄存器条件。", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512,enable_cpu_features；ostd/specs/context.rs::CpuFeatureModel::from_cpuid @56c04a329" },
+  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "enable_cpu_features 用 has_avx 和 has_avx512 选择 XCR0 位，另从 CPU owner 建立支持的位组、XSAVE 容量和寄存器权限。", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512,enable_cpu_features，ostd/specs/context.rs::CpuFeatureModel @ce76e7de2" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "PCI_DEVICE", "from": "PCI_ENUM", "gate": "accept", "need": "有效 location 遍历与无设备判断", "ev": "ostd/src/bus/pci/common_device.rs::PciCommonDevice::new; ostd/src/bus/pci/capability/mod.rs::device_capabilities @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -255,7 +256,7 @@ window.PLAN_EDGES = [
   { "to": "HEAP_GLOBAL", "from": "MM_FRAME", "gate": "accept", "need": "slab/大分配使用 frame/Segment 的存活与回收合同", "ev": "ostd/src/mm/heap/mod.rs; ostd/src/mm/heap/slab.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: bzImage 启动链 ===== */
-  { "to": "BZ_SETUP", "from": "BZ_LOAD", "gate": "accept", "need": "EFI 与 legacy 都消费 load_elf 的逐段快照，启动交接需将逐字节初始化的前缀和零尾部对应到请求的物理地址与最终内存。", "ev": "ostd/libs/linux-bzimage/setup/src/{loader.rs::load_segment,x86/amd64_efi/efi.rs,x86/legacy_i386/mod.rs} @331a41772" },
+  { "to": "BZ_SETUP", "from": "BZ_LOAD", "gate": "accept", "need": "EFI 和 legacy 均用 load_elf 的逐段快照。把按目标 usize 宽度检查过的可读文件前缀、零尾部对应到实际物理分配及最终驻留内存。", "ev": "ostd/libs/linux-bzimage/setup/src/{loader.rs::load_elf,x86/amd64_efi/efi.rs::efi_phase_boot,x86/legacy_i386/mod.rs} @263398d72" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "DMA_MAP", "from": "SYNC_GUARD", "gate": "accept", "need": "DMA_MAPPING_SET 的 SpinLock 与 DmaCoherent/DmaStream 的 RwArc 使用 PreemptDisabled，需真实 guard 生命周期", "ev": "ostd/src/mm/dma/{mod,dma_coherent,dma_stream}.rs::init,map,read_inner @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -301,4 +302,5 @@ window.PLAN_EDGES = [
   { "to": "ACC_SCOPE", "from": "BZ_PARSE", "gate": "accept", "need": "核对 builder 公共参数解析的合法值、错误消息及两处 OS 字符串包装。", "ev": "ostd/libs/linux-bzimage/builder/src/encoder.rs::PayloadEncoding::from_str,From<OsString>,From<&OsStr> @53a020701cc05f8f99df03ed224e90bbe7ba234d" },
   { "to": "ACC_SCOPE", "from": "BZ_DECODE", "gate": "accept", "need": "汇总 EFI payload 识别、解码和库边界的独立交付。legacy 路径直接加载 ELF。", "ev": "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/{decoder,efi}.rs::decode_payload,efi_phase_boot @88172da38" },
   { "to": "ACC_SCOPE", "from": "IO_MMIO_ALLOC", "gate": "accept", "need": "最终集成核对公开申请对实例返回值和 FreePermit 的使用、失败路径及显式回收的归属。", "ev": "ostd/src/io/io_mem/{allocator.rs::acquire,allocator.rs::recycle,mod.rs::IoMem::acquire} @6b8511ba2" },
+  { "to": "ACC_SCOPE", "from": "BZ_RELOC", "gate": "accept", "need": "验收 Efi64 构建对 setup ELF 的 .rela 检查、调用输入和失败行为。Legacy32 的输出单独核对。", "ev": "ostd/libs/linux-bzimage/builder/src/lib.rs::make_bzimage,assert_elf64_reloc_supported @068e79fb8" },
 ];

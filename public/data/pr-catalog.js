@@ -6,14 +6,15 @@
 window.PLAN_PR_CATALOG = [
   {
     "n": 920,
-    "scope": "共享 CPUID 能力与叶 0x15 的 TSC 参数，回退时采样本核基频",
+    "scope": "主线的 AVX、APIC 能力探测与共享叶 0x15 的 TSC 参数",
     "implements": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
     "reuses": [],
-    "note": "参考 CPU 给出最大基本叶、四个特性位及叶 0x15 的分母、分子和晶振 Hz。叶 1 可用时探测 xAPIC/x2APIC；仅回退时读取本核叶 0x16。结果仍可能是 Some(0)，有两条乘积上界假设。模式选择、频率发布和每核启用仍待调用处验证。",
+    "note": "合入 eb1a9d044。#959 使用两个 AVX 探测选择 XCR0 位，BSP/AP 启动的权限来源仍待集成。APIC 的叶 1 条件与模式选择尚未在主线接通。TSC 回退读本核叶 0x16，保留两个乘积上界假设，Some(0) 和 AtomicU64 发布仍须在消费者核对。",
     "reviewedHead": "56c04a329786066a820c083a3a556302f01264f6",
-    "reviewedAt": "2026-11-19",
+    "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/specs/context.rs::CpuFeatureModel::from_cpuid,cpuid_consistent；ostd/src/arch/x86/{mod,kernel/tsc,kernel/apic/xapic,kernel/apic/x2apic}.rs @56c04a329"
+      "ostd/specs/context.rs::CpuFeatureModel::from_cpuid，ostd/src/arch/x86/{mod.rs,kernel/tsc.rs,kernel/apic/{xapic,x2apic}.rs} @eb1a9d044",
+      "ostd/src/arch/x86/mod.rs::enable_cpu_features @ce76e7de2"
     ]
   },
   {
@@ -27,15 +28,16 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 706,
-    "scope": "MMIO 初始窗口、设备保留与运行期申请，静态和动态 PIO 及 PCI 配置端口",
+    "scope": "分离的 MMIO 登记窗口、按成功结果签发的回收权限、PIO 冲突与 x86 PCI 配置端口",
     "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL", "IO_MMIO_ALLOC"],
-    "reuses": ["IO_WIN", "PIT_CFG", "PCI_BAR", "APIC_RESERVE", "IOAPIC_REG"],
-    "note": "builder::new 交出逐窗口匹配的状态，remove 正常返回后仅从覆盖窗口减去整段。设备调用者需建立 can_remove。实例 acquire/recycle 使用匹配的 FreePermit，公开 IoMem::acquire 及全局 MMIO 初始化仍可信。公开动态 PIO 保证越界失败和成功时的端口与分配模式，无冲突时能否取得端口须另证。",
-    "reviewedHead": "6b8511ba253528331d8dfbccb3a8c5d6f1600e7c",
-    "reviewedAt": "2026-11-19",
+    "reuses": ["IO_WIN", "PIT_CFG", "PCI_BAR", "APIC_RESERVE", "IOAPIC_REG", "PCI_MSIX"],
+    "note": "builder::new 保留窗口序列，remove 已注释，设备保留仍需补。实例 acquire 成功时给出地址、长度和 FreePermit，recycle 按身份消费它。空闲时必成功、释放后可再申请均未向调用者保证。PIO 测试用持有的 claim 排除冲突。IoMem 以实例互不重叠为前提，Clone/slice 已停用，公开 acquire 和寄存器访问仍有外部体。",
+    "reviewedHead": "e9d1287b766ea5a55e0563d4f4864bab65b66792",
+    "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::{new,remove,can_remove},IoMemAllocator::{new,acquire,recycle} @6b8511ba2",
-      "ostd/src/io/{mod,io_mem/mod,io_port/mod,io_port/allocator}.rs::init,acquire,acquire_overlapping,drop @6b8511ba2"
+      "ostd/src/io/io_mem/{allocator.rs::IoMemAllocatorBuilder::new,IoMemAllocator::acquire,IoMemAllocator::recycle,mod.rs::IoMem::acquire}，ostd/src/util/range_alloc.rs::RangeAllocator::free @e9d1287b7",
+      "ostd/src/io/io_port/{allocator.rs::conflict_region,lemma_conflicting_acquire_fails,mod.rs::IoPort::drop}，ostd/src/arch/x86/pci.rs::read32,write32 @e9d1287b7",
+      "ostd/src/arch/x86/kernel/{apic/mod.rs::init,irq/ioapic.rs::IoApicAccess::new}，ostd/src/bus/pci/{cfg_space.rs::MemoryBar::new,capability/msix.rs} @e9d1287b7"
     ]
   },
   {
@@ -191,9 +193,10 @@ window.PLAN_PR_CATALOG = [
     "scope": "DMA stream slice 的 sync 与设备地址计算",
     "implements": ["SA_DMA"],
     "reuses": ["DMA_MAP"],
-    "note": "相对上次复核，两个 DMA 文件内容相同。复用 slice 的边界和设备地址算术；内层 sync、coherent/registry 和设备完成条件仍待交付。",
-    "reviewedHead": "d31f93d94a2454c0e0478eadbe8c0fef1fab3931",
-    "reviewedAt": "2026-11-19"
+    "note": "与 r7 已查的 d31f93d94 对比，分支变基到主线 eb1a9d044，两个 DMA 文件逐字相同。slice 两个入口保持不变式，内层 sync 的实际缓存动作仍注释。设备完成与 coherent/registry 仍各需证据。",
+    "reviewedHead": "f2ed581e00830b6eb21a9167e55a4f78349169e2",
+    "reviewedAt": "2026-11-23",
+    "evidence": ["ostd/src/mm/dma/{dma_stream.rs::DmaStreamSlice::sync,DmaStreamSlice::daddr,mod.rs} @f2ed581e0"]
   },
   {
     "n": 617,
@@ -495,15 +498,14 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 948,
-    "scope": "builder 编码、EFI 解码、ELF 段逐字节初始化及 PE 节布局辅助证明",
+    "scope": "builder 编码、EFI 魔数与解码、目标字长下的 ELF 段初始化",
     "implements": ["BZ_ENCODE", "BZ_DECODE", "BZ_LOAD"],
     "reuses": ["BZ_SETUP", "BZ_IMG", "BZ_PE"],
-    "note": "load_segment 用 MaybeUninit 元素状态及内容序列证明文件前缀和零尾部。alloc_at 只约束返回长度。PE 内部引理说明节长度、对齐与指定基址的偏移关系。调用方仍需证明 ELF 前置、目标内存归属，并核对实际 payload 和启动入口。",
-    "reviewedHead": "331a417721d31290d5094860761a1b662f73d435",
-    "reviewedAt": "2026-11-19",
+    "note": "magic_number 和 decoded_payload 已公开，Raw ELF 可直接建立解码前置。压缩流需要同次构建提供编码输出与嵌入字节的对应。loader 按目标设置 usize 字长并记录各段文件前缀与零尾部。alloc_at 只保证长度。Vec 写入模型补上追加效果，物理内存和启动入口仍待核对。 最新合入 main 的提交未改这些 builder 或 setup 文件。",
+    "reviewedHead": "263398d72dc2fa0e3a19ad4b9ba0d88584e5f570",
+    "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/libs/linux-bzimage/setup/src/loader.rs::load_segment,load_elf；verified_libs/vstd_extra/src/external/maybe_uninit.rs @331a41772",
-      "ostd/libs/linux-bzimage/{builder/src/pe_header.rs::lemma_pe_section_layout,builder/src/encoder.rs,setup/src/x86/amd64_efi/decoder.rs} @331a41772"
+      "ostd/libs/linux-bzimage/{builder/src/encoder.rs,setup/src/x86/amd64_efi/{decoder,efi}.rs,setup/src/loader.rs}，verified_libs/vstd_extra/src/external/libflate.rs @263398d72"
     ]
   },
   {
@@ -548,11 +550,61 @@ window.PLAN_PR_CATALOG = [
     "scope": "x86 context_switch 的可信 FFI 权限与返回栈对齐",
     "implements": ["TASK_CTX"],
     "reuses": ["TASK_SW"],
-    "note": "要求 cur/nxt 地址不同且各自匹配 PointsTo，按值接收已初始化的 next。cur 恢复后原址令牌已初始化，保存的 RSP 模 16 为 8。需核对 switch.S 的保存恢复和安全条件，并在 processor 的真实切换路径交接权限。",
-    "reviewedHead": "54972ccc4b3a2f66e532b27413af0c17d553503e",
-    "reviewedAt": "2026-11-19",
+    "note": "相对 r7 分支自身只整理 PointsTo 导入，FFI 合同相同。cur/nxt 需各自匹配权限且地址不同，next 已初始化，cur 恢复后栈指针对齐到模 16 余 8。唯一树内调用处 switch_to_task 尚未启用，有效续点、可写返回槽、IRQ、FSBASE 和 shadow stack 仍由调用者保证。",
+    "reviewedHead": "57b1cf66facdb86a67db179c3337e9e4e0fa297f",
+    "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/src/arch/x86/task/{mod.rs::context_switch,switch.S}；ostd/src/task/{mod.rs,processor.rs::switch_to_task} @54972ccc4"
+      "ostd/src/arch/x86/task/{mod.rs::context_switch,switch.S}，ostd/src/task/{mod.rs,processor.rs::switch_to_task} @57b1cf66f"
+    ]
+  },
+  {
+    "n": 955,
+    "scope": "256 项 IDT 的门属性、静态发布和本次 lidt 的描述符见证",
+    "implements": ["IDT_TABLE", "IDT_LOAD"],
+    "reuses": ["TRAP_DISP"],
+    "note": "init 对每个向量建立 entry_matches，仅 3、4 为 Ring3，返回基址、4095 界限和表内容。vector_table、published_idt、load_idtr 仍依赖外部模型。需用链接产物与目标 CPU 核对入口、CS 和错误码，并接回外层 trap::init。按审阅已将 16 字节布局移至 x86_idt，并由 init 使用 lemma_idt_entry_layout。",
+    "reviewedHead": "c9a85a789cfb14965d31e0c93572deb0f27e5356",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/src/arch/x86/trap/{idt.rs::init,published_idt,trap.S::trap_handler_table,mod.rs::init}，verified_libs/vstd_extra/src/external/{x86_idt.rs::load_idtr,smart_ptr.rs} @c9a85a789"
+    ]
+  },
+  {
+    "n": 956,
+    "scope": "宿主 builder 校验 Efi64 的 setup ELF .rela 节及其相对重定位类型",
+    "implements": ["BZ_RELOC"],
+    "reuses": ["BZ_ELF", "BZ_OUT"],
+    "note": "Efi64 在写出 setup 后、覆盖 PE 头前调用断言。正常返回保证 ELF64、Rela64 且每项类型为 8。读条件与支持条件成立时有 no_unwind，Group 在解码前拒绝。节查找和条目字节仍依赖 xmas-elf 模型，实际链接产物及失败时的文件内容待核对。Legacy32 不调用该断言。 合入主线后已移除 panic_display 的 fmt_req 前置。",
+    "reviewedHead": "068e79fb8fa4097a706ca7da66dd986dcd149738",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/libs/linux-bzimage/{builder/src/lib.rs::make_bzimage,assert_elf64_reloc_supported,setup/src/x86/linker.ld}，verified_libs/vstd_extra/src/external/xmas_elf.rs::section_data_readable,section_data_result @068e79fb8"
+    ]
+  },
+  {
+    "n": 958,
+    "scope": "主线移除 fmt_req，并停用 Frame 与 UniqueFrame 的 Debug 实现",
+    "implements": [],
+    "reuses": ["MM_FRAME", "KTEST_RESULT", "SYNC_GUARD", "SYNC_API", "BZ_RELOC"],
+    "note": "合入 22194556e。Frame/UniqueFrame 的 Debug 实现被注释，Segment、锁 guard 的格式化及 PanicInfo::Display 仍启用。#956 已同步移除 PanicMessage 的 fmt_req 实现和 panic_display 对该谓词的要求。格式化适配单列为协调，元数据生命周期、锁权限和 ktest 分类按各自合同验收。",
+    "reviewedHead": "6ea044c0a5b32b56b8a3509289668d6bdca1356f",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/src/mm/frame/{mod,unique,segment}.rs，ostd/src/sync/{spin,rwlock,mutex,rwmutex}.rs，ostd/libs/ostd-test/src/lib.rs @22194556e",
+      "verified_libs/vstd_extra/src/panic.rs::PanicMessage @068e79fb8"
+    ]
+  },
+  {
+    "n": 959,
+    "scope": "每核 FPU 初始化见证、上下文构造与复制、Pod 可变字节视图",
+    "implements": ["CPU_ENABLE", "FPU_REPR", "VM_REPR"],
+    "reuses": ["CPU_FEAT", "XSAVE", "TRAP_DATA"],
+    "note": "给定寄存器 owner 与 XSTATE 条件，启用函数更新 CR0/CR4/EFER/XCR0、x87 并交出 Once 见证。FpuContext 的 512 或 576..=4096 字节表示、固有 clone 和字节视图有合同。此 head 未定义正文所称 tracked_legacy_initialization。真实 BSP/AP 权限、跨核保存大小、硬件 save/load 及用户上下文集成仍待交付。",
+    "reviewedHead": "ce76e7de21614a66c9eb691c3c7535961b376643",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/src/arch/x86/{mod.rs::enable_cpu_features,cpu/context/mod.rs::enable_essential_features,FpuInitialization,FpuContext}，ostd/specs/context.rs::CpuFeatureModel::matches_xstates @ce76e7de2",
+      "ostd/libs/ostd-pod/src/lib.rs::Pod::as_bytes_mut，verified_libs/vstd_extra/src/external/x86.rs::X86CpuRegisterOwner,FpuOnce @ce76e7de2"
     ]
   }
 ];

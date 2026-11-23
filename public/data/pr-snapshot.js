@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-22T19:47:08.750Z",
+  "generatedAt": "2026-11-23T03:15:35.803Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,26 +108,26 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "537dd72cd4eacc76f372e25b06081d346592f538",
+      "head": "e9d1287b766ea5a55e0563d4f4864bab65b66792",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\n\n---\n\nMaybe wait until the following PRs are merged:\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\n- [x] https://github.com/asterinas/vostd/pull/809\n\n**Update**: I've decided not to verify whether `acquire` will succeed in both the `IoMemAllocator` and `IoPortAllocator`, because it needs to expose a series of tokens, and there are currently no users. But one can still verify that two successful `acquire` calls cannot overlap because we model the permission to free.\n**Update**: `IoMem` is verified under the assumption that different `IoMem` instances will not overlap, which is desired, but not achieved even in the latest Asterinas. The `clone` and `slice` methods are therefore skipped because they conflict with the exclusive ownership model.",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-22T15:42:12Z",
+      "updatedAt": "2026-11-23T02:50:59Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "FAILURE",
+      "ciState": "PENDING",
       "review": "无汇总结论",
-      "gate": "BLOCKED",
-      "ci": "失败"
+      "gate": "UNSTABLE",
+      "ci": "进行中"
     },
     {
       "n": 720,
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "失败"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -504,7 +504,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -756,7 +756,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -774,7 +774,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -846,7 +846,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -864,7 +864,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -925,19 +925,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "ac0691d8cfbd4fcee5dba4d0497858e6f8bd5828",
+      "head": "263398d72dc2fa0e3a19ad4b9ba0d88584e5f570",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-20T14:56:46Z",
+      "updatedAt": "2026-11-23T03:12:40Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "进行中"
     },
     {
       "n": 951,
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "UNSTABLE",
       "ci": "失败"
     },
     {
@@ -997,42 +997,92 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 954,
       "kind": "open",
       "draft": false,
-      "head": "402a1e8799ea46d25c648eeee25d9de88d666f81",
+      "head": "57b1cf66facdb86a67db179c3337e9e4e0fa297f",
       "title": "prove: specify the x86 context switch FFI contract",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/954",
-      "updatedAt": "2026-11-20T07:17:14Z",
+      "updatedAt": "2026-11-23T03:13:40Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "无汇总结论",
-      "gate": "CLEAN",
-      "ci": "成功"
-    }
-  ],
-  "candidates": [
-    {
-      "n": 959,
-      "title": "prove: Verify x86 FPU initialization and context representation",
-      "url": "https://github.com/asterinas/vostd/pull/959",
-      "head": "33763edf9a8f3d74e5717e4cfb340c07dcb0d119",
-      "updatedAt": "2026-11-22T15:36:05Z"
-    },
-    {
-      "n": 956,
-      "title": "prove: verify EFI setup relocation validation",
-      "url": "https://github.com/asterinas/vostd/pull/956",
-      "head": "70eb9b12475006757730bb672af61637c007c37f",
-      "updatedAt": "2026-11-21T04:38:43Z"
+      "gate": "UNSTABLE",
+      "ci": "进行中"
     },
     {
       "n": 955,
+      "kind": "open",
+      "draft": false,
+      "head": "c9a85a789cfb14965d31e0c93572deb0f27e5356",
       "title": "prove: x86 idt construction",
+      "body": "",
       "url": "https://github.com/asterinas/vostd/pull/955",
-      "head": "70af479cadf4a584953b2e0742ae35672cd826f3",
-      "updatedAt": "2026-11-22T12:00:45Z"
+      "updatedAt": "2026-11-23T03:00:19Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": "CHANGES_REQUESTED",
+      "ciState": "PENDING",
+      "review": "需修改",
+      "gate": "BLOCKED",
+      "ci": "进行中"
+    },
+    {
+      "n": 956,
+      "kind": "open",
+      "draft": false,
+      "head": "068e79fb8fa4097a706ca7da66dd986dcd149738",
+      "title": "prove: verify EFI setup relocation validation",
+      "body": "",
+      "url": "https://github.com/asterinas/vostd/pull/956",
+      "updatedAt": "2026-11-23T03:05:33Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": "CHANGES_REQUESTED",
+      "ciState": "PENDING",
+      "review": "需修改",
+      "gate": "BLOCKED",
+      "ci": "进行中"
+    },
+    {
+      "n": 958,
+      "kind": "merged",
+      "draft": false,
+      "head": "6ea044c0a5b32b56b8a3509289668d6bdca1356f",
+      "title": "breaking change: remove fmt-req",
+      "body": "",
+      "url": "https://github.com/asterinas/vostd/pull/958",
+      "updatedAt": "2026-11-23T03:05:50Z",
+      "mergedAt": "2026-11-22T12:50:00Z",
+      "closedAt": "2026-11-22T12:50:00Z",
+      "mergeCommit": "22194556ed01008837341af330d33fae8992b5df",
+      "reviewDecision": null,
+      "ciState": "FAILURE",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "失败"
+    },
+    {
+      "n": 959,
+      "kind": "open",
+      "draft": true,
+      "head": "ce76e7de21614a66c9eb691c3c7535961b376643",
+      "title": "prove: Verify x86 FPU initialization and context representation",
+      "body": "## Summary\n\nVerify x86 CPU feature/FPU initialization and the x86 FPU context representation in `ostd::arch::x86`, backed by centralized external register and `spin::Once` specifications in `vstd_extra::external::x86` and a strengthened `Pod::as_bytes_mut` contract in `ostd-pod`.\n\n## Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `FpuInitialization` (tracked) | Records a configured CPU together with completed initialization witnesses for `CPU_FEATURES`, `XSTATE_MAX_FEATURES`, and `XSAVE_AREA_SIZE` (optional for non-XSAVE); exposes `len`, `supported_mask`, `uses_xsave`, `configured_cpu`, `configured_xcr0`, and `enabled_on`. |\n| `FxSaveState` / `FpuState` (ghost) | Field-level model of the FXSAVE and XSAVE areas. `initialized(features)` specifies Intel SDM Table 11-1 reset values; `copied_from` specifies which regions `clone` copies and which reserved/tail regions it zeroes. |\n| `FpuContext` | Closed `type_inv` bounding `area_size` (`512` or `576..=4096`), closed `len`/`bytes`/`state`, open `has_initial_state` and `copied_from`, and public byte-equality lemmas (`lemma_initial_state_bytes`, `lemma_copied_bytes`). |\n| `X86CpuRegisterOwner` (tracked) | Exclusive per-CPU authority over CR0/CR4/XCR0/EFER and x87 registers (`X86CpuSnapshot`, `kernel_cpu`, `xcr0_readable`). Intentionally provides no constructor to forge hardware bindings. |\n| `FpuOnce<T, F>` | Wrapper over native `spin::Once`: the initializer closure must prove a `ValueInvariant`; `call_once` returns a `FpuOnceInitialized` witness consumed by subsequent `get_initialized` reads. `FpuOnce::get` stays outside `verus!` so its attribute contract is processed once without branch-specific warnings. |\n| `Pod::as_bytes_mut` | Adds `r@ == pod_bytes(*old(self))` so mutable byte views relate to the caller's initial field state. |\n\nFXSAVE construction is covered by a checked legacy initialization witness (`FpuInitialization::tracked_legacy_initialization`) derived from an existing CPU owner and a completed feature-cache witness. It requires configured FPU/FXSR and CR0/CR4 facts, yields length `512` and features `0`, and requires no XCR0 read. XSAVE construction retains XCR0 and bounded-storage obligations. The feature-cache invariant (`CpuFeaturesInvariant`) requires FPU support without ruling out the original non-XSAVE constructor branches.\n\nThe proofs establish byte equality for equal initial states and for clones whose source already has the reserved words and inactive tail zeroed. Arbitrary clones preserve the original reserved-word and inactive-tail clearing behavior. No additional byte-encoding axioms are introduced; the representation mapping and shared structural byte lemma remain private, while `FpuState::extended_state_area` reuses `MAX_XSAVE_AREA_SIZE` and public bounds are derived from its array length (`extended_state_area@.len() + 512 + 64`).\n\n## Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `enable_cpu_features` | `ostd::arch::x86` | Initializes `CPU_FEATURES`, updates CR4/XCR0/EFER and x87 via `enable_essential_features`, and yields a `Tracked<FpuInitialization>` via `proof_with` matching the updated `X86CpuSnapshot` (the exec signature is unchanged). |\n| `enable_essential_features` | `ostd::arch::x86::cpu::context` | Initializes `XSTATE_MAX_FEATURES` and `XSAVE_AREA_SIZE`, clears CR0 `TS`/`EM`, runs `fninit`, and returns `Tracked<FpuInitialization>` with bounded area length. |\n| `FpuInitialization::tracked_legacy_initialization` | `ostd::arch::x86::cpu::context` | Proof-only boundary producing a non-XSAVE `FpuInitialization` (`len == 512`, `supported_mask == 0`) from a configured CPU owner and feature-cache witness. |\n| `FpuContext::new` | `ostd::arch::x86::cpu::context` | Proves `r.len() == init.len()` and `r.has_initial_state(...)` for both XSAVE and legacy FXSAVE modes. |\n| `FpuContext::default` (inherent) | `ostd::arch::x86::cpu::context` | Delegates to `FpuContext::new` with the same initialization contract. |\n| `FpuContext::clone` (inherent) | `ostd::arch::x86::cpu::context` | Preserves length (`r.len() == self.len()`) and proves `r.copied_from(self)` (copying saved fields and active extended prefix; zeroing reserved words and inactive tail). |\n| `FpuContext::as_bytes` / `as_bytes_mut` | `ostd::arch::x86::cpu::context` | Exposes the bounded byte slice of length `self.len()`, relating pre- and post-mutation views to `self.bytes()`. |\n| `XSaveArea::new` | `ostd::arch::x86::cpu::context` | Proves `r.state().initialized(...)` matching Intel SDM Table 11-1 reset values and computed `features`. |\n| `FpuContext::save` / `load` | `ostd::arch::x86::cpu::context` | **Unverified** — kept with original signatures and bodies (deferred). |\n\n## Executable Code Changes & Justifications\n\nPer `AGENTS.md`, executable edits are kept minimal and behavior-preserving:\n\n- **Enable `arch::x86::cpu` (FPU context subtree) in place**: Uncomments `pub(crate) mod cpu` in `ostd/src/arch/x86/mod.rs` and `enable_cpu_features` so `arch::x86::cpu::context` enters compilation and verification for the first time, while keeping adjacent unverified modules disabled.\n- **Tracked signature on `enable_essential_features`**: Gains tracked `X86CpuRegisterOwner` and feature-cache completion witness parameters and returns `Tracked<FpuInitialization>`; runtime behavior is unchanged (ghost/tracked resources are erased).\n- **Inherent `default()`/`clone()` on `FpuContext`**: Following the `asterinas/vostd#446` approach, standard `Default`/`Clone` trait impls are converted to verified inherent methods (original trait impls preserved in `Origin Rust` comments) because trait signatures cannot carry `X86CpuRegisterOwner` and `FpuInitialization` resources. Concrete `default()`/`clone()` call syntax remains; generic `Default`/`Clone` trait dispatch is no longer supplied or claimed as verified. No in-tree callers are affected, as `arch::x86::cpu` was previously disabled as a whole and other `FpuContext` references only appear in placeholder structs under `riscv`/`loongarch`. Original allocation, register-read, and copy order is preserved without a `clone_with_cpu` trampoline.\n- **Explicit field initialization in `XSaveArea::new`**: Initializes the same integer fields explicitly because `Pod::new_zeroed` lacks a field-value contract.\n- **Thin register/bitflags wrappers and `FpuOnce`**: Wrap native `x86_64` register/bitflags operations and `spin::Once` (`CPU_FEATURES`, `XSTATE_MAX_FEATURES`, `XSAVE_AREA_SIZE`) to attach contracts while preserving native lazy publication, waiting/poisoning, and the original `u64` XSTATE mask. No capability-probe loop or BSP/AP comparison checks are added.\n- **Layout declarations and compile-time assertions**: Added `global layout` declarations for `FxSaveArea` and `XSaveArea` (checked by Verus during code generation) together with a `const _: ()` block asserting `FxSaveArea` and `XSaveArea` sizes/alignments and all modeled field offsets (`fxsave_area`, `features`, `compaction`, `reserved`, `extended_state_area`, plus `FxSaveArea`'s `tag` and `mxcsr`).\n- **Dependency addition**: Added `spin = \"0.9.4\"` under `[target.'cfg(target_arch = \"x86_64\")'.dependencies]` in `verified_libs/vstd_extra/Cargo.toml` (matching `ostd`'s existing `spin` version) to model `spin::Once`.\n\n## Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `assume()` or `admit()`. Trust is expressed through `assume_specification` on existing externally-implemented APIs (the `Cr0`/`Cr4`/`XCr0` `bits` accessors, `Cr0Flags::remove`, `FeatureInfo::has_xsave`/`has_fpu`, and `SpinOnce::new`) and through `external_body` wrappers, all confined to `vstd_extra::external::x86`, plus three `#[verus_verify(external_body)]` static-cell identity accessors in `ostd::arch::x86` (`cpu_features_ref`) and `ostd::arch::x86::cpu::context` (`max_features_ref`, `xsave_size_ref`) that bridge exec statics to symbolic `Loc` identities because Verus cannot relate exec-static reads across functions. `Pod` byte conversion remains an existing unsafe trusted implementation in `ostd-pod`.\n- **Unchanged boundaries**: CPUID capability and TSC specifications remain in their existing OSTD modules; the pre-existing disabled `if_tdx_enabled` macro and the `x86::cpuid` re-export remain unchanged.\n- **Deferred / out of scope**:\n  - `FpuContext::save` and `FpuContext::load` remain unverified; the representation invariant bounds byte-view length, not saved register contents, hardware store bounds, or restore-image validity.\n  - Full XSAVE save/restore semantics, real BSP/AP `X86CpuRegisterOwner` startup glue, legacy boot path, and cross-CPU configuration compatibility remain deferred.\n  - `UserContext` integration (kept separate from `asterinas/vostd#887` / `a47e74532`), `cfg_if`/`mod tdx` (`cvm_guest`), and `arch::cpu::local` remain disabled until their dependencies are integrated.\n",
+      "url": "https://github.com/asterinas/vostd/pull/959",
+      "updatedAt": "2026-11-23T01:13:36Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "FAILURE",
+      "review": "无汇总结论",
+      "gate": "UNSTABLE",
+      "ci": "失败"
     }
-  ]
+  ],
+  "candidates": []
 };

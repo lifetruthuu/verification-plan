@@ -1327,5 +1327,94 @@ window.PLAN_HISTORY = [
       }
     ],
     "prs": "#706 分开验收设备保留和运行期申请，动态 PIO 调用处按精简后的成功条件复核。新增 #954 关联 TASK_CTX 和 TASK_SW。#920 区分共享叶 0x15 和本核回退基频；TSC_FREQ 使用 AtomicU64，APIC 定时器的 CONFIG 使用 Once。#948 补逐字节段内容和 PE 辅助引理，#934 更换测试元数据。#951、#953 已合入，按实际调用处复用。#944 本轮活动未改变 x86 范围。"
+  },
+  {
+    "revision": 8,
+    "date": "2026-11-23",
+    "reason": "按 11 月 23 日上游源码修订 MMIO 设备保留与分配合同，纳入 IDT、FPU 和 EFI 构建时重定位检查，并复核各路径的实际调用条件。",
+    "edgesAdded": [
+      {
+        "a": "BZ_RELOC",
+        "b": "ACC_SCOPE",
+        "why": "重定位检查有单独的宿主调用和验收证据。汇总边可纳入 EFI 交付，同时允许 legacy 输出独立验收。"
+      },
+      {
+        "a": "CPU_ENABLE",
+        "b": "FPU_REPR",
+        "why": "构造、复制现在消费带 CPU 身份的初始化见证，两种保存格式都需要说明来源。"
+      }
+    ],
+    "splits": [
+      {
+        "from": "BZ_OUT",
+        "to": ["BZ_OUT", "BZ_RELOC"],
+        "why": "保留 BZ_OUT 跟踪文件输出，将仅在 Efi64 分支执行的 setup ELF 重定位检查交给 BZ_RELOC。"
+      }
+    ],
+    "edgesChanged": [
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_WIN",
+        "why": "builder 的返回值描述窗口序列，旧状态令牌已删除。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "APIC_RESERVE",
+        "why": "xAPIC 仍需要保留效果，当前 builder 已停止提供 r7 的 remove 合同。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IOAPIC_REG",
+        "why": "寄存器访问仍依赖窗口独占，当前 head 只提供窗口几何关系。"
+      },
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_GLOBAL",
+        "why": "全局入口已移除 builder 状态参数，安全条件与形式前置之间需要补证。"
+      },
+      {
+        "a": "IO_GLOBAL",
+        "b": "IO_MMIO_ALLOC",
+        "why": "公开包装只给出 permit 的区间，仍需接通实例身份及全局状态。"
+      },
+      {
+        "a": "IDT_TABLE",
+        "b": "IDT_LOAD",
+        "why": "构表者和加载者现已交接逐项不变式，发布指针和硬件效果仍使用外部合同。"
+      },
+      {
+        "a": "IDT_LOAD",
+        "b": "TRAP_DISP",
+        "why": "区分已有的加载见证与尚未交接的启动和分派路径。"
+      },
+      {
+        "a": "CPU_FEAT",
+        "b": "CPU_ENABLE",
+        "why": "已定位使用两个主线探测合同的分支调用。"
+      },
+      {
+        "a": "FPU_REPR",
+        "b": "XSAVE",
+        "why": "表示层已提供布局和可见字节，硬件保存恢复仍缺内存效果证明。"
+      },
+      {
+        "a": "CPU_ENABLE",
+        "b": "XSAVE",
+        "why": "缓存的容量界限本身不足以保证各核启用后的实际保存大小相容。"
+      },
+      {
+        "a": "BZ_LOAD",
+        "b": "BZ_SETUP",
+        "why": "loader 按目标字宽建立段长上界，启动交接仍需分配地址和所有权。"
+      }
+    ],
+    "edgesRemoved": [
+      {
+        "a": "IO_ALLOC",
+        "b": "IO_MMIO_ALLOC",
+        "why": "IoMemAllocator::new 只接收分离窗口，已无 pending 到发布令牌的交接。实例可在给定窗口下验证，公开申请的设备排除效果经 IO_GLOBAL 验收。"
+      }
+    ],
+    "prs": "从 r7 的 2f0e25632 至 main 3283081b3，核对 11 月 19 日起有活动的 15 个 PR。#920 已合入，分支 #959 使用 AVX 探测并补 FPU 初始化、表示和 Pod 可变字节合同。#955 同时实施 IDT 构表和加载。#956 单列宿主 Efi64 的重定位检查。#955/#956 同步主线后分别集中布局依据、适配 #958 的格式化接口。#706 撤下设备 remove，收窄申请承诺并停用 IoMem 别名接口。#948 公开解码前置并按目标声明字长。#883 的 DMA 文件在变基前后相同，#954 只调整导入。#948 和 #954 最后同步 main 的提交未改各自的交付代码。#934 的活动未改变已查 head 或正文，#960 更新 IRC11 工具链。"
   }
 ];
