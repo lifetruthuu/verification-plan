@@ -14,9 +14,9 @@ window.PLAN_BASE = {
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
     date: "2026-11-23",
-    sha: "3283081b360a994df478fb269d82e5a605a3c6cd",
-    snapshotAt: "2026-11-13 17:44（北京时间）",
-    snapshotSha: "90087275ebd4b974596947d11d3da27d722e05d3",
+    sha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
+    snapshotAt: "2026-11-23 11:39（北京时间）",
+    snapshotSha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
   },
 
   /* The three views, in tab order (x86 is the default). `note` is shown under the tab. */
@@ -25,19 +25,19 @@ window.PLAN_BASE = {
       "key": "x86",
       "name": "x86 平台",
       "sub": "APIC · IRQ · 陷阱 · CPU-local · x86 页表 · 定时器 · 故障恢复 · 用户态",
-      "note": "局部合同可并行推进；PITIRQ 是首个中断闭环，ACC_SCOPE 才是 x86 范围的最终验收。"
+      "note": "PIC 和 PIT 配置可使用已验收的静态端口合同。APIC 仍需校正特性位并证明模式选择，xAPIC 和 IOAPIC 的设备窗口还需保留。"
     },
     {
       "key": "bzimage",
       "name": "bzImage 启动链",
       "sub": "PE/COFF · payload 编解码 · ELF 段加载 · 启动交接 · 镜像检查",
-      "note": "构建 Efi64 镜像时检查 setup ELF 的重定位。启动时 EFI 解码内核 payload，legacy 直接读取内核 ELF。两个入口都要核对段加载、物理内存和 BootParams。"
+      "note": "Efi64 构建检查 setup ELF 重定位，EFI 启动时解码 payload 并向固件申请物理页。Legacy32 直接装载内核 ELF。两条路径都可以独立于内核 PCI 和 MMIO 初始化推进。"
     },
     {
       "key": "common",
       "name": "OSTD 公共模块",
       "sub": "PCI · MM · CPU-local · IRQ/抢占资源 · task · sync · heap · DMA",
-      "note": "为 x86 与 bzImage 提供接口合同；各项独立验收，最后汇入 ACC_SCOPE。"
+      "note": "静态 PIO 已在主线 PCI 调用处验收。下一步核对动态端口预占、MMIO 设备区间保留，以及 PCI 配置访问的成对读写。"
     }
   ],
 
@@ -54,7 +54,7 @@ window.PLAN_BASE = {
     { id: "IO_ALLOC", lane: "common", face: "io/io_mem · util/range_alloc", title: "MMIO 初始窗口与设备区间保留",
       mods: ["util/range_alloc", "io/io_mem"],
       todo: [
-        "#706 的 IoMemAllocatorBuilder::new 保留输入窗口序列，并给出它与 registered_io_mem_windows 的对应条件。ranges_disjoint 按端点约束任意两个不同位置的窗口，类型不变式保留分离性质。该 head 已注释 remove，移除了 r7 核对过的逐窗口可用集合和 can_remove。",
+        "主线 #706 的 IoMemAllocatorBuilder::new 保留输入窗口序列，并给出它与 registered_io_mem_windows 的对应条件。ranges_disjoint 按端点保证窗口两两分离。设备区间的 remove 仍在注释中。",
         "为设备保留恢复可调用的接口。调用者须能证明整个设备区间仍可用，核对成功后该区间排除在后续申请之外，以及查找失败或已有占用时的行为。",
       ],
       accept: "在实际设备保留调用处建立区间边界，证明已保留区间受保护、其余窗口可继续使用。引导内存表的来源归 IO_WIN，发布后的申请与回收归 IO_MMIO_ALLOC。",
@@ -62,15 +62,15 @@ window.PLAN_BASE = {
     { id: "IO_PIO", lane: "common", face: "io/io_port", title: "静态 PIO 端口构造与访问合同",
       mods: ["io/io_port"],
       todo: [
-        "#706 的 IoPort::new/read/write 与外部 PortRead/PortWrite 规格供 PIC、PIT、PCI 配置访问使用。静态 new 使用 valid_io_port_access，要求访问宽度为 1、2 或 4 字节且排他端点最多为 65536。动态权限与显式释放拆为 IO_PIO_ALLOC。",
+        "主线 PCI 的 read32/write32 使用两个 u32 静态端口。0xCF8 仅可写，0xCFC 可读写。IoPort::new 建立端口号和类型不变式，read/write 按访问标记调用 PortRead/PortWrite。u8/u16/u32 的全宽访问要求排他端点至多为 65536。",
       ],
-      accept: "完成条件：u8/u16/u32 的宽度、读写权限、端口不越界与静态调用点可证明；PIC/PIT/PCI 的静态端口无需等全局 allocator 初始化。端口读值及写设备效果仍属 TB_HW_OPS，由消费者补协议合同。",
+      accept: "验收静态端口的宽度、边界与读写标记。PCI 已在主线实际消费该合同。动态端口预占由 IO_GLOBAL 验收，CF8/CFC 事务互斥由 PCI_CFG 验收，读值与设备效果归 TB_HW_OPS。",
       src: "§4 · §5 阶段 B" },
     { id: "IO_WIN", lane: "x86", face: "boot/memory_region · arch/x86/io", title: "引导 MMIO 窗口 → 登记权限",
       mods: ["boot/memory_region", "arch/x86/io"],
       todo: [
-        "从 EARLY_INFO.memory_regions 构造低、高窗口，在 construct_io_mem_allocator_builder 建立端点有序、窗口两两分离及 usize_ranges_match_registered。用 builder::new 的返回合同将实际窗口对应到登记序列。",
-        "#953 的迭代器 min/max 合同要求比较律。MemoryRegion 的区域合并助手已为 MemoryRegionType 建立 obeys_cmp；x86 窗口计算及固件输入仍需各自的证据。",
+        "主线启用了 arch/x86/io.rs。construct_io_mem_allocator_builder 用 max_by 选择低、高内存边界并对齐，再调用 builder::new。核对低区非空、加法及对齐上界、两窗口分离，并建立 usize_ranges_match_registered。BSP 的调用仍在注释中。",
+        "引导内存助手的 min/max 返回元素属于输入，极值和相等元素的选择还要求 obeys_cmp。窗口登记只消费 builder::new 的合同，可先于设备保留完成。",
       ],
       accept: "对照引导输入逐窗口核对地址区间和登记顺序，建立 has_registered_windows()。平台提供的内存布局归 TB_BOOT_INPUT，具体设备区间的占用与排除另在 IO_ALLOC 验收。",
       src: "§5 阶段 A" },
@@ -144,7 +144,7 @@ window.PLAN_BASE = {
     { id: "PT_X86", lane: "x86", face: "arch/x86/mm", title: "x86 页表寄存器与刷新效果",
       mods: ["arch/x86/mm"],
       todo: [
-        "PTE 的 parse_flags 对非零掩码使用 ilog2，#953 的 no_unwind 以正输入为条件。CR3 激活 / 读取、按地址及非全局刷新是 external_body + unimplemented!()，全局刷新函数体只剩注释，都没有硬件效果后置条件。",
+        "PTE 的 parse_flags 对非零掩码使用 ilog2。主线外部规格要求 x > 0，并写有无条件 no_unwind。在实际掩码处建立正输入，按所用 Rust 核对零值的 panic 边界。CR3 激活、读取及单页和非全局刷新仍用外部体，全局刷新只剩注释，均缺硬件效果后置条件。",
       ],
       accept: "交付 CR3 根页激活/读取、单页/范围/全局刷新效果，供栈、MM_BOOT、TLB_SHOOT 使用；范围循环证明可独立开展。验收恢复执行包装并将地址对齐/有效根页前置接到消费者，硬件指令效果逐条列入 TB_HW_OPS。",
       src: "§4" },
@@ -231,7 +231,7 @@ window.PLAN_BASE = {
       mods: ["arch/x86/timer"],
       todo: [
         "pit::init 写 0x43 命令字，再向 0x40 写低、高字节；TIMER_FREQ = 1000，分频值 1193（1193182 / 1000），字节 0xA9、0x04——已按 main 源码核对。pit 模块在 main 注释，x86 timer 只启用 TIMER_FREQ。",
-        "证明挂到实际执行函数上，可先在 #706 上独立交付。",
+        "IoPort<u8, WriteOnlyAccess> 的边界与访问标记已验收，恢复 pit::init 并证明命令和两次数据写的顺序与硬件协议。",
       ],
       accept: "交付 pit::init 的 0x43 命令与 0x40 低/高字节写入合同、1000 Hz 目标下 divisor=1193 的计算，供 PITIRQ/CAL_FREQ 使用；参数证明及硬件协议输入均需记录。真实产生中断的进展由 PITIRQ 在选定平台验收。",
       src: "§5 阶段 B" },
@@ -239,7 +239,7 @@ window.PLAN_BASE = {
     /* ============================================================== APIC */
     { id: "APIC_PROBE", lane: "x86", face: "arch/x86/kernel/apic", title: "APIC 模式探测（x2APIC 优先 / xAPIC 回退）",
       mods: ["arch/x86/kernel"],
-      todo: ["#920 在 max_basic_leaf >= 1 时把 has_x2apic 和 has_xapic 分别接到共享模型的 ECX[21] 和 EDX[9]，并将原 xAPIC 的 EDX[8] 检查改为 EDX[9]。在 init 的选择处建立叶 1 可用，证明 x2APIC 优先、xAPIC 回退与 NoApic 三个分支。集成 #706 时核对 has_xapic 的位号，其 78ebe223e 分支仍用 EDX[8]。"],
+      todo: ["主线 b94500acd 的 has_xapic 读取叶 1 的 EDX[8]（0x100），与本函数规格注释的 APIC 位 EDX[9] 不符。has_x2apic 读取 ECX[21]，两个探测都通过外部体返回独立谓词。参考 #920 校正 xAPIC 位，把结果连到有效的叶 1 采样，再在 init 验证 x2APIC 优先、xAPIC 回退和 NoApic。"],
       accept: "核对所选平台支持叶 1 的根据，以及模式选择与两个探测合同的一致性。XApic::new 的 MMIO 映射和全局模式发布分别在 APIC_RESERVE、APIC_PUB 核对。",
       src: "§5 阶段 A" },
     { id: "APIC_RESERVE", lane: "x86", face: "arch/x86/kernel/apic", title: "xAPIC 寄存器窗口保留",
@@ -353,7 +353,7 @@ window.PLAN_BASE = {
     { id: "CAL_FREQ", lane: "x86", face: "arch/x86/kernel/tsc.rs · timer", title: "PIT 校准与完整 init_tsc_freq",
       mods: ["arch/x86/kernel", "arch/x86/timer"],
       todo: [
-        "主线 #920 将 CPUID 采样接到共享 TSC 参数，回退计算保留两个乘积上界假设。恢复 PIT 校准、init_tsc_freq 和 TSC_FREQ 发布时核对 Some(0) 与 None 的不同处理。",
+        "主线按本次调用的 CpuidSamples 计算频率，回退计算保留两个乘积上界假设。恢复 PIT 校准、init_tsc_freq 和 TSC_FREQ 发布时，核对 Some(0) 与 None 的不同处理以及读取频率的 CPU。",
         "证明整数截断、采样边界、临时 PIT 映射释放和原模式选择，核对 init_tsc_freq 对 TSC_FREQ 的 Relaxed 写入。APIC 定时器的 CONFIG 单独使用 Once。",
       ],
       accept: "频率为零、计数减法的边界不能由“频率初始化完成”这一名称隐含保证。局部证明可先假定 IRQ0 回调合同；最终接线才需要 PITIRQ 完成。",
@@ -428,7 +428,7 @@ window.PLAN_BASE = {
     { id: "CPU_FEAT", lane: "x86", face: "arch/x86/mod.rs", title: "CPU 特性位检测（AVX / AVX-512F）",
       mods: ["arch/x86/mod"],
       todo: [
-        "主线 #920 的 has_avx、has_avx512 按叶 1、7 的可用性及特性位返回共享模型的两个布尔值。#959 的 enable_cpu_features 已按两次探测选择 XCR0 位。核对选定 BSP/AP 使用共享 CPUID 假设的依据，并在集成版本复核这个调用处。",
+        "主线 b94500acd 已移除 specs/context.rs，has_avx、has_avx512 和 enable_cpu_features 都在注释内。参考 #920 恢复叶 1 的 ECX[28]、叶 7 的 EBX[16] 和对应的叶支持条件。#959 的 XCR0 选择仍消费旧模型，需在集成版本从执行核重新建立两项探测合同。",
       ],
       accept: "交付 CPU_ENABLE 可用的叶支持与 AVX/AVX-512F 位判断合同，登记 core CPUID 外部规约和跨核稳定假设。OSXSAVE、XCR0 和指令可执行条件由 CPU_ENABLE 验收。",
       src: "§4" },
@@ -495,17 +495,17 @@ window.PLAN_BASE = {
       src: "§2" },
 
     /* ================================================================= PCI */
-    { id: "PCI_ENC", lane: "x86", face: "arch/x86/pci.rs", title: "x86 PCI 配置端口编码（#919）",
+    { id: "PCI_ENC", lane: "x86", face: "arch/x86/pci.rs", title: "x86 PCI 配置与 MSI-X 地址编码",
       mods: ["arch/x86/pci", "bus/pci"],
       todo: [
-        "#919：has_pci_bus() 恒真、配置地址编码与字段恢复、MSI-X remapping 地址构造及低 16 位恢复；硬件读写仍被注释。",
+        "主线 #706 启用 has_pci_bus、encode_as_port、MSI-X 重映射地址构造及 read32/write32。#919 的增量是从配置地址恢复 bus/device/function 字段，从重映射地址恢复索引低 16 位。把这些后置条件接到主线现有函数及调用处。",
       ],
-      accept: "硬件读写和总线探测仍未启用；编码证明不能计为 PCI 配置事务或中断重映射完成。#706 已内含同名编码函数，需保留 #919 较强的字段恢复后置条件。",
+      accept: "在主线 PCI 配置访问处核对总线号与掩码后的设备号、功能号，在 MSI-X 消费点核对索引位。端口事务与设备状态归 PCI_CFG，中断投递另行验收。",
       src: "§4" },
     { id: "PCI_TYPES", lane: "common", face: "bus/pci", title: "PCI 数据类型 · getter · 位操作（#895）",
       mods: ["bus/pci"],
       todo: [
-        "#895 已合入 11d378516，包含 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit。PCI 枚举和设备构造调用仍未接入已验证路径，需补一处实际调用的前置建立与结果使用证据。",
+        "#895 的 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit 可复用。#706 主线使用 location 编码，但 PciDeviceId 声明和导出已注释。恢复设备 ID 与枚举或设备构造的调用，核对 getter 和位操作的真实消费者。",
       ],
       accept: "交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。与 #706/#919 协调同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。",
       src: "§4 · §7" },
@@ -513,7 +513,7 @@ window.PLAN_BASE = {
       mods: ["bus/pci", "arch/x86/pci"],
       todo: [
         "配置空间访问的地址、宽度、对齐与失败行为；畸形 / 截断输入、未发现设备的合同。",
-        "#706 只保证架构 read / write 返回 Ok，没有描述设备配置状态；通用 read8 / read16 / write8 / write16 没有已验证合同，也没有名为 PciSegment 的接口。补 CF8 / CFC 成对事务互斥、偏移合法范围、子宽度读改写与设备状态合同。",
+        "主线 read32/write32 将 offset & 0xFFFC 与位置编码合并后写 0xCF8，再访问 0xCFC。现有后置只保证 Ok。证明两次访问属于同一笔事务、偏移合法、读值与写入效果对应选定设备。通用 8/16 位读改写及 location 包装仍在注释中。",
       ],
       accept: "交付给 BAR/capability/枚举的 read8/16/32、write8/16/32 地址、宽度、对齐与配置状态合同；核对 CF8/CFC 成对互斥和子宽度读改写。保留原返回/错误行为，#706 的恒 Ok 规格不足以说明设备状态；硬件值与访问效果属 TB_HW_OPS。",
       src: "§2" },
@@ -686,7 +686,7 @@ window.PLAN_BASE = {
       mods: ["io/mod"],
       todo: [
         "#706 的 io::init 要求 builder.has_registered_windows()，在 x86 上给出两个初始化谓词。MMIO 的外部体用 Once 发布分离窗口，实际设备保留仍是调用方的安全义务，需证明已保留区间不能再次分配。",
-        "PIO 从链接段预占敏感端口，tracked_empty 从空的动态分配记录起步。证明这些记录是位图已占用端口的子集，并区分永久预占和可回收的 claim。",
+        "PIO 初始化读取 .sensitive_io_ports，tracked_empty 从空的动态权限记录起步。PCI 的 0xCF8/0xCFC 是直接定义的 exec static，定义本身不生成预占记录。在最终链接输入核对 [0xCF8,0xD00) 的永久预占，并证明动态 claim 只能回收自己的占用。",
       ],
       accept: "交付 io_mem_allocator_initialized/io_port_allocator_initialized 的真实来源以及初始化一次、系统设备保留与失败合同；设备调用者仅在使用全局 acquire 时消费它。不能把 IO_GLOBAL 当静态 PIO 或 unsafe IoMem::new 的统一前置。",
       src: "r3 源码复核" },
@@ -694,7 +694,7 @@ window.PLAN_BASE = {
       mods: ["mm/frame"],
       todo: [
         "#934 的七个 frame 测试覆盖成功分配、clone/drop、借用、raw 往返、单帧 Segment 和链表。类型化测试使用 MockFrameMeta，untyped 路径仍使用 U32FrameMeta。核对真实元数据的生命周期、分配失败和释放义务。",
-        "Segment::slice 的条件 panic 和克隆后的引用计数证明来自已合入的 #951。集成 #720 时另核对 dyn 元数据转换与 transmute 边界。",
+        "#934 的链表测试以 try_from_shared(...).ok().unwrap() 处理三次共享到独占的转换，适配 #958 去掉 Frame 的 Debug。Segment::slice 的条件 panic 与克隆计数见 #951，#720 的 dyn 元数据转换仍需单独核对。",
       ],
       accept: "供栈、动态 CPU-local、页表和 DMA 使用：分配失败不伪造内存，成功给出对齐、存活、互不重叠和元数据权限。用户 GlobalFrameAllocator 实现属 TB_ALLOC；OSTD 包装与元数据义务仍在本项。",
       src: "r3 源码复核" },
@@ -787,7 +787,7 @@ window.PLAN_BASE = {
       mods: ["arch/x86/mod", "arch/x86/cpu"],
       todo: [
         "#959 的 enable_cpu_features 在给定 X86CpuRegisterOwner、XSAVE、叶 0xD、合法 XCR0 和 576..=4096 容量等前提下更新 CR0/CR4/EFER/XCR0 与 x87，返回绑定本核的 FpuInitialization。用三处 Once 的见证读取特性、掩码及保存区长度。",
-        "在 BSP 初始化和 AP 入口取得 owner，核对共享 XSTATE 能力、每核配置和缓存大小。固定 head 中唯一构造见证的 enable_essential_features 要求 XCR0 可读，PR 正文提及的 tracked_legacy_initialization 尚未出现在源码中。",
+        "#959 仍基于 #920 的 CpuFeatureModel。先在合入 #706 的主线上建立 CPU_FEAT，再从 BSP/AP 入口取得本核 owner，核对 XSTATE 能力和缓存大小。该分支的 enable_essential_features 要求 XCR0 可读，正文提及的 tracked_legacy_initialization 在已查 head 中缺失。",
       ],
       accept: "将实际启动 CPU、寄存器权限和完成见证对应起来，在同核与跨核使用时分别说明配置兼容性。对采用 legacy FXSAVE 的机器补齐 512 字节模式的见证来源。",
       src: "r3 源码复核" },
@@ -801,8 +801,8 @@ window.PLAN_BASE = {
     { id: "TSC_VALUE", lane: "x86", face: "arch/x86/kernel/tsc", title: "tsc_freq 采样结果与发布合同",
       mods: ["arch/x86/kernel"],
       todo: [
-        "#920 将受支持叶 0x15 的分母、分子和晶振 Hz 绑定到共享模型。仅回退时读取当前逻辑 CPU 的叶 0x16 基频，结果由 tsc_frequency_hz(base_eax) 计算。",
-        "在实际消费者建立非零 Hz 和范围，核对 max_basic_leaf <= 0x15 的拒绝条件、Some(0) 和两条乘积上界假设，再核对注释路径中 TSC_FREQ 的 AtomicU64 写入与读取，以及读取者何时可排除初始零值。",
+        "主线恢复 #905 的逐次采样合同。determine_tsc_freq_via_cpuid 返回本次 CpuidSamples::frequency_hz() 对应的结果，记录最大叶、按条件采样的叶 0x15 和回退时的叶 0x16 基频。不同调用、不同核之间的频率一致性需要单独证据。",
+        "在实际消费者建立非零 Hz 和范围，核对 max_leaf <= 0x15 的拒绝条件、Some(0) 和两条乘积上界假设。接通 TSC_FREQ 的 AtomicU64 写入和读取，说明读取者何时可排除初始零值。",
       ],
       accept: "供 deadline timer 使用。已合入 #905 可能返回 Some(0)，需保留原输入边界并证明选定平台的非零来源；物理时钟精度和 CPUID 输入属 TB_HW_OPS。完整回退仍在 CAL_FREQ 验收。",
       src: "r3 源码复核" },
@@ -823,7 +823,7 @@ window.PLAN_BASE = {
     { id: "SERIAL_QEMU_CMOS", lane: "x86", face: "arch/x86/{serial,qemu,device/cmos}", title: "串口 · QEMU 出口 · CMOS",
       mods: ["arch/x86/serial", "arch/x86/qemu", "arch/x86/device"],
       todo: [
-        "覆盖串口初始化/轮询、exit_qemu 与 CMOS 读取；逐接口说明端口与 ACPI/FADT 世纪字段条件。",
+        "内核串口和 CMOS 的 u8 端口复用已验收的 IoPort 合同，另需串口轮询进展、独占范围和 ACPI/FADT 世纪字段条件。exit_qemu 直接使用 x86_64::Port 写 0xF4。对应模块仍未启用。",
       ],
       accept: "交付 x86 基础设备的访问/转换合同；轮询终止需显式硬件进展假设，exit_qemu 非返回结果由目标平台记录，CMOS 输入真实性属 TB_HW_OPS。不等待 PIT/APIC 完成。",
       src: "r3 源码复核" },
@@ -849,7 +849,7 @@ window.PLAN_BASE = {
       src: "§6" },
     { id: "BZ_SETUP", lane: "bzimage", face: "libs/linux-bzimage/setup", title: "setup 物理内存、入口与 BootParams 交接",
       mods: ["libs/linux-bzimage"],
-      todo: ["EFI 的 efi_phase_boot 将解码结果交给 load_elf，legacy 直接传入 payload。按选定模式核对物理地址、分配与段间覆盖，连接段初始化快照、控制权转移和 BootParams。"],
+      todo: ["EFI 的 efi_phase_boot 将解码结果交给 load_elf，legacy 直接传入 payload。#948 的 EFI alloc_at 只保证正常返回的切片长度。核对零地址、算术界限、UEFI 分配失败或返回地址不符时的 panic，并把成功路径的物理页、段快照与 BootParams 对应。Legacy32 按自身分配实现核对。"],
       accept: "用选定镜像说明 PT_LOAD 最终驻留地址、入口可执行和 BootParams 有效的依据。EFI 路径另需解码输入合同；记录 alloc_at、固件服务与初始 CPU 状态的边界。",
       src: "r3 源码复核" },
     { id: "BOOT_COMMON", lane: "common", face: "boot/mod · lib", title: "通用 BootInfo 与 OSTD 入口编排",
@@ -953,7 +953,7 @@ window.PLAN_BASE = {
     {
       "id": "TB_HW_OPS",
       "provider": "CPUID / MSR / volatile / 汇编的外部规约",
-      "input": "#920 假定各核共享最大基本叶、四个特性位及叶 0x15 的三个字段，回退基频取本核叶 0x16。两条乘积上界须另给依据。#959 扩展共享的叶 0xD 能力位图，寄存器 owner、XCR0 配置和启用后的实际大小按核核对。#955 的 load_idtr 和 #954 的 context_switch 分别给出可信指令与 FFI 合同。",
+      "input": "主线的 APIC 探测返回独立的外部谓词，TSC 的 cpuid_count 按调用采样，回退时的两个乘积上界仍是假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。",
       "consumers": [
         "APIC_PROBE",
         "LAPIC_DEV",
@@ -1050,7 +1050,7 @@ window.PLAN_BASE = {
     {
       "id": "TB_SETUP_ENV",
       "provider": "EFI/legacy 固件服务、解压库与链接布局",
-      "input": "EFI/legacy 分配服务、BootParams 和初始 CPU 状态。#948 的 alloc_at 正常返回只约束切片长度；编解码对应依赖 libflate 对指定 Vec、切片及默认 codec 的外部模型。",
+      "input": "EFI 和 legacy 分别建立物理分配与初始 CPU 状态。#948 的 EFI alloc_at 可能因地址、大小或固件分配失败而 panic，正常返回仅保证切片长度。编解码对应依赖 libflate 的 Vec、切片及默认 codec 模型。",
       "consumers": [
         "BZ_ENCODE",
         "BZ_DECODE",
@@ -1058,7 +1058,7 @@ window.PLAN_BASE = {
         "BZ_SETUP",
         "BZ_IMG"
       ],
-      "record": "setup/src/{loader,x86/amd64_efi/decoder}.rs、verified_libs/vstd_extra/src/external/{libflate,maybe_uninit}.rs @263398d72。宿主编码与裸机解码独立验证，用同一次构建的嵌入文件和目标字长核对两端。"
+      "record": "ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/amd64_efi/{alloc,decoder}.rs,x86/legacy_i386/alloc.rs} @f06ae789d。用同一次构建的嵌入文件、目标字长和实际分配核对段交接。setup 控制台直接使用 uart_16550::SerialPort（console.rs @b94500acd）。"
     }
   ],
 
@@ -1082,7 +1082,7 @@ window.PLAN_BASE = {
     { id: "PCI_ARCH", lane: "common", face: "arch/riscv/pci.rs · arch/loongarch/pci.rs", title: "RISC-V / LoongArch 的 PCI 适配",
       mods: ["arch/riscv/pci", "arch/loongarch/pci"], needs: ["PCI_CFG"], needsInf: [], prs: [706], reuse: [],
       todo: ["消费同一公共 PCI 合同，并独立证明各架构的访问语义。"],
-      accept: "#706 带有这两个架构的 PCI 接线，仍待审阅。", src: "§2" },
+      accept: "#706 已合入 b94500acd。其他架构各自的访问语义保留在跨架构计划中。", src: "§2" },
     { id: "RV_SLICE", lane: "common", face: "arch/riscv/{cpu,irq,trap,timer}", title: "RISC-V 平台垂直切片",
       mods: ["arch/riscv/cpu", "arch/riscv/irq", "arch/riscv/trap", "arch/riscv/timer"], needs: [], needsInf: ["LOC_ACC", "IRQ_DROP", "PT_CFG"], prs: [], reuse: [],
       todo: ["先选平台垂直切片，再扩展 API 覆盖。", "消费公共基础与内存的共享合同。"],
@@ -1098,10 +1098,10 @@ window.PLAN_BASE = {
   ],
   /* Offline fallback: dashboard snapshot at the document baseline (machine-filled). */
   baseline: {
-    date: "2026-11-13T17:44:51+08:00",
-    sha: "90087275ebd4b974596947d11d3da27d722e05d3",
-    totals: {"total": 18503, "verified_exec": 5698, "trusted": 615, "unverified": 9894, "unplanned": 2296, "verified_apis": 293},
-    apis: {"boot": 2, "cpu": 20, "src": 1, "mm": 166, "sync": 87, "task": 9, "timer": 6, "trap": 2},
+    date: "2026-11-23T11:39:19+08:00",
+    sha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
+    totals: {"total": 18503, "verified_exec": 6389, "trusted": 732, "unverified": 9086, "unplanned": 2296, "verified_apis": 347},
+    apis: {"boot": 10, "bus": 5, "cpu": 21, "io": 11, "mm": 191, "src": 1, "sync": 87, "task": 9, "timer": 6, "trap": 2, "util": 4},
     cols: ["group", "child", "total", "verified_exec", "trusted", "unverified", "unplanned", "spec", "proof"],
     rows: [
       ["arch","loongarch/boot",157,0,0,0,157,0,0],
@@ -1111,7 +1111,7 @@ window.PLAN_BASE = {
       ["arch","loongarch/iommu",19,0,0,0,19,0,0],
       ["arch","loongarch/irq",32,0,0,32,0,0,0],
       ["arch","loongarch/kernel",84,0,0,84,0,0,0],
-      ["arch","loongarch/mm",183,158,11,14,0,339,254],
+      ["arch","loongarch/mm",183,140,11,32,0,321,257],
       ["arch","loongarch/mod",26,0,0,26,0,0,0],
       ["arch","loongarch/pci",107,0,0,107,0,0,0],
       ["arch","loongarch/qemu",28,0,0,28,0,0,0],
@@ -1124,9 +1124,9 @@ window.PLAN_BASE = {
       ["arch","riscv/device",8,0,0,8,0,0,0],
       ["arch","riscv/iommu",19,0,0,0,19,0,0],
       ["arch","riscv/irq",33,0,0,33,0,0,0],
-      ["arch","riscv/mm",127,114,5,8,0,167,214],
+      ["arch","riscv/mm",127,96,5,26,0,149,217],
       ["arch","riscv/mod",29,0,0,29,0,0,0],
-      ["arch","riscv/pci",51,0,0,51,0,0,0],
+      ["arch","riscv/pci",51,17,0,34,0,12,0],
       ["arch","riscv/qemu",13,0,0,13,0,0,0],
       ["arch","riscv/serial",4,0,0,4,0,0,0],
       ["arch","riscv/task",66,64,0,2,0,29,0],
@@ -1136,13 +1136,13 @@ window.PLAN_BASE = {
       ["arch","x86/cpu",519,0,0,519,0,0,0],
       ["arch","x86/device",48,0,0,48,0,0,0],
       ["arch","x86/ex_table",18,13,5,0,0,14,13],
-      ["arch","x86/io",32,0,0,32,0,0,0],
+      ["arch","x86/io",32,2,0,30,0,0,0],
       ["arch","x86/iommu",1072,0,0,0,1072,0,0],
       ["arch","x86/irq",56,0,0,56,0,0,0],
       ["arch","x86/kernel",934,532,0,402,0,311,223],
-      ["arch","x86/mm",156,135,21,0,0,475,379],
+      ["arch","x86/mm",156,132,24,0,0,459,382],
       ["arch","x86/mod",108,0,0,108,0,0,0],
-      ["arch","x86/pci",26,0,0,26,0,0,0],
+      ["arch","x86/pci",26,26,0,0,0,9,0],
       ["arch","x86/qemu",15,0,0,15,0,0,0],
       ["arch","x86/serial",22,0,0,22,0,0,0],
       ["arch","x86/task",54,44,0,10,0,29,0],
@@ -1153,48 +1153,48 @@ window.PLAN_BASE = {
       ["boot","mod",51,8,0,43,0,0,0],
       ["boot","smp",89,0,0,89,0,0,0],
       ["bus","mod",8,0,0,8,0,0,0],
-      ["bus","pci",735,0,0,735,0,0,0],
+      ["bus","pci",735,39,0,696,0,10,0],
       ["console","console",18,0,0,18,0,0,0],
       ["coverage","coverage",7,0,0,7,0,0,0],
       ["cpu","local",367,0,0,367,0,0,0],
       ["cpu","mod",51,25,0,26,0,51,20],
-      ["cpu","set",196,155,0,41,0,213,256],
+      ["cpu","set",196,155,0,41,0,213,270],
       ["error","error",13,10,0,3,0,0,0],
-      ["io","io_mem",220,0,0,220,0,0,0],
-      ["io","io_port",89,0,0,89,0,0,0],
+      ["io","io_mem",220,96,90,34,0,194,56],
+      ["io","io_port",89,76,13,0,0,160,177],
       ["io","mod",7,0,0,7,0,0,0],
       ["lib","lib",54,0,0,54,0,0,0],
       ["libs","align_ext",24,24,0,0,0,4,8],
       ["libs","id-alloc",111,101,0,10,0,97,66],
-      ["libs","linux-bzimage",1264,49,0,1215,0,22,6],
+      ["libs","linux-bzimage",1264,374,0,890,0,326,63],
       ["libs","ostd-macros",196,0,0,0,196,0,0],
       ["libs","ostd-pod",186,6,19,161,0,7,20],
-      ["libs","ostd-test",97,22,0,75,0,15,0],
+      ["libs","ostd-test",97,22,0,75,0,12,0],
       ["logger","logger",42,0,0,42,0,0,0],
-      ["mm","dma",654,343,20,291,0,725,302],
-      ["mm","frame",1425,778,58,589,0,1358,1315],
+      ["mm","dma",654,343,20,291,0,719,302],
+      ["mm","frame",1425,771,60,594,0,1325,1307],
       ["mm","heap",211,0,0,211,0,0,0],
-      ["mm","io",318,310,8,0,0,607,260],
-      ["mm","kspace",280,118,57,105,0,394,359],
-      ["mm","mod",16,13,3,0,0,19,66],
+      ["mm","io",318,310,8,0,0,622,260],
+      ["mm","kspace",280,112,57,111,0,387,360],
+      ["mm","mod",16,16,0,0,0,13,80],
       ["mm","page_prop",28,28,0,0,0,17,34],
-      ["mm","page_table",1811,843,271,697,0,2283,3126],
-      ["mm","test",586,104,0,482,0,10,142],
+      ["mm","page_table",1811,837,275,699,0,2249,3241],
+      ["mm","test",586,252,0,334,0,24,276],
       ["mm","tlb",169,38,89,42,0,33,0],
-      ["mm","vm_space",174,148,26,0,0,348,587],
+      ["mm","vm_space",174,147,27,0,0,341,587],
       ["panic","panic",71,0,0,71,0,0,0],
       ["smp","smp",53,0,0,53,0,0,0],
       ["sync","guard",24,22,0,2,0,0,0],
       ["sync","mod",3,0,0,3,0,0,0],
-      ["sync","mutex",69,69,0,0,0,72,44],
+      ["sync","mutex",69,69,0,0,0,69,44],
       ["sync","rcu",421,372,0,49,0,409,587],
       ["sync","rwarc",58,40,0,18,0,15,20],
-      ["sync","rwlock",163,163,0,0,0,295,273],
-      ["sync","rwmutex",144,144,0,0,0,306,321],
-      ["sync","spin",84,84,0,0,0,123,77],
+      ["sync","rwlock",163,163,0,0,0,286,273],
+      ["sync","rwmutex",144,144,0,0,0,297,321],
+      ["sync","spin",84,84,0,0,0,120,77],
       ["sync","wait",212,133,10,69,0,48,66],
       ["task","atomic_mode",19,7,0,12,0,0,0],
-      ["task","kernel_stack",62,0,0,62,0,0,0],
+      ["task","kernel_stack",62,18,7,37,0,11,19],
       ["task","mod",181,4,0,177,0,0,0],
       ["task","preempt",54,7,4,43,0,28,21],
       ["task","processor",57,0,0,57,0,0,0],
@@ -1207,7 +1207,7 @@ window.PLAN_BASE = {
       ["user","user",35,0,0,35,0,0,0],
       ["util","either",23,23,0,0,0,6,0],
       ["util","ops",49,13,0,36,0,52,51],
-      ["util","range_alloc",122,122,0,0,0,215,465]
+      ["util","range_alloc",122,122,0,0,0,264,570]
     ]
   },
 };

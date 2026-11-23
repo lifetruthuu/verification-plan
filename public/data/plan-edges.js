@@ -5,8 +5,6 @@
  * Rows are grouped by consumer in node order. Record every change in plan-history.js (plan.mjs does it). */
 window.PLAN_EDGES = [
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "IO_WIN", "from": "IO_ALLOC", "gate": "accept", "need": "引导函数须建立两个窗口内部端点有序、窗口间分离、与登记序列对应，才能从 builder::new 取得 has_registered_windows。", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::new @78ebe223e" },
-
   { "to": "IRQ_GUARD", "from": "IRQ_MODEL", "gate": "accept", "need": "同 CPU 的 inv / coherent、匹配的 authority、保存的 IF 与嵌套权限合同", "ev": "ostd/src/trap/irq.rs::DisabledLocalIrqGuard::new; ostd/specs/task/irq.rs::LocalIrqGuardOwner @6cec73d064" },
 
   { "to": "IRQ_DROP", "from": "IRQ_GUARD", "gate": "accept", "need": "创建产生的保存 IF、CPU、嵌套深度与线性恢复权限", "ev": "ostd/specs/task/irq.rs::IrqRestorePermission,tracked_restore @6cec73d064" },
@@ -37,14 +35,14 @@ window.PLAN_EDGES = [
 
   { "to": "PIC", "from": "IO_PIO", "gate": "accept", "need": "敏感 PIO 端口 IoPort<u8, WriteOnlyAccess>::write 的权限与写入合同；端口 0x20 / 0x21 / 0xA0 / 0xA1", "ev": "ostd/src/arch/x86/kernel/irq/pic.rs::MASTER_CMD,MASTER_DATA,SLAVE_CMD,SLAVE_DATA,set_mask @97963e831" },
 
-  { "to": "IOAPIC_REG", "from": "IO_ALLOC", "gate": "accept", "need": "IoApicAccess::new 需要排除 [base,base+0x20) 并取得独占访问依据。当前设备和 builder 的 remove 尚待接通。", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @78ebe223e" },
+  { "to": "IOAPIC_REG", "from": "IO_ALLOC", "gate": "accept", "need": "IoApicAccess::new 需要独占 [base,base+0x20)。恢复设备路径时，须用 builder 的可执行接口排除该范围。", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @b94500acd" },
 
   { "to": "IOAPIC_ENTRY", "from": "IOAPIC_REG", "gate": "accept", "need": "寄存器选择 / 数据访问合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable,disable @97963e831" },
   { "to": "IOAPIC_ENTRY", "from": "IRQLINE", "gate": "accept", "need": "IrqLine::num / remapping_index，以及重定向项被禁用前 IRQ 不被释放的生命周期合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable; ostd/src/trap/irq.rs::IrqLine @97963e831" },
 
   { "to": "PIT_CFG", "from": "IO_PIO", "gate": "accept", "need": "0x43 / 0x40 敏感 PIO 的写权限与写合同", "ev": "ostd/src/arch/x86/timer/pit.rs::MODE_COMMAND_PORT,CHANNEL0_PORT,init @97963e831" },
 
-  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "xAPIC 初始化需要从可用窗口永久排除基址起的 1024 字节。须补可调用的保留接口并证明同一区间不会再分配。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder（remove 已注释） @78ebe223e" },
+  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "xAPIC 需要永久排除从 MSR 基址起的 1024 字节。主线 builder 只保证登记窗口和分离，仍须提供设备保留及排他效果。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @b94500acd" },
   { "to": "APIC_RESERVE", "from": "IO_WIN", "gate": "accept", "need": "该 1024 字节范围属于登记窗口，且权限尚未被其他设备占用", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init @97963e831" },
 
   { "to": "APIC_PUB", "from": "APIC_PROBE", "gate": "accept", "need": "ApicId::from 读取 APIC_TYPE，须与 init 发布的模式一致，并保留 xAPIC 八位截断（value as u8）", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init,APIC_TYPE,ApicId::from @97963e831" },
@@ -85,7 +83,7 @@ window.PLAN_EDGES = [
 
   { "to": "CAL_FREQ", "from": "PITIRQ", "gate": "accept", "need": "IRQ0 周期回调、EOI 与等待进展合同：determine_tsc_freq_via_pit 用 IrqLine::alloc + on_active(pit_callback) 注册回调，再用 enable_local_and_halt 等待，不是端口轮询", "ev": "ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_pit（第 180–194 行） @97963e831" },
   { "to": "CAL_FREQ", "from": "PIT_CFG", "gate": "accept", "need": "pit::init(RateGenerator) 的周期合同", "ev": "ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_pit @97963e831" },
-  { "to": "CAL_FREQ", "from": "TSC_VALUE", "gate": "accept", "need": "init_tsc_freq 需消费 CPUID 采样的 Some/None 分支，按共享叶 0x15 和可选的本核基频判断结果，再组合 PIT 回退与发布；Some(0) 需单独处理。", "ev": "ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_cpuid,init_tsc_freq @56c04a329" },
+  { "to": "CAL_FREQ", "from": "TSC_VALUE", "gate": "accept", "need": "用本次 CpuidSamples::frequency_hz() 区分 None、Some(0) 和可用频率，才能在 init_tsc_freq 组合 PIT 回退和发布。", "ev": "ostd/src/arch/x86/kernel/tsc.rs::CpuidSamples,determine_tsc_freq_via_cpuid,init_tsc_freq @b94500acd" },
 
   { "to": "TMR_DEADLINE", "from": "LAPIC_DEV", "gate": "accept", "need": "Apic::set_lvt_timer 与 deadline MSR 的效果", "ev": "ostd/src/arch/x86/timer/apic.rs::init_deadline_mode @97963e831" },
   { "to": "TMR_DEADLINE", "from": "IRQLINE", "gate": "accept", "need": "IrqLine 分配与回调注册", "ev": "ostd/src/arch/x86/timer/apic.rs::init_bsp,init_timer @97963e831" },
@@ -151,8 +149,8 @@ window.PLAN_EDGES = [
 
   { "to": "TASK_RUNTIME", "from": "LOC_CELL", "gate": "accept", "need": "CURRENT_TASK_PTR 的同核读取、Arc 来源和有效引用条件", "ev": "ostd/src/task/mod.rs::Task::current; task/processor.rs::current_task @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
-  { "to": "PCI_CFG", "from": "IO_PIO", "gate": "accept", "need": "0xCF8 / 0xCFC 的静态 PIO 端口访问合同", "ev": "ostd/src/arch/x86/pci.rs::PCI_ADDRESS_PORT,PCI_DATA_PORT,read32,write32 @7c710f060f7a5ed3330aba64a9f711e6dd5edac9" },
-  { "to": "PCI_CFG", "from": "PCI_ENC", "gate": "accept", "need": "encode_as_port 的精确结果；#706 已内含同名函数，不必等 #919 整体完成", "ev": "ostd/src/arch/x86/pci.rs::encode_as_port @7c710f060f7a5ed3330aba64a9f711e6dd5edac9" },
+  { "to": "PCI_CFG", "from": "IO_PIO", "gate": "accept", "need": "PCI_ADDRESS_PORT 是 0xCF8 的 u32 只写端口，PCI_DATA_PORT 是 0xCFC 的 u32 可读写端口。两者消费已验收的全宽与类型访问合同。", "ev": "ostd/src/arch/x86/pci.rs::PCI_ADDRESS_PORT,PCI_DATA_PORT,read32,write32，ostd/src/io/io_port/mod.rs::IoPort @b94500acd" },
+  { "to": "PCI_CFG", "from": "PCI_ENC", "gate": "accept", "need": "read32/write32 将 encode_as_port(location) 与 offset & 0xFFFC 合并。配置访问需能从地址核对选定 bus/device/function 以及允许的偏移。", "ev": "ostd/src/arch/x86/pci.rs::encode_as_port,read32,write32 @b94500acd，分支字段恢复后置 @d14bae0d0" },
 
   { "to": "PCI_ENUM", "from": "PCI_CFG", "gate": "accept", "need": "配置读取语义：vendor ID 0xFFFF 表示设备不存在", "ev": "ostd/src/bus/pci/common_device.rs::new; bus/pci/mod.rs::init @97963e831" },
   { "to": "PCI_ENUM", "from": "PCI_TYPES", "gate": "accept", "need": "PciDeviceLocation/设备 ID 的字段范围和读取合同；all() 完整性与无重复由本项 PCI_ENUM 证明", "ev": "ostd/src/bus/pci/device_info.rs::PciDeviceLocation,all @b0db47c885eb9af77bf53233d0d80c5d277bcf9d" },
@@ -200,8 +198,8 @@ window.PLAN_EDGES = [
   { "to": "IO_MMIO", "from": "MM_KVA", "gate": "accept", "need": "IoMem::new 的 KVirtArea::map_untracked_frames 结果、映射存活与范围合同", "ev": "ostd/src/io/io_mem/mod.rs::IoMem::new @477db699e56654e7813a910b9a25b747d80b6370" },
 
   { "to": "IO_GLOBAL", "from": "IO_ALLOC", "gate": "accept", "need": "io::init 的安全条件要求系统设备窗口已排除。当前形式前置只检查 has_registered_windows，仍须证明发布的分配器保留排除效果。", "ev": "ostd/src/io/mod.rs::init，ostd/src/io/io_mem/allocator.rs::init,IoMemAllocatorBuilder @78ebe223e" },
-  { "to": "IO_GLOBAL", "from": "IO_WIN", "gate": "accept", "need": "builder.has_registered_windows() 的引导来源", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder; ostd/src/io/mod.rs::init @477db699e56654e7813a910b9a25b747d80b6370" },
-  { "to": "IO_GLOBAL", "from": "IO_PIO_ALLOC", "gate": "accept", "need": "全局 PIO init 在位图预占敏感端口后以空动态权限初始化锁。需建立动态权限是已占用位图的子集，并交给同一实例后续申请和释放。", "ev": "ostd/src/io/io_port/allocator.rs::init,IoPortAllocation::tracked_empty,acquire,recycle @6b8511ba2" },
+  { "to": "IO_GLOBAL", "from": "IO_WIN", "gate": "accept", "need": "io::init 接受 has_registered_windows()。x86 的引导输入须满足 builder::new 的几何及登记条件，设备排除另外由 IO_ALLOC 交付。", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder，ostd/src/io/{mod.rs::init,io_mem/allocator.rs::IoMemAllocatorBuilder::new} @b94500acd" },
+  { "to": "IO_GLOBAL", "from": "IO_PIO_ALLOC", "gate": "accept", "need": "初始化外部体扫描 .sensitive_io_ports，将预占和动态权限对应到同一分配器，须说明 PCI 静态端口所在范围如何长期排除在动态申请之外。", "ev": "ostd/src/io/io_port/allocator.rs::init,IoPortAllocation::tracked_empty,acquire,recycle，ostd/src/arch/x86/pci.rs::PCI_ADDRESS_PORT,PCI_DATA_PORT @b94500acd" },
 
   { "to": "MM_PT", "from": "PT_CFG", "gate": "accept", "need": "PageTableConfig 布局/顶层范围引理与当前 x86 PagingConstsTrait", "ev": "ostd/src/mm/page_table/mod.rs::PageTableConfig; cursor/mod.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "MM_PT", "from": "MM_FRAME", "gate": "accept", "need": "页表节点和映射 frame 的有效元数据、引用计数及所有权转移合同", "ev": "ostd/src/mm/page_table/node/mod.rs; ostd/src/mm/vm_space.rs::UserPtConfig @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -236,7 +234,7 @@ window.PLAN_EDGES = [
   { "to": "SYNC_API", "from": "SYNC_GUARD", "gate": "accept", "need": "读写锁/RwArc 持锁期间的运行模式与释放合同", "ev": "ostd/src/sync/rwarc.rs; ostd/src/sync/guard.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "enable_cpu_features 用 has_avx 和 has_avx512 选择 XCR0 位，另从 CPU owner 建立支持的位组、XSAVE 容量和寄存器权限。", "ev": "ostd/src/arch/x86/mod.rs::has_avx,has_avx512,enable_cpu_features，ostd/specs/context.rs::CpuFeatureModel @ce76e7de2" },
+  { "to": "CPU_ENABLE", "from": "CPU_FEAT", "gate": "accept", "need": "#959 使用 has_avx/has_avx512 选择 XCR0 位，集成时须恢复叶支持与本核能力的联系，另取得本核寄存器权限。", "ev": "ostd/src/arch/x86/mod.rs::enable_cpu_features，ostd/specs/context.rs::CpuFeatureModel @ce76e7de2，对照主线 arch/x86/mod.rs @b94500acd" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "PCI_DEVICE", "from": "PCI_ENUM", "gate": "accept", "need": "有效 location 遍历与无设备判断", "ev": "ostd/src/bus/pci/common_device.rs::PciCommonDevice::new; ostd/src/bus/pci/capability/mod.rs::device_capabilities @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -248,7 +246,7 @@ window.PLAN_EDGES = [
   { "to": "HPET", "from": "ACPI_TABLES", "gate": "accept", "need": "ACPI HPET 表发现、基址和字段可读合同", "ev": "ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "HPET", "from": "ROUTE_MAP", "gate": "accept", "need": "Hpet::new 调用 IRQ_CHIP.map_isa_pin_to(irq,0)，需映射句柄与释放合同；仅约束完整构造，getter 可先证明", "ev": "ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
-  { "to": "SERIAL_QEMU_CMOS", "from": "IO_PIO", "gate": "accept", "need": "串口/QEMU/CMOS 静态端口访问宽度与权限合同", "ev": "ostd/src/arch/x86/serial.rs; qemu.rs; device/cmos.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
+  { "to": "SERIAL_QEMU_CMOS", "from": "IO_PIO", "gate": "accept", "need": "内核串口和 CMOS 使用有读写标记的 u8 端口。QEMU 出口单独用 x86_64::Port 写 0xF4，另在设备节点核对。", "ev": "ostd/src/arch/x86/{device/serial.rs::SerialPort::new,device/cmos.rs::CMOS_ADDRESS,serial.rs,qemu.rs::exit_qemu} @b94500acd" },
   { "to": "SERIAL_QEMU_CMOS", "from": "ACPI_TABLES", "gate": "accept", "need": "CMOS 的 FADT 世纪寄存器编号来源，仅约束 CMOS 子项", "ev": "ostd/src/arch/x86/device/cmos.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
@@ -256,7 +254,7 @@ window.PLAN_EDGES = [
   { "to": "HEAP_GLOBAL", "from": "MM_FRAME", "gate": "accept", "need": "slab/大分配使用 frame/Segment 的存活与回收合同", "ev": "ostd/src/mm/heap/mod.rs; ostd/src/mm/heap/slab.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: bzImage 启动链 ===== */
-  { "to": "BZ_SETUP", "from": "BZ_LOAD", "gate": "accept", "need": "EFI 和 legacy 均用 load_elf 的逐段快照。把按目标 usize 宽度检查过的可读文件前缀、零尾部对应到实际物理分配及最终驻留内存。", "ev": "ostd/libs/linux-bzimage/setup/src/{loader.rs::load_elf,x86/amd64_efi/efi.rs::efi_phase_boot,x86/legacy_i386/mod.rs} @263398d72" },
+  { "to": "BZ_SETUP", "from": "BZ_LOAD", "gate": "accept", "need": "EFI 和 legacy 把逐段文件前缀与零尾部快照对应到实际物理页。EFI 需核对 alloc_at 的地址、大小、固件失败与正常返回分支。", "ev": "ostd/libs/linux-bzimage/setup/src/{loader.rs::load_elf,x86/amd64_efi/{alloc.rs::alloc_at,efi.rs},x86/legacy_i386/alloc.rs} @f06ae789d" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "DMA_MAP", "from": "SYNC_GUARD", "gate": "accept", "need": "DMA_MAPPING_SET 的 SpinLock 与 DmaCoherent/DmaStream 的 RwArc 使用 PreemptDisabled，需真实 guard 生命周期", "ev": "ostd/src/mm/dma/{mod,dma_coherent,dma_stream}.rs::init,map,read_inner @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },

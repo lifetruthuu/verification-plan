@@ -6,30 +6,34 @@
 window.PLAN_PR_CATALOG = [
   {
     "n": 920,
-    "scope": "主线的 AVX、APIC 能力探测与共享叶 0x15 的 TSC 参数",
-    "implements": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
-    "reuses": [],
-    "note": "合入 eb1a9d044。#959 使用两个 AVX 探测选择 XCR0 位，BSP/AP 启动的权限来源仍待集成。APIC 的叶 1 条件与模式选择尚未在主线接通。TSC 回退读本核叶 0x16，保留两个乘积上界假设，Some(0) 和 AtomicU64 发布仍须在消费者核对。",
+    "scope": "原共享 CPUID 模型、APIC 位修正与 TSC 共享参数的历史实现",
+    "implements": [],
+    "reuses": ["CPU_FEAT", "APIC_PROBE", "TSC_VALUE"],
+    "note": "eb1a9d044 曾启用 AVX 探测、校正 xAPIC 的 EDX[9]，并为 TSC 建立共享叶模型。b94500acd 删除该模型、注释两个 AVX 探测，xAPIC 重新读取 EDX[8]，TSC 恢复 #905 的逐次采样。#959 分支仍消费旧合同，集成时须补回实际 CPU 的证据。",
     "reviewedHead": "56c04a329786066a820c083a3a556302f01264f6",
     "reviewedAt": "2026-11-23",
     "evidence": [
       "ostd/specs/context.rs::CpuFeatureModel::from_cpuid，ostd/src/arch/x86/{mod.rs,kernel/tsc.rs,kernel/apic/{xapic,x2apic}.rs} @eb1a9d044",
-      "ostd/src/arch/x86/mod.rs::enable_cpu_features @ce76e7de2"
+      "ostd/src/arch/x86/mod.rs::enable_cpu_features @ce76e7de2",
+      "ostd/src/arch/x86/{mod.rs,kernel/apic/{xapic,x2apic}.rs,kernel/tsc.rs} 与 ostd/specs/mod.rs @b94500acd"
     ]
   },
   {
     "n": 919,
-    "scope": "x86 PCI 编码；协调 #706/#895 的同名函数、数据类型及模块开关",
+    "scope": "在主线 PCI 编码上补字段恢复与 MSI-X 索引恢复",
     "implements": ["PCI_ENC"],
     "reuses": ["PCI_MSIX"],
-    "note": "证明 has_pci_bus() 恒真、配置地址编码 / 字段恢复、MSI-X remapping 地址构造与低 16 位恢复；#706 已内含同名函数，需保留 #919 较强的字段恢复后置条件。编码证明不能计为 PCI 配置事务或中断重映射完成。",
+    "note": "主线已提供 has_pci_bus 和编码公式，read32/write32 已启用。本分支仍注释这两个访问函数。维护者在 #706 合并后请继续推进，剩余增量是 bus/device/function 及重映射索引低 16 位的恢复证明。",
     "reviewedHead": "d14bae0d0f43d03664ab73240f02da30f17737d5",
-    "reviewedAt": "2026-11-16"
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/src/arch/x86/pci.rs::encode_as_port,construct_remappable_msix_address,read32,write32 @d14bae0d0，与主线 @b94500acd 对照"
+    ]
   },
   {
     "n": 706,
-    "scope": "分离的 MMIO 登记窗口、按成功结果签发的回收权限、PIO 冲突与 x86 PCI 配置端口",
-    "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL", "IO_MMIO_ALLOC"],
+    "scope": "主线静态 PIO、PCI 配置端口与编码、MMIO 窗口和按成功结果签发的权限",
+    "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL", "IO_MMIO_ALLOC", "PCI_ENC"],
     "reuses": [
       "IO_WIN",
       "PIT_CFG",
@@ -39,16 +43,18 @@ window.PLAN_PR_CATALOG = [
       "PCI_MSIX",
       "CPU_FEAT",
       "APIC_PROBE",
-      "TSC_VALUE"
+      "TSC_VALUE",
+      "PCI_TYPES",
+      "PT_X86"
     ],
-    "note": "builder::new 保留登记窗口，ranges_disjoint 逐对检查端点。remove 已注释。MMIO 申请成功交出 FreePermit，PIO 用 claim 排除冲突，释放后再次申请成功仍缺保证。IoMem 停用 Clone/slice。相对 main 3283081b3，本 head 缺少 #920 的共享 CPUID，xAPIC 读 EDX[8]，还带回旧 fmt_req。接入时须保留主线合同。",
-    "reviewedHead": "78ebe223e10a55b8e2c74ff870cf15164a9f75e0",
+    "note": "最终 head 31813f542 与合入 b94500acd 的源码树相同。PCI read32/write32 已消费静态 PIO，设备事务仍缺互斥与效果合同。MMIO 成功申请返回 FreePermit，builder::remove、IoMem::clone/slice 和自动回收均缺。最终提交保留 #958 的格式化改动，但撤回 #920 的共享 CPUID，xAPIC 实际读取 EDX[8]。",
+    "reviewedHead": "31813f542ecb1e3190faa152407a5d0218996afa",
     "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/src/io/io_mem/{allocator.rs::IoMemAllocatorBuilder::new,IoMemAllocator::acquire,IoMemAllocator::recycle,mod.rs::IoMem::acquire}，ostd/src/util/range_alloc.rs::RangeAllocator::free @78ebe223e",
-      "ostd/src/io/io_port/{allocator.rs::conflict_region,lemma_conflicting_acquire_fails,mod.rs::IoPort::drop}，ostd/src/arch/x86/pci.rs::read32,write32 @78ebe223e",
-      "ostd/src/arch/x86/kernel/{apic/mod.rs::init,irq/ioapic.rs::IoApicAccess::new}，ostd/src/bus/pci/{cfg_space.rs::MemoryBar::new,capability/msix.rs} @78ebe223e",
-      "verified_libs/vstd_extra/src/range.rs::ranges_disjoint，ostd/src/arch/x86/kernel/apic/xapic.rs::has_xapic，ostd/src/mm/frame/mod.rs::DebugSpecImpl @78ebe223e（对照主线 @3283081b3）"
+      "ostd/src/arch/x86/pci.rs::read32,write32,encode_as_port，ostd/src/io/io_port/{mod,allocator}.rs，verified_libs/vstd_extra/src/external/io_port.rs @b94500acd",
+      "ostd/src/io/io_mem/{allocator.rs::IoMemAllocatorBuilder::new,IoMemAllocator::acquire,IoMemAllocator::recycle,mod.rs::IoMem::acquire}，ostd/src/util/range_alloc.rs::RangeAllocator::free @b94500acd",
+      "ostd/src/arch/x86/{io.rs,kernel/apic/{mod,xapic,x2apic}.rs,kernel/irq/ioapic.rs,kernel/tsc.rs}，ostd/src/bus/pci/{mod,device_info}.rs @b94500acd",
+      "verified_libs/vstd_extra/src/external/{iter,ilog2}.rs，ostd/src/mm/frame/{mod,unique}.rs @b94500acd"
     ]
   },
   {
@@ -56,9 +62,10 @@ window.PLAN_PR_CATALOG = [
     "scope": "已合入 main 11d378516 的 PCI 类型、getter 和位操作",
     "implements": ["PCI_TYPES"],
     "reuses": ["PCI_ENUM", "PCI_CAP", "PCI_MSIX"],
-    "note": "核对 zero、IoBar getter、CapabilityVndrData::len 和 set_bit(offset < 16)。PciDeviceId::new 与 PCI 枚举/设备初始化调用仍被注释，location 的公共 u8 字段也未建立整个设备号范围不变式。PCI_TYPES 待补已验证消费者。",
+    "note": "主线 b94500acd 仍导出 PciDeviceLocation 并在配置访问处读取字段。PciDeviceId 的声明和导出已注释。zero、IoBar getter、CapabilityVndrData::len 和 set_bit 的合同保留，PCI_TYPES 仍需设备 ID 与枚举或设备构造的真实消费证据。",
     "reviewedHead": "5ed7a2c167d0faaf215beb1b5844fefe125e2a65",
-    "reviewedAt": "2026-11-18"
+    "reviewedAt": "2026-11-23",
+    "evidence": ["ostd/src/bus/pci/{device_info,mod,cfg_space}.rs，ostd/src/arch/x86/pci.rs @b94500acd"]
   },
   {
     "n": 879,
@@ -96,11 +103,11 @@ window.PLAN_PR_CATALOG = [
     "scope": "x86 用户上下文数据、异常分类与字段保持",
     "implements": ["TRAP_DATA"],
     "reuses": ["IDT_TABLE", "TRAP_EXC"],
-    "note": "合入主线后，context、trap 数据和 user.rs 与此前复核的 02fa63b7c 相同。UserContextApi 读写保存的 IP/SP 和 trap 元数据，take_exception 保持其余字段。TLS 的 FSBASE 写入仍是外部体。与 #955 和 #959 集成时分别接入 IDT 与 FPU，异常构造、实际分派和 UserMode 仍待验证。",
-    "reviewedHead": "d383db6cc44d5872f4400643e40e3575910df59e",
+    "note": "1f8a35856 同步 #706 后保留主线 I/O、PCI 模块。与上次复核相比，context、trap 数据和 user.rs 文件相同。UserContextApi 与 take_exception 仅覆盖保存的字段，TLS 的 FSBASE 写入仍属外部体。IDT、FPU 和实际异常分派分别跟踪。",
+    "reviewedHead": "1f8a35856670012ee5d0612120421953478ab84b",
     "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/src/arch/x86/{cpu/context/mod.rs::UserContext::take_exception,UserContextApi,trap/mod.rs}，ostd/src/user.rs::UserContextApi @d383db6cc"
+      "ostd/src/arch/x86/{mod.rs,cpu/context/mod.rs::UserContext::take_exception,trap/mod.rs}，ostd/src/user.rs::UserContextApi @1f8a35856"
     ]
   },
   {
@@ -313,12 +320,15 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 905,
-    "scope": "TSC CPUID 合同，保持原 u32 算术；两条输入假设为可信债务，消费者须接住 Some(0) 与 max_cpuid <= 0x15 拒绝条件。",
-    "implements": [],
+    "scope": "主线使用的单次 CPUID 采样及 TSC 频率计算",
+    "implements": ["TSC_VALUE"],
     "reuses": [],
-    "note": "",
-    "reviewedHead": "35a5722f5a802ac0f594d780306f61afa9f37370",
-    "reviewedAt": "2026-11-14"
+    "note": "PR head 1055d52e7、当时合入的 35a5722f5 及主线 b94500acd 的 tsc.rs 文件相同。CpuidSamples 记录本次采样，保留 max_leaf <= 0x15 拒绝、Some(0) 及回退时两条 u32 乘积上界假设。实际发布与读取的非零频率仍待核对。",
+    "reviewedHead": "1055d52e751b6c380377fc4a78853078a5943bf0",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/src/arch/x86/kernel/tsc.rs::CpuidSamples::frequency_hz,determine_tsc_freq_via_cpuid,init_tsc_freq @1055d52e7、@35a5722f5、@b94500acd"
+    ]
   },
   {
     "n": 886,
@@ -419,11 +429,11 @@ window.PLAN_PR_CATALOG = [
     "scope": "七个 frame 测试、MockFrameMeta 与 VM I/O 分支断言",
     "implements": ["MM_FRAME", "VM_POD"],
     "reuses": [],
-    "note": "类型化测试改用 MockFrameMeta，untyped 测试使用 U32FrameMeta。七个 frame 测试与 VM I/O 的部分复制量、故障游标证据继续分别使用。Segment::slice 的引用计数更新随 #951 进入主线。分配失败、缓冲字节内容与运行期 ktest 待核对。",
-    "reviewedHead": "b277ee4e64472305f56fb91bf12c05a9bc3e4af8",
-    "reviewedAt": "2026-11-19",
+    "note": "七个 frame 测试保留 MockFrameMeta/U32FrameMeta 分工。链表测试将三次 try_from_shared 的成功结果改为 .ok().unwrap()，适配主线去掉 Frame 的 Debug。VM I/O 的部分复制量与故障游标证据未变，真实元数据、失败释放、字节内容及运行期 ktest 待核对。",
+    "reviewedHead": "c3b70735c204d2697587997e64e6f023ec62ee24",
+    "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/specs/mm/frame/meta_owners.rs；ostd/src/mm/frame/{test,linked_list}.rs；ostd/src/mm/test.rs @b277ee4e6"
+      "ostd/src/mm/frame/{mod.rs,unique.rs,test.rs::linked_list}，ostd/specs/mm/frame/meta_owners.rs，ostd/src/mm/test.rs @c3b70735c"
     ]
   },
   {
@@ -497,9 +507,10 @@ window.PLAN_PR_CATALOG = [
     "scope": "Rust 1.100.0 迁移与 RangeAllocator 空闲表不变式",
     "implements": [],
     "reuses": ["IO_ALLOC"],
-    "note": "rust-toolchain.toml 更新到 1.100.0，并切换 allocator_ext、workspace lints。range_alloc.rs 为 FreelistInvariant 和迭代证明补 btree_map_wf。#706 集成时核对 BTreeMap 接口；本 PR 未建立 MMIO 窗口来源或保留效果。",
+    "note": "主线工具链为 Rust 1.100.0。#706 在 RangeAllocator::alloc_specific 和 free 中接入 FreePermit，调用者仍需另外建立 MMIO 窗口来源、设备保留和释放后可再次申请的条件。",
     "reviewedHead": "0913d1ce86e749b4a0f8c0a12ef6ef9b2d572cc2",
-    "reviewedAt": "2026-11-18"
+    "reviewedAt": "2026-11-23",
+    "evidence": ["rust-toolchain.toml，ostd/src/util/range_alloc.rs::RangeAllocator::alloc_specific,free @b94500acd"]
   },
   {
     "n": 944,
@@ -515,11 +526,11 @@ window.PLAN_PR_CATALOG = [
     "scope": "builder 编码、EFI 魔数与解码、目标字长下的 ELF 段初始化",
     "implements": ["BZ_ENCODE", "BZ_DECODE", "BZ_LOAD"],
     "reuses": ["BZ_SETUP", "BZ_IMG", "BZ_PE"],
-    "note": "magic_number 和 decoded_payload 已公开，Raw ELF 可直接建立解码前置。压缩流需要同次构建提供编码输出与嵌入字节的对应。loader 按目标设置 usize 字长并记录各段文件前缀与零尾部。alloc_at 只保证长度。Vec 写入模型补上追加效果，物理内存和启动入口仍待核对。 最新合入 main 的提交未改这些 builder 或 setup 文件。",
-    "reviewedHead": "263398d72dc2fa0e3a19ad4b9ba0d88584e5f570",
+    "note": "同步 b94500acd 后，builder 编码、EFI 解码和段装载文件与 r8 相同。压缩流需对应同一次构建的嵌入字节。EFI alloc_at 的外部体仅保证正常返回的长度，审阅提出分配可能 panic。地址界限、固件失败和实际物理页归 BZ_SETUP。",
+    "reviewedHead": "f06ae789dbaf52a0fdfd366ad94d227fca9a445c",
     "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/libs/linux-bzimage/{builder/src/encoder.rs,setup/src/x86/amd64_efi/{decoder,efi}.rs,setup/src/loader.rs}，verified_libs/vstd_extra/src/external/libflate.rs @263398d72"
+      "ostd/libs/linux-bzimage/{builder/src/encoder.rs,setup/src/{loader.rs,x86/amd64_efi/{alloc,decoder,efi}.rs,x86/legacy_i386/alloc.rs}}，verified_libs/vstd_extra/src/external/libflate.rs @f06ae789d"
     ]
   },
   {
@@ -548,15 +559,16 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 953,
-    "scope": "已合入 2f0e25632 的 Rust 1.100 比较与 ilog2 外部合同",
+    "scope": "对照合并后的迭代器极值与无符号 ilog2 外部合同",
     "implements": [],
     "reuses": ["IO_WIN", "PT_X86"],
-    "note": "Iterator::min/max 的元素归属和极值后置以 obeys_cmp 为条件。most_restrictive_type 显式建立 MemoryRegionType 的比较律。x86 页表 parse_flags 使用非零掩码，满足无符号 ilog2 的正输入 no_unwind 条件。两处按公共合同复用。",
+    "note": "主线 b94500acd 的 min/max 在迭代器前提下给出元素归属，极值和相等元素的选择仍依赖 obeys_cmp。ilog2 保留 x > 0 前置，no_unwind 已改为无条件。窗口计算的 max_by 另需证明，页表 parse_flags 仍须建立掩码非零。",
     "reviewedHead": "a9c118ae0e38f9fe27ab9f4f31166c16f259ea6e",
-    "reviewedAt": "2026-11-19",
+    "reviewedAt": "2026-11-23",
     "evidence": [
       "verified_libs/vstd_extra/src/external/{iter,ilog2}.rs @a9c118ae0",
-      "ostd/src/boot/memory_region.rs::max_region_end,most_restrictive_type,next_region_boundary；ostd/src/arch/x86/mm/mod.rs::parse_flags @2f0e25632"
+      "ostd/src/boot/memory_region.rs::max_region_end,most_restrictive_type,next_region_boundary；ostd/src/arch/x86/mm/mod.rs::parse_flags @2f0e25632",
+      "verified_libs/vstd_extra/src/external/{iter,ilog2}.rs，ostd/src/arch/x86/{io.rs,mm/mod.rs} @b94500acd"
     ]
   },
   {
@@ -564,11 +576,11 @@ window.PLAN_PR_CATALOG = [
     "scope": "x86 context_switch 的可信 FFI 权限与返回栈对齐",
     "implements": ["TASK_CTX"],
     "reuses": ["TASK_SW"],
-    "note": "相对 r7 分支自身只整理 PointsTo 导入，FFI 合同相同。cur/nxt 需各自匹配权限且地址不同，next 已初始化，cur 恢复后栈指针对齐到模 16 余 8。唯一树内调用处 switch_to_task 尚未启用，有效续点、可写返回槽、IRQ、FSBASE 和 shadow stack 仍由调用者保证。",
-    "reviewedHead": "57b1cf66facdb86a67db179c3337e9e4e0fa297f",
+    "note": "同步 b94500acd 后，分支仍只修改 arch/x86/task/mod.rs，FFI 文件与上次复核相同。cur/nxt 权限、地址分离、next 已初始化及恢复后 RSP 模 16 余 8 的合同保留。switch_to_task 仍未启用，调用方须建立返回槽、IRQ、FSBASE 和挂起栈存活。",
+    "reviewedHead": "10bf577c157680deeb50fc18b0adf9f353569ec7",
     "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/src/arch/x86/task/{mod.rs::context_switch,switch.S}，ostd/src/task/{mod.rs,processor.rs::switch_to_task} @57b1cf66f"
+      "ostd/src/arch/x86/task/{mod.rs::context_switch,switch.S}，ostd/src/task/processor.rs::switch_to_task @10bf577c1"
     ]
   },
   {
@@ -576,11 +588,11 @@ window.PLAN_PR_CATALOG = [
     "scope": "256 项 IDT 的门属性、静态发布和本次 lidt 的描述符见证",
     "implements": ["IDT_TABLE", "IDT_LOAD"],
     "reuses": ["TRAP_DISP"],
-    "note": "init 对每个向量建立 entry_matches，仅 3、4 为 Ring3，返回基址、4095 界限和表内容。vector_table、published_idt、load_idtr 仍依赖外部模型。需用链接产物与目标 CPU 核对入口、CS 和错误码，并接回外层 trap::init。按审阅已将 16 字节布局移至 x86_idt，并由 init 使用 lemma_idt_entry_layout。",
-    "reviewedHead": "c9a85a789cfb14965d31e0c93572deb0f27e5356",
+    "note": "同步 b94500acd 时保留主线 I/O 模块，idt.rs、trap/mod.rs 和 x86_idt 的证据与上次相同。init 逐向量建立 entry_matches，IdtrLoad 给出基址、4095 界限和表内容。实际链接入口、每核 CS、错误码与外层初始化仍需验证。",
+    "reviewedHead": "4fdc660b819708619cacf3af0912e18ac6078a8d",
     "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/src/arch/x86/trap/{idt.rs::init,published_idt,trap.S::trap_handler_table,mod.rs::init}，verified_libs/vstd_extra/src/external/{x86_idt.rs::load_idtr,smart_ptr.rs} @c9a85a789"
+      "ostd/src/arch/x86/{mod.rs,trap/{idt.rs::init,published_idt,trap.S,mod.rs}}，verified_libs/vstd_extra/src/external/{x86_idt,smart_ptr}.rs @4fdc660b8"
     ]
   },
   {
@@ -588,11 +600,11 @@ window.PLAN_PR_CATALOG = [
     "scope": "宿主 builder 校验 Efi64 的 setup ELF .rela 节及其相对重定位类型",
     "implements": ["BZ_RELOC"],
     "reuses": ["BZ_ELF", "BZ_OUT"],
-    "note": "Efi64 在写出 setup 后、覆盖 PE 头前调用断言。正常返回保证 ELF64、Rela64 且每项类型为 8。读条件与支持条件成立时有 no_unwind，Group 在解码前拒绝。节查找和条目字节仍依赖 xmas-elf 模型，实际链接产物及失败时的文件内容待核对。Legacy32 不调用该断言。 合入主线后已移除 panic_display 的 fmt_req 前置。",
-    "reviewedHead": "068e79fb8fa4097a706ca7da66dd986dcd149738",
+    "note": "同步 b94500acd 后，make_bzimage 和重定位检查文件与 r8 相同。Efi64 在写出 setup 后、覆盖 PE 头前检查 .rela，正常返回时各项类型均为 8。实际链接节、解码前置和失败时已写出的文件内容仍待核对。Legacy32 跳过此检查。",
+    "reviewedHead": "a592aaef6cf7bb555f7851878a2059e064c1327f",
     "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/libs/linux-bzimage/{builder/src/lib.rs::make_bzimage,assert_elf64_reloc_supported,setup/src/x86/linker.ld}，verified_libs/vstd_extra/src/external/xmas_elf.rs::section_data_readable,section_data_result @068e79fb8"
+      "ostd/libs/linux-bzimage/{builder/src/lib.rs::make_bzimage,assert_elf64_reloc_supported,setup/src/x86/linker.ld}，verified_libs/vstd_extra/src/external/xmas_elf.rs @a592aaef6"
     ]
   },
   {
@@ -600,12 +612,13 @@ window.PLAN_PR_CATALOG = [
     "scope": "主线移除 fmt_req，并停用 Frame 与 UniqueFrame 的 Debug 实现",
     "implements": [],
     "reuses": ["MM_FRAME", "KTEST_RESULT", "SYNC_GUARD", "SYNC_API", "BZ_RELOC"],
-    "note": "合入 22194556e。Frame/UniqueFrame 的 Debug 实现被注释，Segment、锁 guard 的格式化及 PanicInfo::Display 仍启用。#956 已同步移除 PanicMessage 的 fmt_req 实现和 panic_display 对该谓词的要求。格式化适配单列为协调，元数据生命周期、锁权限和 ktest 分类按各自合同验收。",
+    "note": "#706 最终 head 31813f542 修正了中间版本带回的格式化改动。合入 b94500acd 后，Frame、UniqueFrame、Segment、锁 guard 和 PanicInfo 的相关文件与 #706 合入前一致。#934 的链表测试已适配 Frame 的 Debug 约束。#956 的 panic_display 也沿用当前接口。",
     "reviewedHead": "6ea044c0a5b32b56b8a3509289668d6bdca1356f",
     "reviewedAt": "2026-11-23",
     "evidence": [
       "ostd/src/mm/frame/{mod,unique,segment}.rs，ostd/src/sync/{spin,rwlock,mutex,rwmutex}.rs，ostd/libs/ostd-test/src/lib.rs @22194556e",
-      "verified_libs/vstd_extra/src/panic.rs::PanicMessage @068e79fb8"
+      "verified_libs/vstd_extra/src/panic.rs::PanicMessage @068e79fb8",
+      "ostd/src/mm/frame/{mod,unique,segment}.rs，ostd/src/sync/{spin,rwlock,mutex,rwmutex}.rs，ostd/libs/ostd-test/src/lib.rs @b94500acd"
     ]
   },
   {
@@ -613,7 +626,7 @@ window.PLAN_PR_CATALOG = [
     "scope": "每核 FPU 初始化见证、上下文构造与复制、Pod 可变字节视图",
     "implements": ["CPU_ENABLE", "FPU_REPR", "VM_REPR"],
     "reuses": ["CPU_FEAT", "XSAVE", "TRAP_DATA"],
-    "note": "给定寄存器 owner 与 XSTATE 条件，启用函数更新 CR0/CR4/EFER/XCR0、x87 并交出 Once 见证。FpuContext 的 512 或 576..=4096 字节表示、固有 clone 和字节视图有合同。此 head 未定义正文所称 tracked_legacy_initialization。真实 BSP/AP 权限、跨核保存大小、硬件 save/load 及用户上下文集成仍待交付。",
+    "note": "分支的 FPU 初始化见证与 512 或 576..=4096 字节的表示合同消费 #920 的 CpuFeatureModel。主线 b94500acd 已移除该模型。接入时须重建 AVX 与 XSTATE 输入、本核 owner 和容量依据，再核对 BSP/AP 与硬件 save/load。已查 head 未定义正文提到的 tracked_legacy_initialization。",
     "reviewedHead": "ce76e7de21614a66c9eb691c3c7535961b376643",
     "reviewedAt": "2026-11-23",
     "evidence": [
