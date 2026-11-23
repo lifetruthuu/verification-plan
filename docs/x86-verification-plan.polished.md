@@ -1,16 +1,16 @@
 # VOSTD x86 验证计划
 
 <!-- BEGIN GENERATED:meta -->
-计划版本 r10（2026-11-23）· 源码基线 main [`8c8ef39c4`](https://github.com/asterinas/vostd/commit/8c8ef39c4ab2883be5b994680dcc39957998dfed) · 仪表盘快照 2026-11-23 11:39（北京时间）（`b94500acd`）· 110 个工作项、201 条依赖
+计划版本 r11（2026-11-23）· 源码基线 main [`cfddc3d07`](https://github.com/asterinas/vostd/commit/cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c) · 仪表盘快照 2026-11-23 11:39（北京时间）（`b94500acd`）· 110 个工作项、201 条依赖
 <!-- END GENERATED:meta -->
 
 本次范围是先完成 x86 验证，按 x86 平台、独立的 bzImage、OSTD 公共模块三条路线推进。RISC-V、LoongArch 适配与多架构迁移不纳入本次计划。bzImage 只在最终镜像、运行与范围验收处连接 x86；它的解析、格式、压缩与 setup 局部证明可以独立开展。
 
-## 0. 本次修订（r10）
+## 0. 本次修订（r11）
 
-在 r9 的 `b94500acd` 之后，主线合入 #961 和 #962。本轮以 `8c8ef39c4` 为基线。#961 恢复了共享 CPUID 合同和 xAPIC 探测位 EDX[9]。#962 补充公共外部函数的 `no_unwind` 规约。[主线差异](https://github.com/asterinas/vostd/compare/b94500acd5ecf9ff19354332252ea7a95f7a90df...8c8ef39c4ab2883be5b994680dcc39957998dfed)
+#966 启用 x86 的 16550 串口驱动。在基址不超过 `u16::MAX - 6` 时，构造函数保证七个寄存器依次位于偏移 0 至 6，且都满足字节端口访问条件。COM1 控制台尚待接入，后续要验证端口预留与独占，并说明发送轮询的硬件进展条件。ACPI/FADT 的依赖仅用于 CMOS。[串口 PR #966](https://github.com/asterinas/vostd/pull/966)
 
-#963 正在验证 xAPIC 物理基址按 4 KiB 对齐，以及 1024 字节寄存器窗口的尾端可用 `usize` 表示。后续需要在 `apic::init` 接通设备区间保留，证明整个窗口可用，且保留后不会被重新分配。[PR #963](https://github.com/asterinas/vostd/pull/963)
+主线从 `8c8ef39c4` 更新到 `cfddc3d07`。#963 的 xAPIC 物理基址页对齐和 1024 字节窗口端点上界已合入，实际窗口保留仍待接通。#964 修正 KVirtArea 分配边界公理，调用者须建立映射范围前置。[主线差异](https://github.com/asterinas/vostd/compare/8c8ef39c4ab2883be5b994680dcc39957998dfed...cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c)
 
 ## 1. 路线与依赖口径
 
@@ -66,7 +66,8 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 | #931 / #943 | #931 已合入主线，按段构造 flat binary；#943 仅验证编码名称解析 | `BZ_ELF`、`BZ_RANGE` 仍需真实调用条件；`BZ_PARSE` 与字节编码分别验收 |
 | #895 / #706 / #919 | 主线导出 PciDeviceLocation，启用 read32/write32。PciDeviceId 本身及其导出已注释。#919 的分支补地址字段和索引恢复 | 把恢复证明接到主线编码，核对配置事务、设备类型、枚举与 MSI-X 的实际消费者 |
 | #920 / #961 | 恢复 AVX 与 APIC 探测合同，TSC 使用共享叶 0x15 和本核回退基频 | 验证 APIC 模式选择、非零频率及 TSC_FREQ 发布 |
-| #963 | xAPIC 物理基址页对齐且 1024 字节窗口端点可表示 | 接通设备保留，证明整段可用和保留后的分配排他性 |
+| #966 | 七个 UART 寄存器地址及初始化、收发和状态读取所用的字节端口边界 | 接入 COM1，核对端口独占和发送轮询进展 |
+| #963（已合入） | xAPIC 物理基址页对齐且 1024 字节窗口端点可表示 | 接通设备保留，证明整段可用和保留后的分配排他性 |
 | #942 | `run` 调用已验证的分类器，捕获和 payload downcast 在外部 | `KTEST_RESULT` 单独验收分类结果与错误消息 |
 | #936 / #937 / #939 | 主线更新 Repr、count_ones 及 VM/DMA 等模块的规格调用 | 记录已迁移的接口，按各消费者的实际合同跟踪 |
 | #945 | Rust 1.100.0 与 RangeAllocator 的不变式已合入，#706 给 alloc_specific/free 接入 FreePermit | 在实际申请与显式回收处核对区间、实例身份及失败分支 |
@@ -121,6 +122,7 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 已检查但未关联为工作项的历史记录：
 
 <!-- BEGIN GENERATED:candidates -->
+- [#965](https://github.com/asterinas/vostd/pull/965)（2026-11-23 复核，head 3026ba02472262ca08b81a1f87a36df52193391f，未关联）：仅修改代码审阅技能及其参考资料。
 - [#930](https://github.com/asterinas/vostd/pull/930)（2026-11-16 复核，head 5b25275eda60df30500cc5d2aea70c0e1d0f97bb，未关联）：已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。
 - [#933](https://github.com/asterinas/vostd/pull/933)（2026-11-18 复核，head d99455d023bbfa4834ebf02cbeea95244dd45148，未关联）：仅更新审阅技能中对证明角色与资源记账的检查，没有修改验证对象。
 - [#938](https://github.com/asterinas/vostd/pull/938)（2026-11-18 复核，head bc9132d66d943df4e039630d7dceadf3d03299fa，未关联）：修改 when_used_as_spec 编码指南，没有变更合同或调用者。
@@ -257,7 +259,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **APIC_RESERVE** — xAPIC 寄存器窗口保留
 
 - 实施 PR：#963；复用 / 协调：#706；模块：arch/x86/kernel、io/io_mem
-- 要做什么：#963 在 get_xapic_base_address 证明物理基址按 4 KiB 对齐且 base + 1024 ≤ usize::MAX。apic::init 的保留调用仍在注释中。接通 builder::remove 时，须证明 [base, base + 1024) 完整落在同一个可用窗口内，且保留后不能再分配。 XApic::new 用 paddr_to_vaddr 和 volatile wrapper 访问寄存器，其映射与访问效果须按该路径核对。
+- 要做什么：主线已合入 #963（e9b249978），get_xapic_base_address 保证物理基址按 4 KiB 对齐且 base + 1024 ≤ usize::MAX。apic::init 的保留调用仍在注释中。接通 builder::remove 时，须证明 [base, base + 1024) 完整落在同一个可用窗口内，且保留后不能再分配。 XApic::new 用 paddr_to_vaddr 和 volatile wrapper 访问寄存器，其映射与访问效果须按该路径核对。
 - 验收 / 限定：在使用 xAPIC 的平台核对实际保留结果及其他窗口的可用性。x2APIC 模式可独立验收。
 - 前置：IO_ALLOC（确认 · 验收前置）、IO_WIN（确认 · 验收前置）
 
@@ -487,8 +489,8 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **SERIAL_QEMU_CMOS** — 串口 · QEMU 出口 · CMOS
 
-- 实施 PR：—；复用 / 协调：—；模块：arch/x86/serial、arch/x86/qemu、arch/x86/device
-- 要做什么：内核串口和 CMOS 的 u8 端口复用已验收的 IoPort 合同，另需串口轮询进展、独占范围和 ACPI/FADT 世纪字段条件。exit_qemu 直接使用 x86_64::Port 写 0xF4。对应模块仍未启用。
+- 实施 PR：#966；复用 / 协调：—；模块：arch/x86/serial、arch/x86/qemu、arch/x86/device
+- 要做什么：#966 启用 device::serial。给定 port ≤ u16::MAX − 6，SerialPort::new 返回七个寄存器的地址序列，第 i 项等于 port + i，各项均可作 u8 端口访问。init 的合同覆盖偏移 0 至 4，send/recv 使用偏移 0，line_status 使用偏移 5。 接入尚未启用的 COM1 控制台时，须用 0x3F8 建立构造前置，核对 0x3F8..0x400 预留范围的独占性，以及发送循环何时观察到 OUTPUT_EMPTY。CMOS 的世纪寄存器取自 FADT；QEMU 退出经 x86_64::Port 写 0xF4，分别核对。
 - 验收 / 限定：交付 x86 基础设备的访问/转换合同；轮询终止需显式硬件进展假设，exit_qemu 非返回结果由目标平台记录，CMOS 输入真实性属 TB_HW_OPS。不等待 PIT/APIC 完成。
 - 前置：IO_PIO（确认 · 验收前置）、ACPI_TABLES（确认 · 验收前置）
 
@@ -824,8 +826,8 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **MM_KVA** — KVirtArea 映射、存活与解除映射
 
-- 实施 PR：—；复用 / 协调：#951；模块：mm/kspace
-- 要做什么：交付 map_frames/map_untracked_frames、区间分配、range 与 Drop 的局部映射合同；显式区分指针算术、映射已生效和远端 TLB 安全释放。
+- 实施 PR：#964；复用 / 协调：#951；模块：mm/kspace
+- 要做什么：#964 已将分配器公理限于分配结果的范围、大小和对齐；map_frames 要求调用者排除 map_frames_bounds_panic_condition。核对实际调用处如何建立该前置。交付 map_frames/map_untracked_frames、区间分配、range 与 Drop 的局部映射合同；显式区分指针算术、映射已生效和远端 TLB 安全释放。
 - 验收 / 限定：供 KernelStack 与 IoMem 使用：保留区间、guard-page 空洞、映射权限、引用存活和失败资源保持可由调用者建立。局部接口使用给定 kernel table/allocator；全局初始化归 MM_BOOT，跨 CPU 释放归 TLB_FREE。
 - 前置：MM_PT（确认 · 验收前置）
 
@@ -1038,7 +1040,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | CPU_ENABLE | CPU_FEAT | 确认 · 验收前置 | XCR0 的选择使用已恢复的 AVX 与 AVX-512F 探测合同，仍须建立本核寄存器权限。 | ostd/src/arch/x86/mod.rs::has_avx,has_avx512 @8c8ef39c4，enable_cpu_features @ce76e7de2 |
 | HPET | ACPI_TABLES | 确认 · 验收前置 | ACPI HPET 表发现、基址和字段可读合同 | ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | HPET | ROUTE_MAP | 确认 · 验收前置 | Hpet::new 调用 IRQ_CHIP.map_isa_pin_to(irq,0)，需映射句柄与释放合同；仅约束完整构造，getter 可先证明 | ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
-| SERIAL_QEMU_CMOS | IO_PIO（跨路线） | 确认 · 验收前置 | 内核串口和 CMOS 使用有读写标记的 u8 端口。QEMU 出口单独用 x86_64::Port 写 0xF4，另在设备节点核对。 | ostd/src/arch/x86/{device/serial.rs::SerialPort::new,device/cmos.rs::CMOS_ADDRESS,serial.rs,qemu.rs::exit_qemu} @b94500acd |
+| SERIAL_QEMU_CMOS | IO_PIO（跨路线） | 确认 · 验收前置 | 串口驱动 #966 在七个 u8 寄存器上使用静态 IoPort 的地址视图和访问宽度合同。CMOS 同样使用 u8 端口；QEMU 退出直接写 0xF4。 | ostd/src/arch/x86/device/serial.rs::SerialPort::{new,init,send,recv,line_status} @9ba7887b0，ostd/src/arch/x86/{device/cmos.rs,qemu.rs} @cfddc3d07 |
 | SERIAL_QEMU_CMOS | ACPI_TABLES | 确认 · 验收前置 | CMOS 的 FADT 世纪寄存器编号来源，仅约束 CMOS 子项 | ostd/src/arch/x86/device/cmos.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | ACC_SCOPE | LOC_ACC（跨路线） | 确认 · 验收前置 | 当前范围的 LOC_ACC 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序 | ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | ACC_SCOPE | VM_POD（跨路线） | 确认 · 验收前置 | 当前范围的 VM_POD 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序 | ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
@@ -1194,6 +1196,9 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 下列记录保留历史判断，当前关系以最新版本决定为准。
 
 <!-- BEGIN GENERATED:changes -->
+- **r11 · 2026-11-23**：纳入 #966 串口寄存器布局与字节端口访问证明，同步 #963 和 #964 合入后的进度。
+  - 调整依赖 IO_PIO → SERIAL_QEMU_CMOS：串口分支已在构造和端口访问处消费静态 PIO 合同。ACPI 的验收前置仅约束 CMOS。
+  - PR：#966 @9ba7887b0 实施串口布局与访问边界；上层 COM1 的端口独占和轮询进展仍待验证。#963 已合入 e9b249978，#964 已合入 cfddc3d07。
 - **r10 · 2026-11-23**：跟踪 #963 的 xAPIC 物理基址证明，并按 #961 恢复后的主线更新 APIC、AVX 与 TSC 合同。
   - 调整依赖 TSC_VALUE → CAL_FREQ：校准入口须区分基于共享叶 0x15 和可选本核基频的 None、Some(0) 与非零 Hz，再组合 PIT 回退与发布。
   - 调整依赖 CPU_FEAT → CPU_ENABLE：XCR0 的选择使用已恢复的 AVX 与 AVX-512F 探测合同，仍须建立本核寄存器权限。

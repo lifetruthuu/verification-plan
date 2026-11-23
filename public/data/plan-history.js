@@ -1499,5 +1499,18 @@ window.PLAN_HISTORY = [
       }
     ],
     "prs": "#963 @b5d4b4ea9 实施 APIC_RESERVE 的物理地址算术。设备保留调用和窗口所有权仍待接通。#961 合入后复核了 APIC、AVX 和 TSC 的共享 CPUID 合同。"
+  },
+  {
+    "revision": 11,
+    "date": "2026-11-23",
+    "reason": "纳入 #966 串口寄存器布局与字节端口访问证明，同步 #963 和 #964 合入后的进度。",
+    "edgesChanged": [
+      {
+        "a": "IO_PIO",
+        "b": "SERIAL_QEMU_CMOS",
+        "why": "串口分支已在构造和端口访问处消费静态 PIO 合同。ACPI 的验收前置仅约束 CMOS。"
+      }
+    ],
+    "prs": "#966 @9ba7887b0 实施串口布局与访问边界；上层 COM1 的端口独占和轮询进展仍待验证。#963 已合入 e9b249978，#964 已合入 cfddc3d07。"
   }
 ];

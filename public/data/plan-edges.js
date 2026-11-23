@@ -246,7 +246,7 @@ window.PLAN_EDGES = [
   { "to": "HPET", "from": "ACPI_TABLES", "gate": "accept", "need": "ACPI HPET 表发现、基址和字段可读合同", "ev": "ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "HPET", "from": "ROUTE_MAP", "gate": "accept", "need": "Hpet::new 调用 IRQ_CHIP.map_isa_pin_to(irq,0)，需映射句柄与释放合同；仅约束完整构造，getter 可先证明", "ev": "ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
-  { "to": "SERIAL_QEMU_CMOS", "from": "IO_PIO", "gate": "accept", "need": "内核串口和 CMOS 使用有读写标记的 u8 端口。QEMU 出口单独用 x86_64::Port 写 0xF4，另在设备节点核对。", "ev": "ostd/src/arch/x86/{device/serial.rs::SerialPort::new,device/cmos.rs::CMOS_ADDRESS,serial.rs,qemu.rs::exit_qemu} @b94500acd" },
+  { "to": "SERIAL_QEMU_CMOS", "from": "IO_PIO", "gate": "accept", "need": "串口驱动 #966 在七个 u8 寄存器上使用静态 IoPort 的地址视图和访问宽度合同。CMOS 同样使用 u8 端口；QEMU 退出直接写 0xF4。", "ev": "ostd/src/arch/x86/device/serial.rs::SerialPort::{new,init,send,recv,line_status} @9ba7887b0，ostd/src/arch/x86/{device/cmos.rs,qemu.rs} @cfddc3d07" },
   { "to": "SERIAL_QEMU_CMOS", "from": "ACPI_TABLES", "gate": "accept", "need": "CMOS 的 FADT 世纪寄存器编号来源，仅约束 CMOS 子项", "ev": "ostd/src/arch/x86/device/cmos.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */

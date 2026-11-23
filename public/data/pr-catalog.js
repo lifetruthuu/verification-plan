@@ -640,10 +640,13 @@ window.PLAN_PR_CATALOG = [
     "scope": "xAPIC 物理基址的页对齐与 1024 字节窗口端点上界",
     "implements": ["APIC_RESERVE"],
     "reuses": [],
-    "note": "对任意 MSR 读值，结果按 PAGE_SIZE 对齐且 base + 1024 ≤ usize::MAX。apic::init 的 remove 调用仍被注释，窗口归属、排他保留与虚拟映射有效性仍待核对。",
+    "note": "已合入主线 e9b249978。对任意 MSR 读值，结果按 PAGE_SIZE 对齐且 base + 1024 ≤ usize::MAX。apic::init 的 remove 调用仍被注释，窗口归属、排他保留与虚拟映射有效性仍待核对。",
     "reviewedHead": "b5d4b4ea9ba9f33ba346822c2b9bcf75637cbcdc",
     "reviewedAt": "2026-11-23",
-    "evidence": ["ostd/src/arch/x86/kernel/apic/{xapic.rs::get_xapic_base_address,mod.rs::init} @b5d4b4ea9"]
+    "evidence": [
+      "ostd/src/arch/x86/kernel/apic/{xapic.rs::get_xapic_base_address,mod.rs::init} @b5d4b4ea9",
+      "ostd/src/arch/x86/kernel/apic/xapic.rs::get_xapic_base_address @e9b249978"
+    ]
   },
   {
     "n": 961,
@@ -656,5 +659,27 @@ window.PLAN_PR_CATALOG = [
     "evidence": [
       "ostd/specs/context.rs，ostd/src/arch/x86/{mod.rs,kernel/apic/{xapic,x2apic}.rs,kernel/tsc.rs} @2711a2627"
     ]
+  },
+  {
+    "n": 966,
+    "scope": "16550 串口的七个寄存器地址和字节端口访问边界",
+    "implements": ["SERIAL_QEMU_CMOS"],
+    "reuses": [],
+    "note": "给定 port ≤ u16::MAX − 6，构造结果的七个地址依次等于 port + i，并满足 valid_io_port_access::<u8>。init 覆盖偏移 0 至 4，send/recv 和 line_status 分别覆盖 0 和 5。COM1 的端口独占、设备收发效果和发送轮询进展仍待接入控制台时核对。",
+    "reviewedHead": "9ba7887b052b5cf3a7fd4d0d51acb8b8bea5110b",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/src/arch/x86/{device/mod.rs,device/serial.rs::SerialPort,serial.rs::CONSOLE_COM1_PORT,mod.rs} @9ba7887b0"
+    ]
+  },
+  {
+    "n": 964,
+    "scope": "收紧 KVirtArea 分配区间公理和 map_frames 的调用前置",
+    "implements": ["MM_KVA"],
+    "reuses": [],
+    "note": "合入 cfddc3d07。分配器公理约束实际返回区间，map_frames 的范围条件改由调用者建立；映射存活和解除映射仍须验收。",
+    "reviewedHead": "b838711e66b7ef844fe0b74efa79356fb5c9c1b4",
+    "reviewedAt": "2026-11-23",
+    "evidence": ["ostd/src/mm/kspace/kvirt_area.rs::axiom_kvirt_alloc_range_bounds,KVirtArea::map_frames @cfddc3d07"]
   }
 ];

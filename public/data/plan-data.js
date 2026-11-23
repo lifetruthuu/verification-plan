@@ -14,7 +14,7 @@ window.PLAN_BASE = {
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
     date: "2026-11-23",
-    sha: "8c8ef39c4ab2883be5b994680dcc39957998dfed",
+    sha: "cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c",
     snapshotAt: "2026-11-23 11:39（北京时间）",
     snapshotSha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
   },
@@ -25,7 +25,7 @@ window.PLAN_BASE = {
       "key": "x86",
       "name": "x86 平台",
       "sub": "APIC · IRQ · 陷阱 · CPU-local · x86 页表 · 定时器 · 故障恢复 · 用户态",
-      "note": "PIC 和 PIT 配置可复用静态端口合同。#963 正在验证 xAPIC 基址对齐与窗口端点。主线已修正探测位，下一步验证模式选择和设备窗口保留。"
+      "note": "PIC 和 PIT 配置可复用静态端口合同。#966 在串口驱动验证七个寄存器的端口号和访问边界。#963 的 xAPIC 基址证明已合入，设备窗口仍待保留。"
     },
     {
       "key": "bzimage",
@@ -245,7 +245,7 @@ window.PLAN_BASE = {
     { id: "APIC_RESERVE", lane: "x86", face: "arch/x86/kernel/apic", title: "xAPIC 寄存器窗口保留",
       mods: ["arch/x86/kernel", "io/io_mem"],
       todo: [
-        "#963 在 get_xapic_base_address 证明物理基址按 4 KiB 对齐且 base + 1024 ≤ usize::MAX。apic::init 的保留调用仍在注释中。接通 builder::remove 时，须证明 [base, base + 1024) 完整落在同一个可用窗口内，且保留后不能再分配。",
+        "主线已合入 #963（e9b249978），get_xapic_base_address 保证物理基址按 4 KiB 对齐且 base + 1024 ≤ usize::MAX。apic::init 的保留调用仍在注释中。接通 builder::remove 时，须证明 [base, base + 1024) 完整落在同一个可用窗口内，且保留后不能再分配。",
         "XApic::new 用 paddr_to_vaddr 和 volatile wrapper 访问寄存器，其映射与访问效果须按该路径核对。",
       ],
       accept: "在使用 xAPIC 的平台核对实际保留结果及其他窗口的可用性。x2APIC 模式可独立验收。",
@@ -708,7 +708,7 @@ window.PLAN_BASE = {
     { id: "MM_KVA", lane: "common", face: "mm/kspace/kvirt_area", title: "KVirtArea 映射、存活与解除映射",
       mods: ["mm/kspace"],
       todo: [
-        "交付 map_frames/map_untracked_frames、区间分配、range 与 Drop 的局部映射合同；显式区分指针算术、映射已生效和远端 TLB 安全释放。",
+        "#964 已将分配器公理限于分配结果的范围、大小和对齐；map_frames 要求调用者排除 map_frames_bounds_panic_condition。核对实际调用处如何建立该前置。交付 map_frames/map_untracked_frames、区间分配、range 与 Drop 的局部映射合同；显式区分指针算术、映射已生效和远端 TLB 安全释放。",
       ],
       accept: "供 KernelStack 与 IoMem 使用：保留区间、guard-page 空洞、映射权限、引用存活和失败资源保持可由调用者建立。局部接口使用给定 kernel table/allocator；全局初始化归 MM_BOOT，跨 CPU 释放归 TLB_FREE。",
       src: "r3 源码复核" },
@@ -823,7 +823,8 @@ window.PLAN_BASE = {
     { id: "SERIAL_QEMU_CMOS", lane: "x86", face: "arch/x86/{serial,qemu,device/cmos}", title: "串口 · QEMU 出口 · CMOS",
       mods: ["arch/x86/serial", "arch/x86/qemu", "arch/x86/device"],
       todo: [
-        "内核串口和 CMOS 的 u8 端口复用已验收的 IoPort 合同，另需串口轮询进展、独占范围和 ACPI/FADT 世纪字段条件。exit_qemu 直接使用 x86_64::Port 写 0xF4。对应模块仍未启用。",
+        "#966 启用 device::serial。给定 port ≤ u16::MAX − 6，SerialPort::new 返回七个寄存器的地址序列，第 i 项等于 port + i，各项均可作 u8 端口访问。init 的合同覆盖偏移 0 至 4，send/recv 使用偏移 0，line_status 使用偏移 5。",
+        "接入尚未启用的 COM1 控制台时，须用 0x3F8 建立构造前置，核对 0x3F8..0x400 预留范围的独占性，以及发送循环何时观察到 OUTPUT_EMPTY。CMOS 的世纪寄存器取自 FADT；QEMU 退出经 x86_64::Port 写 0xF4，分别核对。",
       ],
       accept: "交付 x86 基础设备的访问/转换合同；轮询终止需显式硬件进展假设，exit_qemu 非返回结果由目标平台记录，CMOS 输入真实性属 TB_HW_OPS。不等待 PIT/APIC 完成。",
       src: "r3 源码复核" },
@@ -1064,7 +1065,8 @@ window.PLAN_BASE = {
   ],
 
   /* Reviewed upstream PRs without a separate implementation assignment. */
-  reviewedCandidates: [{"n":930,"head":"5b25275eda60df30500cc5d2aea70c0e1d0f97bb","reviewedAt":"2026-11-16","note":"已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。"},
+  reviewedCandidates: [{"n":965,"head":"3026ba02472262ca08b81a1f87a36df52193391f","reviewedAt":"2026-11-23","note":"仅修改代码审阅技能及其参考资料。"},
+    {"n":930,"head":"5b25275eda60df30500cc5d2aea70c0e1d0f97bb","reviewedAt":"2026-11-16","note":"已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。"},
     {"n":933,"head":"d99455d023bbfa4834ebf02cbeea95244dd45148","reviewedAt":"2026-11-18","note":"仅更新审阅技能中对证明角色与资源记账的检查，没有修改验证对象。"},
     {"n":938,"head":"bc9132d66d943df4e039630d7dceadf3d03299fa","reviewedAt":"2026-11-18","note":"修改 when_used_as_spec 编码指南，没有变更合同或调用者。"},
     {"n":941,"head":"6e5d854834f0b2a57ceb6bb5c725e96c4140eacb","reviewedAt":"2026-11-18","note":"已关闭未合并。#944 最初采用相同 head，共享 user.rs 的后续变更在 #944 跟踪。"},

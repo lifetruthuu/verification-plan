@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T07:49:05.070Z",
+  "generatedAt": "2026-11-23T09:22:54.620Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -331,19 +331,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 887,
       "kind": "open",
       "draft": false,
-      "head": "f4184bffd1cce51f6b93a6f7f47e5fa239044d71",
+      "head": "38d254f8fd90d15d4bee6d8fba10ddf97a63ba5b",
       "title": "prove x86 context data exceptions",
       "body": "## Summary\r\n\r\nEnable the x86 user-context data path and verify that register, pointer, TLS, and exception updates change only the requested field.\r\n\r\n- `UserContext` getters and setters, `take_exception`, and the `UserContextApi` instruction-pointer, stack-pointer, and trap-metadata operations preserve every other saved register, the trap number, the error code, and the pending exception.\r\n- `CpuException::type_` covers every variant. `is_cpu_exception` accepts vectors 0 through 31. `CpuExceptionType::is_fault_or_trap` classifies fault and trap variants.\r\n- `activate_tls_pointer` stays `external_body`: it is the FSBASE write, and this change supplies no hardware-state postcondition.\r\n- Exception construction, user-mode execution, FPU save/restore, trap dispatch, and `UserMode` stay out until their hardware and scheduling contracts exist.",
       "url": "https://github.com/asterinas/vostd/pull/887",
-      "updatedAt": "2026-11-23T07:01:04Z",
+      "updatedAt": "2026-11-23T09:22:02Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "UNKNOWN",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "未知"
     },
     {
       "n": 895,
@@ -745,19 +745,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 934,
       "kind": "open",
       "draft": false,
-      "head": "c3b70735c204d2697587997e64e6f023ec62ee24",
+      "head": "a218244d7e9747cf052d5f70cc725b1e7da683d3",
       "title": "prove: verify seven frame ktests",
       "body": "## Summary\n\nBring seven frame-management test functions into Verus verification. Cover allocation, cloning, release, borrowing, raw-pointer round trips, single-frame segment conversion, and linked-list push/pop operations.\n\nVerification covers successful allocation paths. Metadata-content assertions are retained for the migrated tests, while unsupported tests remain commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Frame allocation and reference management | `frame_allocation`, `frame_clone`, `frame_drop` |\n| Borrowing and raw-pointer permissions | `frame_ref_preserves_refcnt`, `frame_impls_non_null_ptr` |\n| Frame-to-segment conversion and iteration | `frame_to_segment` |\n| Linked-list insertion, traversal, and removal | `linked_list_push_pop` |\n\nThe frame tests check metadata values, reference counts, sizes, and addresses where supported. The raw-pointer test preserves the original `into_raw` → `from_raw` → `raw_as_ref` order, obtaining a borrowed pointer and reading permission from the restored frame before calling `raw_as_ref`.\n\nThe segment test proves that conversion preserves the frame's address, produces a page-sized segment, and yields the original metadata value during iteration.\n\nThe linked-list test retains all assertions on its successful allocation path, including cursor traversal in the order `2 → 1 → 3`, the terminal cursor state, pop results, and list sizes.\n\n## 2. Metadata representations\n\nAdd separate concrete representations for typed and untyped metadata carrying a `u32` value. Share their structure and representation implementations through `define_u32_frame_meta!`, while keeping their enum variants and typed/untyped trait behavior distinct.\n\nThe tests reuse these concrete types through `MockFrameMeta` and `MockUFrameMeta` aliases. The metadata model does not depend on the test module, and the original `Untyped` variant remains unchanged.\n\nExtend `MetaSlotSmall` to represent the linked-list test metadata. Use compact model layouts to retain the existing 64-byte size and 8-byte alignment checks for `MetaSlot`.\n\n## 3. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `Frame::borrow` | Specify that borrowing preserves the metadata-slot permission, supporting reference-count checks through the borrowed handle. |\n| `UniqueFrame::try_from_shared` | Expose the successful conversion's permissions, reference-count transition, and preservation of unrelated slots. |\n| Linked-list queries and cursor movement | Borrow owner permissions rather than consuming them, so callers can continue using the list or cursor. |\n| Linked-list insertion and removal | Specify metadata-value ordering and preservation of unrelated region entries. |\n| `CursorMut::current_meta` | Relate the returned metadata to the current element and preserve the list/region invariants after the mutable borrow ends. |\n| Frame-to-segment conversion | Add a proved bridge exposing the converted segment's invariant, address, size, and singleton iteration sequence without opening its internal representation. |\n| Segment iteration | Expose the finite iteration metric and add the test's metadata/permission invariant. |",
       "url": "https://github.com/asterinas/vostd/pull/934",
-      "updatedAt": "2026-11-23T04:48:02Z",
+      "updatedAt": "2026-11-23T09:20:51Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "进行中"
     },
     {
       "n": 935,
@@ -925,11 +925,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "820fa2165b4b276fdf4e9be5357653685e36f3d7",
+      "head": "c003d00c0f829d4af744c0608eadd94ea4372983",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-23T07:35:52Z",
+      "updatedAt": "2026-11-23T08:23:57Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "BLOCKED",
+      "gate": "UNSTABLE",
       "ci": "失败"
     },
     {
@@ -1019,7 +1019,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: x86 idt construction",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/955",
-      "updatedAt": "2026-11-23T07:01:02Z",
+      "updatedAt": "2026-11-23T08:08:45Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1103,13 +1103,49 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 963,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
       "head": "b5d4b4ea9ba9f33ba346822c2b9bcf75637cbcdc",
       "title": "Prove xAPIC base address alignment and bounds",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/963",
-      "updatedAt": "2026-11-23T07:43:58Z",
+      "updatedAt": "2026-11-23T08:00:44Z",
+      "mergedAt": "2026-11-23T08:00:44Z",
+      "closedAt": "2026-11-23T08:00:44Z",
+      "mergeCommit": "e9b24997805c5dffb07662f607b8cf1acc4beb38",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
+    },
+    {
+      "n": 964,
+      "kind": "merged",
+      "draft": false,
+      "head": "b838711e66b7ef844fe0b74efa79356fb5c9c1b4",
+      "title": "fix: unsound `kvirt_alloc_range_bounds`",
+      "body": "Fix #957.",
+      "url": "https://github.com/asterinas/vostd/pull/964",
+      "updatedAt": "2026-11-23T08:41:09Z",
+      "mergedAt": "2026-11-23T08:40:23Z",
+      "closedAt": "2026-11-23T08:40:23Z",
+      "mergeCommit": "cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
+    },
+    {
+      "n": 966,
+      "kind": "open",
+      "draft": false,
+      "head": "9ba7887b052b5cf3a7fd4d0d51acb8b8bea5110b",
+      "title": "prove: verify x86 serial register layout and port access bounds",
+      "body": "",
+      "url": "https://github.com/asterinas/vostd/pull/966",
+      "updatedAt": "2026-11-23T09:14:48Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1120,5 +1156,20 @@ window.PLAN_PR_SNAPSHOT = {
       "ci": "进行中"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 967,
+      "title": "fix: `protect_next` requirements",
+      "url": "https://github.com/asterinas/vostd/pull/967",
+      "head": "649c7c9fba97b2af19d968e23fbbd4b43fb219f6",
+      "updatedAt": "2026-11-23T09:20:34Z"
+    },
+    {
+      "n": 965,
+      "title": "Refine review skill structural checks and evidence handling",
+      "url": "https://github.com/asterinas/vostd/pull/965",
+      "head": "3026ba02472262ca08b81a1f87a36df52193391f",
+      "updatedAt": "2026-11-23T09:21:36Z"
+    }
+  ]
 };
