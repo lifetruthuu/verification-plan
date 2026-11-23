@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T09:22:54.620Z",
+  "generatedAt": "2026-11-23T09:24:48.726Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -340,10 +340,10 @@ window.PLAN_PR_SNAPSHOT = {
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "UNKNOWN",
+      "ciState": "PENDING",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "未知"
+      "ci": "进行中"
     },
     {
       "n": 895,
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
+      "gate": "BLOCKED",
       "ci": "失败"
     },
     {
@@ -1163,13 +1163,6 @@ window.PLAN_PR_SNAPSHOT = {
       "url": "https://github.com/asterinas/vostd/pull/967",
       "head": "649c7c9fba97b2af19d968e23fbbd4b43fb219f6",
       "updatedAt": "2026-11-23T09:20:34Z"
-    },
-    {
-      "n": 965,
-      "title": "Refine review skill structural checks and evidence handling",
-      "url": "https://github.com/asterinas/vostd/pull/965",
-      "head": "3026ba02472262ca08b81a1f87a36df52193391f",
-      "updatedAt": "2026-11-23T09:21:36Z"
     }
   ]
 };
