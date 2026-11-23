@@ -54,7 +54,7 @@ window.PLAN_BASE = {
     { id: "IO_ALLOC", lane: "common", face: "io/io_mem · util/range_alloc", title: "MMIO 初始窗口与设备区间保留",
       mods: ["util/range_alloc", "io/io_mem"],
       todo: [
-        "#706 的 IoMemAllocatorBuilder::new 保留输入窗口序列，并给出它与 registered_io_mem_windows 的对应条件。类型不变式保证窗口两两分离。该 head 已注释 remove，移除了 r7 核对过的逐窗口可用集合和 can_remove。",
+        "#706 的 IoMemAllocatorBuilder::new 保留输入窗口序列，并给出它与 registered_io_mem_windows 的对应条件。ranges_disjoint 按端点约束任意两个不同位置的窗口，类型不变式保留分离性质。该 head 已注释 remove，移除了 r7 核对过的逐窗口可用集合和 can_remove。",
         "为设备保留恢复可调用的接口。调用者须能证明整个设备区间仍可用，核对成功后该区间排除在后续申请之外，以及查找失败或已有占用时的行为。",
       ],
       accept: "在实际设备保留调用处建立区间边界，证明已保留区间受保护、其余窗口可继续使用。引导内存表的来源归 IO_WIN，发布后的申请与回收归 IO_MMIO_ALLOC。",
@@ -239,7 +239,7 @@ window.PLAN_BASE = {
     /* ============================================================== APIC */
     { id: "APIC_PROBE", lane: "x86", face: "arch/x86/kernel/apic", title: "APIC 模式探测（x2APIC 优先 / xAPIC 回退）",
       mods: ["arch/x86/kernel"],
-      todo: ["#920 在 max_basic_leaf >= 1 时把 has_x2apic 和 has_xapic 分别接到共享模型的 ECX[21] 和 EDX[9]，并将原 xAPIC 的 EDX[8] 检查改为 EDX[9]。在 init 的选择处建立叶 1 可用，证明 x2APIC 优先、xAPIC 回退与 NoApic 三个分支。"],
+      todo: ["#920 在 max_basic_leaf >= 1 时把 has_x2apic 和 has_xapic 分别接到共享模型的 ECX[21] 和 EDX[9]，并将原 xAPIC 的 EDX[8] 检查改为 EDX[9]。在 init 的选择处建立叶 1 可用，证明 x2APIC 优先、xAPIC 回退与 NoApic 三个分支。集成 #706 时核对 has_xapic 的位号，其 78ebe223e 分支仍用 EDX[8]。"],
       accept: "核对所选平台支持叶 1 的根据，以及模式选择与两个探测合同的一致性。XApic::new 的 MMIO 映射和全局模式发布分别在 APIC_RESERVE、APIC_PUB 核对。",
       src: "§5 阶段 A" },
     { id: "APIC_RESERVE", lane: "x86", face: "arch/x86/kernel/apic", title: "xAPIC 寄存器窗口保留",

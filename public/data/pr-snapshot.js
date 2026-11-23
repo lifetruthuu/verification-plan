@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T03:18:51.892Z",
+  "generatedAt": "2026-11-23T03:22:02.185Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -115,11 +115,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 706,
       "kind": "open",
       "draft": false,
-      "head": "2a587c87231927fe100274e1e6d212f0600f8283",
+      "head": "78ebe223e10a55b8e2c74ff870cf15164a9f75e0",
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\n\n---\n\nMaybe wait until the following PRs are merged:\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\n- [x] https://github.com/asterinas/vostd/pull/809\n\n**Update**: I've decided not to verify whether `acquire` will succeed in both the `IoMemAllocator` and `IoPortAllocator`, because it needs to expose a series of tokens, and there are currently no users. But one can still verify that two successful `acquire` calls cannot overlap because we model the permission to free.\n**Update**: `IoMem` is verified under the assumption that different `IoMem` instances will not overlap, which is desired, but not achieved even in the latest Asterinas. The `clone` and `slice` methods are therefore skipped because they conflict with the exclusive ownership model.",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-23T03:18:08Z",
+      "updatedAt": "2026-11-23T03:19:57Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -331,19 +331,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 887,
       "kind": "open",
       "draft": false,
-      "head": "02fa63b7c260950c61471d66f220e41c05ab7b57",
+      "head": "d383db6cc44d5872f4400643e40e3575910df59e",
       "title": "prove x86 context data exceptions",
       "body": "## Summary\r\n\r\nEnable the x86 user-context data path and verify that register, pointer, TLS, and exception updates change only the requested field.\r\n\r\n- `UserContext` getters and setters, `take_exception`, and the `UserContextApi` instruction-pointer, stack-pointer, and trap-metadata operations preserve every other saved register, the trap number, the error code, and the pending exception.\r\n- `CpuException::type_` covers every variant. `is_cpu_exception` accepts vectors 0 through 31. `CpuExceptionType::is_fault_or_trap` classifies fault and trap variants.\r\n- `activate_tls_pointer` stays `external_body`: it is the FSBASE write, and this change supplies no hardware-state postcondition.\r\n- Exception construction, user-mode execution, FPU save/restore, trap dispatch, and `UserMode` stay out until their hardware and scheduling contracts exist.",
       "url": "https://github.com/asterinas/vostd/pull/887",
-      "updatedAt": "2026-11-18T03:15:23Z",
+      "updatedAt": "2026-11-23T03:20:35Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "需修改",
-      "gate": "DIRTY",
-      "ci": "成功"
+      "gate": "BLOCKED",
+      "ci": "进行中"
     },
     {
       "n": 895,
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "BLOCKED",
+      "gate": "UNSTABLE",
       "ci": "失败"
     },
     {
@@ -1006,10 +1006,10 @@ window.PLAN_PR_SNAPSHOT = {
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
-      "ci": "进行中"
+      "gate": "CLEAN",
+      "ci": "成功"
     },
     {
       "n": 955,
@@ -1024,10 +1024,10 @@ window.PLAN_PR_SNAPSHOT = {
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "进行中"
+      "ci": "成功"
     },
     {
       "n": 956,

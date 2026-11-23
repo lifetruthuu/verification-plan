@@ -30,14 +30,25 @@ window.PLAN_PR_CATALOG = [
     "n": 706,
     "scope": "分离的 MMIO 登记窗口、按成功结果签发的回收权限、PIO 冲突与 x86 PCI 配置端口",
     "implements": ["IO_ALLOC", "IO_PIO", "PCI_CFG", "IO_PIO_ALLOC", "IO_MMIO", "IO_GLOBAL", "IO_MMIO_ALLOC"],
-    "reuses": ["IO_WIN", "PIT_CFG", "PCI_BAR", "APIC_RESERVE", "IOAPIC_REG", "PCI_MSIX"],
-    "note": "builder::new 保留窗口序列，remove 已注释，设备保留仍需补。实例 acquire 成功时给出地址、长度和 FreePermit，recycle 按身份消费它。空闲时必成功、释放后可再申请均未向调用者保证。PIO 测试用持有的 claim 排除冲突。IoMem 以实例互不重叠为前提，Clone/slice 已停用，公开 acquire 和寄存器访问仍有外部体。",
-    "reviewedHead": "e9d1287b766ea5a55e0563d4f4864bab65b66792",
+    "reuses": [
+      "IO_WIN",
+      "PIT_CFG",
+      "PCI_BAR",
+      "APIC_RESERVE",
+      "IOAPIC_REG",
+      "PCI_MSIX",
+      "CPU_FEAT",
+      "APIC_PROBE",
+      "TSC_VALUE"
+    ],
+    "note": "builder::new 保留登记窗口，ranges_disjoint 逐对检查端点。remove 已注释。MMIO 申请成功交出 FreePermit，PIO 用 claim 排除冲突，释放后再次申请成功仍缺保证。IoMem 停用 Clone/slice。相对 main 3283081b3，本 head 缺少 #920 的共享 CPUID，xAPIC 读 EDX[8]，还带回旧 fmt_req。接入时须保留主线合同。",
+    "reviewedHead": "78ebe223e10a55b8e2c74ff870cf15164a9f75e0",
     "reviewedAt": "2026-11-23",
     "evidence": [
-      "ostd/src/io/io_mem/{allocator.rs::IoMemAllocatorBuilder::new,IoMemAllocator::acquire,IoMemAllocator::recycle,mod.rs::IoMem::acquire}，ostd/src/util/range_alloc.rs::RangeAllocator::free @e9d1287b7",
-      "ostd/src/io/io_port/{allocator.rs::conflict_region,lemma_conflicting_acquire_fails,mod.rs::IoPort::drop}，ostd/src/arch/x86/pci.rs::read32,write32 @e9d1287b7",
-      "ostd/src/arch/x86/kernel/{apic/mod.rs::init,irq/ioapic.rs::IoApicAccess::new}，ostd/src/bus/pci/{cfg_space.rs::MemoryBar::new,capability/msix.rs} @e9d1287b7"
+      "ostd/src/io/io_mem/{allocator.rs::IoMemAllocatorBuilder::new,IoMemAllocator::acquire,IoMemAllocator::recycle,mod.rs::IoMem::acquire}，ostd/src/util/range_alloc.rs::RangeAllocator::free @78ebe223e",
+      "ostd/src/io/io_port/{allocator.rs::conflict_region,lemma_conflicting_acquire_fails,mod.rs::IoPort::drop}，ostd/src/arch/x86/pci.rs::read32,write32 @78ebe223e",
+      "ostd/src/arch/x86/kernel/{apic/mod.rs::init,irq/ioapic.rs::IoApicAccess::new}，ostd/src/bus/pci/{cfg_space.rs::MemoryBar::new,capability/msix.rs} @78ebe223e",
+      "verified_libs/vstd_extra/src/range.rs::ranges_disjoint，ostd/src/arch/x86/kernel/apic/xapic.rs::has_xapic，ostd/src/mm/frame/mod.rs::DebugSpecImpl @78ebe223e（对照主线 @3283081b3）"
     ]
   },
   {
@@ -85,9 +96,12 @@ window.PLAN_PR_CATALOG = [
     "scope": "x86 用户上下文数据、异常分类与字段保持",
     "implements": ["TRAP_DATA"],
     "reuses": ["IDT_TABLE", "TRAP_EXC"],
-    "note": "已按现有 bitflags 宏恢复 PageFaultErrorCode 原表达式，SelectorErrorCode accessor 讨论已解决。TLS 激活仍为 external_body；异常构造、分派、FPU 与 UserMode 仍在后续节点。",
-    "reviewedHead": "02fa63b7c260950c61471d66f220e41c05ab7b57",
-    "reviewedAt": "2026-11-18"
+    "note": "合入主线后，context、trap 数据和 user.rs 与此前复核的 02fa63b7c 相同。UserContextApi 读写保存的 IP/SP 和 trap 元数据，take_exception 保持其余字段。TLS 的 FSBASE 写入仍是外部体。与 #955 和 #959 集成时分别接入 IDT 与 FPU，异常构造、实际分派和 UserMode 仍待验证。",
+    "reviewedHead": "d383db6cc44d5872f4400643e40e3575910df59e",
+    "reviewedAt": "2026-11-23",
+    "evidence": [
+      "ostd/src/arch/x86/{cpu/context/mod.rs::UserContext::take_exception,UserContextApi,trap/mod.rs}，ostd/src/user.rs::UserContextApi @d383db6cc"
+    ]
   },
   {
     "n": 855,

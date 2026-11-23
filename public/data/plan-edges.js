@@ -5,7 +5,7 @@
  * Rows are grouped by consumer in node order. Record every change in plan-history.js (plan.mjs does it). */
 window.PLAN_EDGES = [
   /* ===== consumers in: x86 平台 ===== */
-  { "to": "IO_WIN", "from": "IO_ALLOC", "gate": "accept", "need": "引导函数须建立两个窗口内部端点有序、窗口间分离、与登记序列对应，才能从 builder::new 取得 has_registered_windows。", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::new @e9d1287b7" },
+  { "to": "IO_WIN", "from": "IO_ALLOC", "gate": "accept", "need": "引导函数须建立两个窗口内部端点有序、窗口间分离、与登记序列对应，才能从 builder::new 取得 has_registered_windows。", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder::new @78ebe223e" },
 
   { "to": "IRQ_GUARD", "from": "IRQ_MODEL", "gate": "accept", "need": "同 CPU 的 inv / coherent、匹配的 authority、保存的 IF 与嵌套权限合同", "ev": "ostd/src/trap/irq.rs::DisabledLocalIrqGuard::new; ostd/specs/task/irq.rs::LocalIrqGuardOwner @6cec73d064" },
 
@@ -37,14 +37,14 @@ window.PLAN_EDGES = [
 
   { "to": "PIC", "from": "IO_PIO", "gate": "accept", "need": "敏感 PIO 端口 IoPort<u8, WriteOnlyAccess>::write 的权限与写入合同；端口 0x20 / 0x21 / 0xA0 / 0xA1", "ev": "ostd/src/arch/x86/kernel/irq/pic.rs::MASTER_CMD,MASTER_DATA,SLAVE_CMD,SLAVE_DATA,set_mask @97963e831" },
 
-  { "to": "IOAPIC_REG", "from": "IO_ALLOC", "gate": "accept", "need": "IoApicAccess::new 需要排除 [base,base+0x20) 并取得独占访问依据。当前设备和 builder 的 remove 尚待接通。", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @e9d1287b7" },
+  { "to": "IOAPIC_REG", "from": "IO_ALLOC", "gate": "accept", "need": "IoApicAccess::new 需要排除 [base,base+0x20) 并取得独占访问依据。当前设备和 builder 的 remove 尚待接通。", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @78ebe223e" },
 
   { "to": "IOAPIC_ENTRY", "from": "IOAPIC_REG", "gate": "accept", "need": "寄存器选择 / 数据访问合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable,disable @97963e831" },
   { "to": "IOAPIC_ENTRY", "from": "IRQLINE", "gate": "accept", "need": "IrqLine::num / remapping_index，以及重定向项被禁用前 IRQ 不被释放的生命周期合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable; ostd/src/trap/irq.rs::IrqLine @97963e831" },
 
   { "to": "PIT_CFG", "from": "IO_PIO", "gate": "accept", "need": "0x43 / 0x40 敏感 PIO 的写权限与写合同", "ev": "ostd/src/arch/x86/timer/pit.rs::MODE_COMMAND_PORT,CHANNEL0_PORT,init @97963e831" },
 
-  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "xAPIC 初始化需要从可用窗口永久排除基址起的 1024 字节。须补可调用的保留接口并证明同一区间不会再分配。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder（remove 已注释） @e9d1287b7" },
+  { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "xAPIC 初始化需要从可用窗口永久排除基址起的 1024 字节。须补可调用的保留接口并证明同一区间不会再分配。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder（remove 已注释） @78ebe223e" },
   { "to": "APIC_RESERVE", "from": "IO_WIN", "gate": "accept", "need": "该 1024 字节范围属于登记窗口，且权限尚未被其他设备占用", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init @97963e831" },
 
   { "to": "APIC_PUB", "from": "APIC_PROBE", "gate": "accept", "need": "ApicId::from 读取 APIC_TYPE，须与 init 发布的模式一致，并保留 xAPIC 八位截断（value as u8）", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init,APIC_TYPE,ApicId::from @97963e831" },
@@ -195,11 +195,11 @@ window.PLAN_EDGES = [
   /* ===== consumers in: OSTD 公共模块 ===== */
   { "to": "IO_PIO_ALLOC", "from": "IO_PIO", "gate": "accept", "need": "动态申请与 new_overlapping 使用同一 typed port 合同，宽度为 1、2 或 4 字节且排他端点可到 65536。", "ev": "ostd/src/io/io_port/{mod,allocator}.rs::acquire,new_overlapping；verified_libs/vstd_extra/src/external/io_port.rs::axiom_io_port_access_spec @64fd64fb0" },
 
-  { "to": "IO_MMIO_ALLOC", "from": "IO_GLOBAL", "gate": "accept", "need": "IoMem::acquire 从全局 Once 取得实例，须将初始化谓词、登记窗口与同一实例交出的 FreePermit 对应。", "ev": "ostd/src/io/io_mem/mod.rs::IoMem::acquire，ostd/src/io/io_mem/allocator.rs::init,IoMemAllocator::acquire @e9d1287b7" },
+  { "to": "IO_MMIO_ALLOC", "from": "IO_GLOBAL", "gate": "accept", "need": "IoMem::acquire 从全局 Once 取得实例，须将初始化谓词、登记窗口与同一实例交出的 FreePermit 对应。", "ev": "ostd/src/io/io_mem/mod.rs::IoMem::acquire，ostd/src/io/io_mem/allocator.rs::init,IoMemAllocator::acquire @78ebe223e" },
 
   { "to": "IO_MMIO", "from": "MM_KVA", "gate": "accept", "need": "IoMem::new 的 KVirtArea::map_untracked_frames 结果、映射存活与范围合同", "ev": "ostd/src/io/io_mem/mod.rs::IoMem::new @477db699e56654e7813a910b9a25b747d80b6370" },
 
-  { "to": "IO_GLOBAL", "from": "IO_ALLOC", "gate": "accept", "need": "io::init 的安全条件要求系统设备窗口已排除。当前形式前置只检查 has_registered_windows，仍须证明发布的分配器保留排除效果。", "ev": "ostd/src/io/mod.rs::init，ostd/src/io/io_mem/allocator.rs::init,IoMemAllocatorBuilder @e9d1287b7" },
+  { "to": "IO_GLOBAL", "from": "IO_ALLOC", "gate": "accept", "need": "io::init 的安全条件要求系统设备窗口已排除。当前形式前置只检查 has_registered_windows，仍须证明发布的分配器保留排除效果。", "ev": "ostd/src/io/mod.rs::init，ostd/src/io/io_mem/allocator.rs::init,IoMemAllocatorBuilder @78ebe223e" },
   { "to": "IO_GLOBAL", "from": "IO_WIN", "gate": "accept", "need": "builder.has_registered_windows() 的引导来源", "ev": "ostd/src/arch/x86/io.rs::construct_io_mem_allocator_builder; ostd/src/io/mod.rs::init @477db699e56654e7813a910b9a25b747d80b6370" },
   { "to": "IO_GLOBAL", "from": "IO_PIO_ALLOC", "gate": "accept", "need": "全局 PIO init 在位图预占敏感端口后以空动态权限初始化锁。需建立动态权限是已占用位图的子集，并交给同一实例后续申请和释放。", "ev": "ostd/src/io/io_port/allocator.rs::init,IoPortAllocation::tracked_empty,acquire,recycle @6b8511ba2" },
 
