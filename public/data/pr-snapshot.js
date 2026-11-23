@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T03:22:02.185Z",
+  "generatedAt": "2026-11-23T03:27:45.407Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -119,15 +119,15 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: arch::pci (x86) & io",
       "body": "- Add Verus specifications and proofs for x86 PCI configuration-space access.\n- Model MMIO and PIO allocation, ownership, and recycling across the OSTD I/O APIs.\n- Centralize external `IdAlloc`, x86 port-I/O, and little-endian integer specifications in `vstd_extra::external`.\n- Replace the MMIO containment assumption with an explicit boot-window model connected to the concrete allocators by type invariants.\n\n---\n\nMaybe wait until the following PRs are merged:\n- [x] https://github.com/asterinas/vostd/pull/742, which proves the id-alloc instead of adding assume\n- [x] https://github.com/asterinas/vostd/pull/809\n\n**Update**: I've decided not to verify whether `acquire` will succeed in both the `IoMemAllocator` and `IoPortAllocator`, because it needs to expose a series of tokens, and there are currently no users. But one can still verify that two successful `acquire` calls cannot overlap because we model the permission to free.\n**Update**: `IoMem` is verified under the assumption that different `IoMem` instances will not overlap, which is desired, but not achieved even in the latest Asterinas. The `clone` and `slice` methods are therefore skipped because they conflict with the exclusive ownership model.",
       "url": "https://github.com/asterinas/vostd/pull/706",
-      "updatedAt": "2026-11-23T03:19:57Z",
+      "updatedAt": "2026-11-23T03:26:25Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "PENDING",
+      "ciState": "FAILURE",
       "review": "无汇总结论",
       "gate": "UNSTABLE",
-      "ci": "进行中"
+      "ci": "失败"
     },
     {
       "n": 720,
@@ -934,10 +934,10 @@ window.PLAN_PR_SNAPSHOT = {
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "进行中"
+      "ci": "成功"
     },
     {
       "n": 951,
@@ -972,7 +972,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "UNSTABLE",
+      "gate": "BLOCKED",
       "ci": "失败"
     },
     {
