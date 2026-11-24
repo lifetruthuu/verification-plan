@@ -1512,5 +1512,43 @@ window.PLAN_HISTORY = [
       }
     ],
     "prs": "#966 @9ba7887b0 实施串口布局与访问边界；上层 COM1 的端口独占和轮询进展仍待验证。#963 已合入 e9b249978，#964 已合入 cfddc3d07。"
+  },
+  {
+    "revision": 12,
+    "date": "2026-11-24",
+    "reason": "按主线串口合入结果、#969 的 PIT/PIC 写入序列及 #967 的页表前置更新三条路线。",
+    "edgesChanged": [
+      {
+        "a": "IO_PIO",
+        "b": "PIT_CFG",
+        "why": "PIT 逐次向 0x43、0x40、0x40 写入；每次 IoPort::write 匹配并消费预期端口和值。"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "PIC",
+        "why": "PIC 的四个 u8 端口按十项预期序列写入，最后两项分别匹配主从掩码。"
+      },
+      {
+        "a": "PIT_CFG",
+        "b": "PITIRQ",
+        "why": "BSP 的无 APIC 定时器分支使用 SquareWaveGenerator；须在选定平台建立命令、IRQ0 周期和路由。RateGenerator 供 TSC 校准使用。"
+      },
+      {
+        "a": "CPU_ENABLE",
+        "b": "XSAVE",
+        "why": "XSAVE 路径消费 enabled_on 中缓存大小等于当前 XCR0 所需长度的条件，启动方须建立对应的平台大小与本核权限。"
+      },
+      {
+        "a": "BZ_LOAD",
+        "b": "BZ_SETUP",
+        "why": "逐段装载的条件 panic 包含平台分配失败。EFI 核对实际页地址，Legacy32 核对 E820 和槽位，再将段快照对应到物理内存。"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "SERIAL_QEMU_CMOS",
+        "why": "主线串口构造消费字节访问合同并返回七个连续地址；COM1 独占与轮询仍待接通。CMOS 使用 u8 端口，QEMU 直接写 0xF4。"
+      }
+    ],
+    "prs": "主线 cfddc3d07 至 2aa424ec0 合入 #966、#967。#969 同时实施 PIT_CFG 和 PIC，#968 提供动态类型工具链。#919 关闭未合并。复核 #677、#879、#883、#887、#934、#948、#954、#955、#956、#959 的最新 head；设备、启动和权限的剩余条件分别留在对应节点。"
   }
 ];

@@ -1,16 +1,16 @@
 # VOSTD x86 验证计划
 
 <!-- BEGIN GENERATED:meta -->
-计划版本 r11（2026-11-23）· 源码基线 main [`cfddc3d07`](https://github.com/asterinas/vostd/commit/cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c) · 仪表盘快照 2026-11-23 11:39（北京时间）（`b94500acd`）· 110 个工作项、201 条依赖
+计划版本 r12（2026-11-24）· 源码基线 main [`2aa424ec0`](https://github.com/asterinas/vostd/commit/2aa424ec0f25fcbe142f6339e51c75024b77ef94) · 仪表盘快照 2026-11-23 20:17（北京时间）（`2aa424ec0`）· 110 个工作项、201 条依赖
 <!-- END GENERATED:meta -->
 
 本次范围是先完成 x86 验证，按 x86 平台、独立的 bzImage、OSTD 公共模块三条路线推进。RISC-V、LoongArch 适配与多架构迁移不纳入本次计划。bzImage 只在最终镜像、运行与范围验收处连接 x86；它的解析、格式、压缩与 setup 局部证明可以独立开展。
 
-## 0. 本次修订（r11）
+## 0. 本次修订（r12）
 
-#966 启用 x86 的 16550 串口驱动。在基址不超过 `u16::MAX - 6` 时，构造函数保证七个寄存器依次位于偏移 0 至 6，且都满足字节端口访问条件。COM1 控制台尚待接入，后续要验证端口预留与独占，并说明发送轮询的硬件进展条件。ACPI/FADT 的依赖仅用于 CMOS。[串口 PR #966](https://github.com/asterinas/vostd/pull/966)
+#966 已合入。串口构造函数保证连续七个端口的地址和字节访问边界，下一步接入 COM1 并核对端口独占与轮询进展。#967 同期修正页表保护回调的前置，使 trackedness 保持义务只作用于良构原始项。[主线差异](https://github.com/asterinas/vostd/compare/cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c...2aa424ec0f25fcbe142f6339e51c75024b77ef94)
 
-主线从 `8c8ef39c4` 更新到 `cfddc3d07`。#963 的 xAPIC 物理基址页对齐和 1024 字节窗口端点上界已合入，实际窗口保留仍待接通。#964 修正 KVirtArea 分配边界公理，调用者须建立映射范围前置。[主线差异](https://github.com/asterinas/vostd/compare/8c8ef39c4ab2883be5b994680dcc39957998dfed...cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c)
+#969 同时实施 PIT 配置和 PIC 初始化。分支在软件写端口时依次核对三次 PIT 写入和十次 PIC 写入。后续须分别接通定时器和 PCAT_COMPAT 路由调用，核对器件状态与 IRQ0 投递。[PR #969](https://github.com/asterinas/vostd/pull/969)
 
 ## 1. 路线与依赖口径
 
@@ -40,11 +40,11 @@ PCI 按类型、编码、配置事务、location 枚举、BAR、capability、MSI
 
 `DMA_MAP` 补上 coherent、registry、cache policy、映射与释放。main 仍注释了 mapping-set 插入和部分硬件映射动作，`dma_type` 仍是占位；这些是明确的工作缺口。`SA_DMA` 保留 stream slice 同步与地址合同。对 CPU/设备一致性和设备完成的条件须分别说明，返回 `Ok(())` 不足以证明设备已经完成访问。
 
-`COMMON_AUDIT` 覆盖尚未单列的 `cpu/set`、`user::UserMode`、timer/jiffies、console/logger/panic、util 与辅助库入口。它必须把缺口归属到可执行工作项并关闭，不能仅提交一张清单便验收。`ACC_SCOPE` 在同一集成提交核对所有当前项、启用路径、验证命令和运行产物。三条路线的内置行数统计已同步到上游 b94500acd。工作项完成数取自显式验收记录。
+`COMMON_AUDIT` 覆盖尚未单列的 `cpu/set`、`user::UserMode`、timer/jiffies、console/logger/panic、util 与辅助库入口。它必须把缺口归属到可执行工作项并关闭，不能仅提交一张清单便验收。`ACC_SCOPE` 在同一集成提交核对所有当前项、启用路径、验证命令和运行产物。三条路线的内置行数统计已同步到上游 2aa424ec0。工作项完成数取自显式验收记录。
 
 ## 3. 并行推进与近期投入
 
-公共 I/O 优先补设备区间保留和敏感端口预占。x86 可并行验证低、高引导窗口、PIC 掩码与 PIT 编程。APIC 需在调用处证明模式选择，#959 接入时需建立执行核与特性模型的对应；#919 可将字段恢复证明接到主线已有的 PCI 访问函数。bzImage 可同时准备用于 EFI 重定位、解码和装载的实际产物。
+公共 I/O 优先补设备区间保留和敏感端口预占。x86 可并行验证低、高引导窗口、PIC 掩码与 PIT 编程。APIC 需在调用处证明模式选择，#959 接入时需建立执行核与特性模型的对应；#919 已关闭，出现具体消费者时再从主线编码公式推导字段恢复性质。bzImage 可同时准备用于 EFI 重定位、解码和装载的实际产物。
 
 PIC、PIT 配置和 PCI 配置访问可以并行，分别使用同一份静态 PIO 合同。APIC 模式探测、IDT 构表、ACPI 表读取、FPU 布局、低层 context-switch ABI、页表硬件包装和 bzImage 各入口也可独立开展。IOAPIC 寄存器证明可从给定窗口出发，MADT 与实际窗口的一致性在 `ROUTE_MAP` 验收；BAR 探测从给定 location 出发，无需完整 PCI 枚举。
 
@@ -62,11 +62,12 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 | #921 / #916 | 栈大小解析、PE 字段及 368 字节长度合同已合入并复核消费者 | `TASK_STACK`、`BZ_PE` 限定完成；分配/映射和完整 builder 另验收 |
 | #935 / #677 / #570 | #935 吸收 #677 部分设计，以 `FlushSet` 表达包括按页 Range 在内的请求，建模每核陈旧条目 | `TLB_REQ` 协调接口；真实刷新和完成确认归 `TLB_SHOOT`，入队后 frame 的保留归 `TLB_FREE` |
 | #860 / #487 | #860 使用原生 view，#487 的禁抢占与 current-task 路径仍有占位 | 按 #952 核对共享模型的权限交接，并继续跟踪调度、禁抢占和回调边界 |
-| #927 / #934 | 七个 frame 测试保留 MockFrameMeta 和 U32FrameMeta 的区分，链表测试已适配 Frame 的 Debug 变化。VM I/O 的部分复制及故障游标断言继续可用 | MM_FRAME 待验真实元数据、失败与释放，VM_POD 待验缓冲字节与运行期 ktest |
+| #927 / #934 | 七个 frame 测试保留 MockFrameMeta 和 U32FrameMeta 的区分，链表测试已适配 Frame 的 Debug 变化。VM I/O 已撤下若干 PageFault 断言，须重新核对故障游标 | MM_FRAME 待验真实元数据、失败与释放，VM_POD 待验缓冲字节与运行期 ktest |
 | #931 / #943 | #931 已合入主线，按段构造 flat binary；#943 仅验证编码名称解析 | `BZ_ELF`、`BZ_RANGE` 仍需真实调用条件；`BZ_PARSE` 与字节编码分别验收 |
-| #895 / #706 / #919 | 主线导出 PciDeviceLocation，启用 read32/write32。PciDeviceId 本身及其导出已注释。#919 的分支补地址字段和索引恢复 | 把恢复证明接到主线编码，核对配置事务、设备类型、枚举与 MSI-X 的实际消费者 |
+| #895 / #706 / #919 | 主线导出 PciDeviceLocation，启用 read32/write32。PciDeviceId 本身及其导出已注释。#919 的字段恢复方案已关闭 | 在具体消费处从现有公式推导所需位域，核对配置事务、设备类型、枚举与 MSI-X 的实际消费者 |
 | #920 / #961 | 恢复 AVX 与 APIC 探测合同，TSC 使用共享叶 0x15 和本核回退基频 | 验证 APIC 模式选择、非零频率及 TSC_FREQ 发布 |
-| #966 | 七个 UART 寄存器地址及初始化、收发和状态读取所用的字节端口边界 | 接入 COM1，核对端口独占和发送轮询进展 |
+| #969 | PIT 六种模式的命令字及分频写入，PIC 初始化与掩码的十次写入 | 在实际消费者建立硬件协议、屏蔽效果及 IRQ0 路由 |
+| #966（已合入） | 七个 UART 寄存器地址及初始化、收发和状态读取所用的字节端口边界 | 接入 COM1，核对端口独占和发送轮询进展 |
 | #963（已合入） | xAPIC 物理基址页对齐且 1024 字节窗口端点可表示 | 接通设备保留，证明整段可用和保留后的分配排他性 |
 | #942 | `run` 调用已验证的分类器，捕获和 payload downcast 在外部 | `KTEST_RESULT` 单独验收分类结果与错误消息 |
 | #936 / #937 / #939 | 主线更新 Repr、count_ones 及 VM/DMA 等模块的规格调用 | 记录已迁移的接口，按各消费者的实际合同跟踪 |
@@ -85,7 +86,7 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 
 #934 将三处共享 frame 转独占的测试改为 `.ok().unwrap()`，避免对错误类型要求 `Frame: Debug`。
 
-逐项 PR 的 head、CI 与门禁见网站 PR 目录。#720 的 dyn 元数据接口依赖七个 Verus 补丁，与 #934 集成时需核对工具链和 frame 转换。#883 的两个 DMA 文件相对上次复核内容相同，设备完成同步仍待交付。
+逐项 PR 的 head、CI 与门禁见网站 PR 目录。#720 的 dyn 元数据接口依赖七个 Verus 补丁，与 #934 集成时需核对工具链和 frame 转换。#883 的两个 DMA 文件仅调整注释，设备完成同步仍待交付。
 
 ## 5. x86 工作包与组合验收
 
@@ -95,7 +96,7 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 
 阶段 C 组合时间、故障恢复、多核与任务。deadline 消费 `TSC_VALUE`，完整 PIT 回退留在 `CAL_FREQ`；AP 特性启用归 `CPU_ENABLE`，无需等待全部 FPU save/load。IPI API 本身允许异步且可能不执行，TLB shootdown 必须另证完成协议与进展，不能从函数名推得 ACK。在 `TASK_CTX` 对照 #954 和 switch.S 核对寄存器、独占记录、返回槽与挂起栈。`TASK_SW` 在 processor 消费这些保证，并验证任务唯一运行权、栈刷新、RCU 和 IRQ 权限。调度 hook 是否切换地址空间仍待具体客户证据。
 
-#959 的固定 head `ce76e7de2` 中，`FpuContext::new` 接受与当前核匹配的见证，构造函数包含 512 字节的 legacy 分支。该提交中可构造见证的 `enable_essential_features` 要求 XCR0 可读，正文所述的 `tracked_legacy_initialization` 尚缺源码。该 head 的常规 x86 验证任务成功，格式检查与 IRC11 任务失败。正式验收还需说明实际 CPU 的初始化见证和保存区容量来自哪里。
+#959 的 `25d3d1dbf` 在 XSAVE 模式下将缓存长度绑定到平台值和执行核当前 XCR0 的硬件大小。启动代码须建立该平台前置并交付本核寄存器权限。512 字节 legacy 构造分支仍需初始化见证。
 
 ## 6. bzImage 独立路线
 
@@ -122,7 +123,7 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 已检查但未关联为工作项的历史记录：
 
 <!-- BEGIN GENERATED:candidates -->
-- [#965](https://github.com/asterinas/vostd/pull/965)（2026-11-23 复核，head 3026ba02472262ca08b81a1f87a36df52193391f，未关联）：仅修改代码审阅技能及其参考资料。
+- [#965](https://github.com/asterinas/vostd/pull/965)（2026-11-24 复核，head abc2d33ca40a6d560dad9e9071ee15226c2ac134，未关联）：仅修改代码审阅技能及其参考资料。
 - [#930](https://github.com/asterinas/vostd/pull/930)（2026-11-16 复核，head 5b25275eda60df30500cc5d2aea70c0e1d0f97bb，未关联）：已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。
 - [#933](https://github.com/asterinas/vostd/pull/933)（2026-11-18 复核，head d99455d023bbfa4834ebf02cbeea95244dd45148，未关联）：仅更新审阅技能中对证明角色与资源记账的检查，没有修改验证对象。
 - [#938](https://github.com/asterinas/vostd/pull/938)（2026-11-18 复核，head bc9132d66d943df4e039630d7dceadf3d03299fa，未关联）：修改 when_used_as_spec 编码指南，没有变更合同或调用者。
@@ -223,8 +224,8 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **PIC** — PIC：init_and_disable / set_mask
 
-- 实施 PR：—；复用 / 协调：—；模块：arch/x86/kernel
-- 要做什么：证明端口、向量偏移、级联参数与写入参数；init_and_disable 调用 set_mask(0xff, 0xff)，需补“写入序列使 PIC 处于全屏蔽”的协议合同。irq 模块在 main 未启用，文件是普通 Rust。
+- 实施 PR：#969；复用 / 协调：—；模块：arch/x86/kernel
+- 要做什么：#969 用预期序列核对 set_mask 的十次写入，覆盖主从向量偏移 0x20/0x28、级联参数 4/2 和最终掩码。init_and_disable 传入两个 0xFF。待在 PCAT_COMPAT 路径接入调用，用器件协议说明写入后所有 IRQ 均被屏蔽。
 - 验收 / 限定：交付 init_and_disable 的端口访问序列与全屏蔽设备状态，供 ROUTE_MAP 的 PCAT_COMPAT 分支使用；核对向量偏移和级联参数。无需等待 MMIO allocator；端口写入到设备状态的协议依赖 TB_HW_OPS。
 - 前置：IO_PIO（确认 · 验收前置）
 
@@ -244,8 +245,8 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **PIT_CFG** — PIT 配置（pit::init）
 
-- 实施 PR：—；复用 / 协调：#706；模块：arch/x86/timer
-- 要做什么：pit::init 写 0x43 命令字，再向 0x40 写低、高字节；TIMER_FREQ = 1000，分频值 1193（1193182 / 1000），字节 0xA9、0x04——已按 main 源码核对。pit 模块在 main 注释，x86 timer 只启用 TIMER_FREQ。 IoPort<u8, WriteOnlyAccess> 的边界与访问标记已验收，恢复 pit::init 并证明命令和两次数据写的顺序与硬件协议。
+- 实施 PR：#969；复用 / 协调：#706；模块：arch/x86/timer
+- 要做什么：#969 启用 pit::init，逐次消费三项预期写入。六种 OperatingMode 对应命令 0x30 至 0x3A 的偶数值，先写 0x43；1000 Hz 配置的分频值为 1193，再向 0x40 写 0xA9 和 0x04。 将模式与分频参数接到 BSP 方波回退和 TSC 的频率发生器校准；两条路径各自建立硬件周期条件。enable_interrupt 与 IRQ0 路由仍待接通。
 - 验收 / 限定：交付 pit::init 的 0x43 命令与 0x40 低/高字节写入合同、1000 Hz 目标下 divisor=1193 的计算，供 PITIRQ/CAL_FREQ 使用；参数证明及硬件协议输入均需记录。真实产生中断的进展由 PITIRQ 在选定平台验收。
 - 前置：IO_PIO（确认 · 验收前置）
 
@@ -420,7 +421,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **XSAVE** — XSAVE / FXSAVE 硬件保存与恢复
 
 - 实施 PR：—；复用 / 协调：#959；模块：arch/x86/cpu
-- 要做什么：#959 的 save/load 保留原指令路径。用 FpuContext 的布局和字节范围，证明本核实际保存大小适配缓冲、写入边界、恢复掩码与镜像合法性，再核对寄存器内容往返。Once 缓存的长度上界与执行 CPU 所需的字节数须建立对应。
+- 要做什么：#959 的 save/load 保留原指令路径。用 FpuContext 的布局和字节范围，证明本核实际保存大小适配缓冲、写入边界、恢复掩码与镜像合法性，再核对寄存器内容往返。XSAVE 模式的 enabled_on 已关联缓存长度与本核当前 XCR0 要求的字节数；须从启动处建立 platform_xsave_area_size 前置。
 - 验收 / 限定：交付用户/任务调用者可用的 FPU save/load 前置及状态保存恢复关系，核对对齐、mask、容量和已启用模式；用实际调用场景建立条件。指令语义属 TB_HW_OPS，CPU 特性初始化由 CPU_ENABLE 提供。
 - 前置：FPU_REPR（确认 · 验收前置）、CPU_ENABLE（确认 · 验收前置）
 
@@ -440,8 +441,8 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **PCI_ENC** — x86 PCI 配置与 MSI-X 地址编码
 
-- 实施 PR：#706、#919；复用 / 协调：—；模块：arch/x86/pci、bus/pci
-- 要做什么：主线 #706 启用 has_pci_bus、encode_as_port、MSI-X 重映射地址构造及 read32/write32。#919 的增量是从配置地址恢复 bus/device/function 字段，从重映射地址恢复索引低 16 位。把这些后置条件接到主线现有函数及调用处。
+- 实施 PR：#706；复用 / 协调：#919；模块：arch/x86/pci、bus/pci
+- 要做什么：主线 #706 的精确返回公式已给出配置地址和 MSI-X 重映射编码。#919 已关闭；评审要求先找到需要恢复字段的具体调用者。在 PCI_CFG 或 PCI_MSIX 使用处按需要从公式推出位域性质。
 - 验收 / 限定：在主线 PCI 配置访问处核对总线号与掩码后的设备号、功能号，在 MSI-X 消费点核对索引位。端口事务与设备状态归 PCI_CFG，中断投递另行验收。
 - 前置：无
 
@@ -469,7 +470,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **CPU_ENABLE** — 每核 CPU 控制寄存器与特性初始化
 
 - 实施 PR：#959；复用 / 协调：—；模块：arch/x86/mod、arch/x86/cpu
-- 要做什么：#959 的 enable_cpu_features 在给定 X86CpuRegisterOwner、XSAVE、叶 0xD、合法 XCR0 和 576..=4096 容量等前提下更新 CR0/CR4/EFER/XCR0 与 x87，返回绑定本核的 FpuInitialization。用三处 Once 的见证读取特性、掩码及保存区长度。 #959 仍基于 #920 的 CpuFeatureModel。主线 #961 已恢复探测合同，仍须从 BSP/AP 入口取得本核 owner，核对 XSTATE 能力和缓存大小。该分支的 enable_essential_features 要求 XCR0 可读，正文提及的 tracked_legacy_initialization 在已查 head 中缺失。
+- 要做什么：#959 的 enable_cpu_features 在给定 X86CpuRegisterOwner、XSAVE、叶 0xD、合法 XCR0 和 576..=4096 容量等前提下更新 CR0/CR4/EFER/XCR0 与 x87，返回绑定本核的 FpuInitialization。用三处 Once 的见证读取特性、掩码及保存区长度。 #959 仍基于 #920 的 CpuFeatureModel。主线 #961 已恢复探测合同，仍须从 BSP/AP 入口取得本核 owner，核对 XSTATE 能力和缓存大小。enable_essential_features 要求 XCR0 可读且该配置的硬件长度等于平台值。512 字节 legacy 路径仍需构造初始化见证。
 - 验收 / 限定：将实际启动 CPU、寄存器权限和完成见证对应起来，在同核与跨核使用时分别说明配置兼容性。对采用 legacy FXSAVE 的机器补齐 512 字节模式的见证来源。
 - 前置：CPU_FEAT（确认 · 验收前置）
 
@@ -490,7 +491,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **SERIAL_QEMU_CMOS** — 串口 · QEMU 出口 · CMOS
 
 - 实施 PR：#966；复用 / 协调：—；模块：arch/x86/serial、arch/x86/qemu、arch/x86/device
-- 要做什么：#966 启用 device::serial。给定 port ≤ u16::MAX − 6，SerialPort::new 返回七个寄存器的地址序列，第 i 项等于 port + i，各项均可作 u8 端口访问。init 的合同覆盖偏移 0 至 4，send/recv 使用偏移 0，line_status 使用偏移 5。 接入尚未启用的 COM1 控制台时，须用 0x3F8 建立构造前置，核对 0x3F8..0x400 预留范围的独占性，以及发送循环何时观察到 OUTPUT_EMPTY。CMOS 的世纪寄存器取自 FADT；QEMU 退出经 x86_64::Port 写 0xF4，分别核对。
+- 要做什么：#966 已合入 2aa424ec0。给定 port ≤ u16::MAX − 6，SerialPort::new 保证地址序列恰为连续七项且每项适合 u8 访问。init、send、recv 和 line_status 的函数体使用 IoPort，最终版本将公开的地址保证集中在构造函数。 接入尚未启用的 COM1 控制台时，须用 0x3F8 建立构造前置，核对 0x3F8..0x400 预留范围的独占性，以及发送循环何时观察到 OUTPUT_EMPTY。CMOS 的世纪寄存器取自 FADT；QEMU 退出经 x86_64::Port 写 0xF4，分别核对。
 - 验收 / 限定：交付 x86 基础设备的访问/转换合同；轮询终止需显式硬件进展假设，exit_qemu 非返回结果由目标平台记录，CMOS 输入真实性属 TB_HW_OPS。不等待 PIT/APIC 完成。
 - 前置：IO_PIO（确认 · 验收前置）、ACPI_TABLES（确认 · 验收前置）
 
@@ -591,7 +592,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **BZ_SETUP** — setup 物理内存、入口与 BootParams 交接
 
 - 实施 PR：—；复用 / 协调：#948；模块：libs/linux-bzimage
-- 要做什么：EFI 的 efi_phase_boot 将解码结果交给 load_elf，legacy 直接传入 payload。#948 的 EFI alloc_at 只保证正常返回的切片长度。核对零地址、算术界限、UEFI 分配失败或返回地址不符时的 panic，并把成功路径的物理页、段快照与 BootParams 对应。Legacy32 按自身分配实现核对。
+- 要做什么：EFI 的 efi_phase_boot 将解码结果交给 load_elf，legacy 直接传入 payload。#948 的 EFI alloc_at 只保证正常返回的切片长度。核对零地址、算术界限、UEFI 分配失败或返回地址不符时的 panic，并把成功路径的物理页、段快照与 BootParams 对应。分支已在装载处列出各段分配可能失败的条件；Legacy32 核对 E820 可用 RAM、已用区间与空槽，EFI 核对固件返回的页地址。
 - 验收 / 限定：用选定镜像说明 PT_LOAD 最终驻留地址、入口可执行和 BootParams 有效的依据。EFI 路径另需解码输入合同；记录 alloc_at、固件服务与初始 CPU 状态的边界。
 - 前置：BZ_LOAD（确认 · 验收前置）
 
@@ -606,7 +607,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **IO_PIO** — 静态 PIO 端口构造与访问合同
 
-- 实施 PR：#706；复用 / 协调：—；模块：io/io_port
+- 实施 PR：#706；复用 / 协调：#969；模块：io/io_port
 - 要做什么：主线 PCI 的 read32/write32 使用两个 u32 静态端口。0xCF8 仅可写，0xCFC 可读写。IoPort::new 建立端口号和类型不变式，read/write 按访问标记调用 PortRead/PortWrite。u8/u16/u32 的全宽访问要求排他端点至多为 65536。
 - 验收 / 限定：验收静态端口的宽度、边界与读写标记。PCI 已在主线实际消费该合同。动态端口预占由 IO_GLOBAL 验收，CF8/CFC 事务互斥由 PCI_CFG 验收，读值与设备效果归 TB_HW_OPS。
 - 已完成依据：2026-11-23 主线 @b94500acd5ecf9ff19354332252ea7a95f7a90df 与 #706 最终 head 31813f542 源码树相同。ostd/src/arch/x86/pci.rs 的 read32/write32 实际使用 0xCF8 的 u32 只写端口及 0xCFC 的 u32 读写端口。io_port/mod.rs 的 IoPort::new/read/write 与 vstd_extra::external::io_port 的 u8/u16/u32 规约建立宽度、访问标记和排他端点不超过 65536。该提交的上游 x86_64-unknown-none 验证通过（Actions 45107260702）。设备效果、成对互斥、动态预占和释放另项验收。
@@ -644,7 +645,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **VM_POD** — Pod · 切片 · 可失败 VM I/O 测试
 
 - 实施 PR：#927、#934；复用 / 协调：#939；模块：mm/io、mm/test
-- 要做什么：#927 已合入 f0d568203，11 个 VM I/O 测试函数接入 Verus，恢复 Pod derive 并补充 cursor 返回值合同。补上仍注释的字节相等、可失败操作成功和精确复制量断言，明确运行期 ktest 覆盖。#934 已补部分复制成功与 PageFault 分支的计数和游标断言，字节内容仍待验证。
+- 要做什么：#927 已合入 f0d568203，11 个 VM I/O 测试函数接入 Verus，恢复 Pod derive 并补充 cursor 返回值合同。补上仍注释的字节相等、可失败操作成功和精确复制量断言，明确运行期 ktest 覆盖。#934 当前 head 已撤下先前新增的若干 PageFault 断言，部分复制量、故障游标和字节保持仍需在现行测试核对。
 - 验收 / 限定：以 VM_REPR 合同恢复内容相等、成功返回和精确复制量断言，并明确恢复哪些运行期 ktest；测试须调用实际 Pod/VM I/O API。测试通过只验收这些例子，成功/部分故障全链由 F_BYTES 验收；原始转换/Vec 外部规约逐条记录。
 - 前置：VM_REPR（确认 · 验收前置）
 
@@ -716,7 +717,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 - 实施 PR：#895；复用 / 协调：#706；模块：bus/pci
 - 要做什么：#895 的 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit 可复用。#706 主线使用 location 编码，但 PciDeviceId 声明和导出已注释。恢复设备 ID 与枚举或设备构造的调用，核对 getter 和位操作的真实消费者。
-- 验收 / 限定：交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。与 #706/#919 协调同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。
+- 验收 / 限定：交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。按 #706 主线核对同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。
 - 前置：无
 
 **PCI_CFG** — 配置空间读写（地址 · 宽度 · 对齐 · 失败）
@@ -784,7 +785,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **IO_PIO_ALLOC** — 动态 PIO 分配、保留与显式释放
 
-- 实施 PR：#706；复用 / 协调：—；模块：io/io_port
+- 实施 PR：#706；复用 / 协调：#969；模块：io/io_port
 - 要做什么：#706 的 acquire/acquire_overlapping 保证全宽越界返回 Err。成功时给出端口、模式与 claim。conflict_region 和 overlapping_region 用已持有 claim 的互斥性证明冲突申请失败，首次或释放后申请成功仍是示例的 assume。 跟踪实际调用者的显式 drop(self)。普通模式释放整段，重叠模式只释放首端口，排他端点可达 65536。
 - 验收 / 限定：从一个动态端口调用处核对所需的成功或失败条件、模式与释放宽度，消费同一分配器签发的 claim。敏感端口的初始预占由 IO_GLOBAL 验收。
 - 前置：IO_PIO（确认 · 验收前置）
@@ -812,15 +813,15 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **MM_FRAME** — Frame / Segment 分配、元数据与释放
 
-- 实施 PR：#934；复用 / 协调：#720、#936、#951、#952、#958；模块：mm/frame
+- 实施 PR：#934；复用 / 协调：#720、#936、#951、#952、#958、#968；模块：mm/frame
 - 要做什么：#934 的七个 frame 测试覆盖成功分配、clone/drop、借用、raw 往返、单帧 Segment 和链表。类型化测试使用 MockFrameMeta，untyped 路径仍使用 U32FrameMeta。核对真实元数据的生命周期、分配失败和释放义务。 #934 的链表测试以 try_from_shared(...).ok().unwrap() 处理三次共享到独占的转换，适配 #958 去掉 Frame 的 Debug。Segment::slice 的条件 panic 与克隆计数见 #951，#720 的 dyn 元数据转换仍需单独核对。
 - 验收 / 限定：供栈、动态 CPU-local、页表和 DMA 使用：分配失败不伪造内存，成功给出对齐、存活、互不重叠和元数据权限。用户 GlobalFrameAllocator 实现属 TB_ALLOC；OSTD 包装与元数据义务仍在本项。
 - 前置：无
 
 **MM_PT** — 通用页表与 VmSpace 映射接口补齐
 
-- 实施 PR：—；复用 / 协调：#720、#857、#936、#939、#951；模块：mm/page_table、mm/vm_space
-- 要做什么：覆盖 cursor map/unmap/protect/query、item 原始转换和 frame 所有权往返，消解或逐项登记现存 external/admit/assume；#855 的常量证明不覆盖这些接口。
+- 实施 PR：#967；复用 / 协调：#720、#857、#936、#939、#951；模块：mm/page_table、mm/vm_space
+- 要做什么：#967 已将 protect_next、底层 Entry 和 VmSpace 的属性回调前置限定为良构原始项；核对用户配置及内核 AVAIL1 的 trackedness 保持。覆盖 cursor map/unmap/protect/query、item 原始转换和 frame 所有权往返，消解或逐项登记现存 external/admit/assume；#855 的常量证明不覆盖这些接口。
 - 验收 / 限定：交付 MM_KVA、内核缺页和用户地址空间可用的映射变化、失败保持、释放义务；VmSpace::unmap 溢出 assume 不能以配置 PR 已合入关闭。局部逻辑映射可先行，最终回收由 TLB_FREE 接线，底层原子/PTE 操作属逐条核对的 TB_MM_RAW。
 - 前置：PT_CFG（确认 · 验收前置）、MM_FRAME（确认 · 验收前置）
 
@@ -957,11 +958,11 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | IRQ_DROP | IRQ_GUARD | 确认 · 验收前置 | 创建产生的保存 IF、CPU、嵌套深度与线性恢复权限 | ostd/specs/task/irq.rs::IrqRestorePermission,tracked_restore @6cec73d064 |
 | LOC_ID | LOC_STORE（跨路线） | 确认 · 验收前置 | AP 存储基址、索引有效性与发布合同（get_ap）；BSP 的静态 GS 基址不依赖 AP 分配完成 | ostd/src/cpu/local/mod.rs::get_ap; ostd/src/arch/x86/boot/ap_boot.S::GS.base @97963e831 |
 | ACPI_MADT | ACPI_TABLES | 确认 · 验收前置 | 有效的 AcpiTables、find_table::<Madt>、表长度与条目访问合同 | ostd/src/arch/x86/kernel/irq/mod.rs::init @97963e831 |
-| PIC | IO_PIO（跨路线） | 确认 · 验收前置 | 敏感 PIO 端口 IoPort<u8, WriteOnlyAccess>::write 的权限与写入合同；端口 0x20 / 0x21 / 0xA0 / 0xA1 | ostd/src/arch/x86/kernel/irq/pic.rs::MASTER_CMD,MASTER_DATA,SLAVE_CMD,SLAVE_DATA,set_mask @97963e831 |
+| PIC | IO_PIO（跨路线） | 确认 · 验收前置 | PIC 的四个 u8 端口按十项预期序列写入，最后两项分别匹配主从掩码。 | ostd/src/arch/x86/kernel/irq/pic.rs::set_mask，ostd/src/io/io_port/mod.rs::IoPort::write @f2bdb88a6 |
 | IOAPIC_REG | IO_ALLOC（跨路线） | 确认 · 验收前置 | IoApicAccess::new 需要独占 [base,base+0x20)。恢复设备路径时，须用 builder 的可执行接口排除该范围。 | ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @b94500acd |
 | IOAPIC_ENTRY | IOAPIC_REG | 确认 · 验收前置 | 寄存器选择 / 数据访问合同 | ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable,disable @97963e831 |
 | IOAPIC_ENTRY | IRQLINE | 确认 · 验收前置 | IrqLine::num / remapping_index，以及重定向项被禁用前 IRQ 不被释放的生命周期合同 | ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable; ostd/src/trap/irq.rs::IrqLine @97963e831 |
-| PIT_CFG | IO_PIO（跨路线） | 确认 · 验收前置 | 0x43 / 0x40 敏感 PIO 的写权限与写合同 | ostd/src/arch/x86/timer/pit.rs::MODE_COMMAND_PORT,CHANNEL0_PORT,init @97963e831 |
+| PIT_CFG | IO_PIO（跨路线） | 确认 · 验收前置 | PIT 逐次向 0x43、0x40、0x40 写入；每次 IoPort::write 匹配并消费预期端口和值。 | ostd/src/arch/x86/timer/pit.rs::init，ostd/src/io/io_port/mod.rs::IoPort::write @f2bdb88a6 |
 | APIC_RESERVE | IO_ALLOC（跨路线） | 确认 · 验收前置 | xAPIC 需要永久排除从 MSR 基址起的 1024 字节。主线 builder 只保证登记窗口和分离，仍须提供设备保留及排他效果。 | ostd/src/arch/x86/kernel/apic/mod.rs::init，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @b94500acd |
 | APIC_RESERVE | IO_WIN | 确认 · 验收前置 | 该 1024 字节范围属于登记窗口，且权限尚未被其他设备占用 | ostd/src/arch/x86/kernel/apic/mod.rs::init @97963e831 |
 | APIC_PUB | APIC_PROBE | 确认 · 验收前置 | ApicId::from 读取 APIC_TYPE，须与 init 发布的模式一致，并保留 xAPIC 八位截断（value as u8） | ostd/src/arch/x86/kernel/apic/mod.rs::init,APIC_TYPE,ApicId::from @97963e831 |
@@ -989,7 +990,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | PITIRQ | ROUTE_MAP | 确认 · 验收前置 | 最终组合：ISA / GSI 映射与 IOAPIC 配置（本项就是这些合同的组合验收） | ostd/src/arch/x86/timer/pit.rs::enable_interrupt; ostd/src/arch/x86/kernel/irq/mod.rs::init @97963e831 |
 | PITIRQ | TRAP_DISP | 确认 · 验收前置 | 最终组合：IDT / 汇编进入、TrapFrame、IRQ 嵌套状态、回调执行 | ostd/src/trap/handler.rs::call_irq_callback_functions @97963e831 |
 | PITIRQ | LAPIC_DEV | 确认 · 验收前置 | 最终组合：回调后的 EOI（interrupts_ack 通过当前 LAPIC 的 eoi） | ostd/src/arch/x86/mod.rs::interrupts_ack @97963e831 |
-| PITIRQ | PIT_CFG | 确认 · 验收前置 | 本里程碑明确验收实际 PIT 产生 IRQ0：必须给出 RateGenerator 编程与周期来源，不能只假定中断出现 | ostd/src/arch/x86/timer/pit.rs::init,enable_interrupt; arch/x86/kernel/tsc.rs::determine_tsc_freq_via_pit @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
+| PITIRQ | PIT_CFG | 确认 · 验收前置 | BSP 的无 APIC 定时器分支使用 SquareWaveGenerator；须在选定平台建立命令、IRQ0 周期和路由。RateGenerator 供 TSC 校准使用。 | ostd/src/arch/x86/timer/mod.rs::init_bsp，kernel/tsc.rs::determine_tsc_freq_via_pit @2aa424ec0，timer/pit.rs::init @f2bdb88a6 |
 | CAL_FREQ | PITIRQ | 确认 · 验收前置 | IRQ0 周期回调、EOI 与等待进展合同：determine_tsc_freq_via_pit 用 IrqLine::alloc + on_active(pit_callback) 注册回调，再用 enable_local_and_halt 等待，不是端口轮询 | ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_pit（第 180–194 行） @97963e831 |
 | CAL_FREQ | PIT_CFG | 确认 · 验收前置 | pit::init(RateGenerator) 的周期合同 | ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_pit @97963e831 |
 | CAL_FREQ | TSC_VALUE | 确认 · 验收前置 | 校准入口须区分基于共享叶 0x15 和可选本核基频的 None、Some(0) 与非零 Hz，再组合 PIT 回退与发布。 | ostd/src/arch/x86/kernel/tsc.rs::determine_tsc_freq_via_cpuid,init_tsc_freq @8c8ef39c4 |
@@ -1022,7 +1023,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | SMP_IPI | SMP_AP | 确认 · 验收前置 | construct_hw_cpu_id_mapping 给出 CpuId 索引到在线 HwCpuId 的完整映射 | ostd/src/smp.rs::init; ostd/src/boot/smp.rs::construct_hw_cpu_id_mapping @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | FPU_REPR | CPU_ENABLE | 确认 · 验收前置 | 真实调用 FpuContext::new/default/clone 时要交付与当前 CPU 配置相符的 FpuInitialization。构造与复制的局部证明可以先给定 enabled_on(cpu)，512 字节模式须单独建立见证。 | ostd/src/arch/x86/{mod.rs::enable_cpu_features,cpu/context/mod.rs::FpuInitialization::enabled_on,FpuContext::new,FpuContext::clone} @ce76e7de2 |
 | XSAVE | FPU_REPR | 确认 · 验收前置 | save/load 使用 as_bytes_mut/as_bytes 的活动范围和底层对齐。硬件写入或恢复还需证明缓冲充足，恢复镜像的保留字段合法。 | ostd/src/arch/x86/cpu/context/mod.rs::FpuContext::{as_bytes_mut,as_bytes,save,load} @ce76e7de2 |
-| XSAVE | CPU_ENABLE | 确认 · 验收前置 | 保存恢复按 CPU_FEATURES 和 XSTATE_MAX_FEATURES 选择指令与掩码，须把执行核的 XCR0 和实际保存大小与 Once 的值对应。 | ostd/src/arch/x86/cpu/context/mod.rs::FpuInitialization::enabled_on,enable_essential_features,FpuContext::save,FpuContext::load @ce76e7de2 |
+| XSAVE | CPU_ENABLE | 确认 · 验收前置 | XSAVE 路径消费 enabled_on 中缓存大小等于当前 XCR0 所需长度的条件，启动方须建立对应的平台大小与本核权限。 | ostd/src/arch/x86/cpu/context/mod.rs::FpuInitialization::enabled_on,enable_essential_features @25d3d1dbf |
 | SYSCALL | TRAP_DISP | 确认 · 验收前置 | 用户返回的寄存器 ABI 与异常 / IRQ 返回合同 | ostd/src/arch/x86/trap/syscall.rs::RawUserContext::run; ostd/src/arch/x86/cpu/context/mod.rs::UserContextApiInternal::execute @97963e831 |
 | SYSCALL | GDT | 确认 · 验收前置 | syscall::init 的安全条件要求 GDT 已初始化：选择子合同 | ostd/src/arch/x86/trap/syscall.rs::init @97963e831 |
 | TASK_SW | TASK_STACK_ALLOC（跨路线） | 确认 · 验收前置 | 栈存活、映射、初始 SP 与 KernelStack::flush_tlb；仅有大小解析不够 | ostd/src/task/processor.rs::switch_to_task,before_switching_to @97963e831 |
@@ -1040,7 +1041,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | CPU_ENABLE | CPU_FEAT | 确认 · 验收前置 | XCR0 的选择使用已恢复的 AVX 与 AVX-512F 探测合同，仍须建立本核寄存器权限。 | ostd/src/arch/x86/mod.rs::has_avx,has_avx512 @8c8ef39c4，enable_cpu_features @ce76e7de2 |
 | HPET | ACPI_TABLES | 确认 · 验收前置 | ACPI HPET 表发现、基址和字段可读合同 | ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | HPET | ROUTE_MAP | 确认 · 验收前置 | Hpet::new 调用 IRQ_CHIP.map_isa_pin_to(irq,0)，需映射句柄与释放合同；仅约束完整构造，getter 可先证明 | ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
-| SERIAL_QEMU_CMOS | IO_PIO（跨路线） | 确认 · 验收前置 | 串口驱动 #966 在七个 u8 寄存器上使用静态 IoPort 的地址视图和访问宽度合同。CMOS 同样使用 u8 端口；QEMU 退出直接写 0xF4。 | ostd/src/arch/x86/device/serial.rs::SerialPort::{new,init,send,recv,line_status} @9ba7887b0，ostd/src/arch/x86/{device/cmos.rs,qemu.rs} @cfddc3d07 |
+| SERIAL_QEMU_CMOS | IO_PIO（跨路线） | 确认 · 验收前置 | 主线串口构造消费字节访问合同并返回七个连续地址；COM1 独占与轮询仍待接通。CMOS 使用 u8 端口，QEMU 直接写 0xF4。 | ostd/src/arch/x86/{device/serial.rs::SerialPort::new,device/cmos.rs,qemu.rs} @2aa424ec0 |
 | SERIAL_QEMU_CMOS | ACPI_TABLES | 确认 · 验收前置 | CMOS 的 FADT 世纪寄存器编号来源，仅约束 CMOS 子项 | ostd/src/arch/x86/device/cmos.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | ACC_SCOPE | LOC_ACC（跨路线） | 确认 · 验收前置 | 当前范围的 LOC_ACC 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序 | ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | ACC_SCOPE | VM_POD（跨路线） | 确认 · 验收前置 | 当前范围的 VM_POD 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序 | ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
@@ -1083,7 +1084,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | BZ_IMG | BZ_ENCODE | 待确认 | setup 用 .incbin 将 PAYLOAD_FILE 放入 .payload。缺实际构建记录将 encode_kernel 输出与该文件、所选内核及镜像一一对应。 | 尚无 |
 | ACC_IMG | BZ_IMG | 确认 · 验收前置 | 依赖选定镜像及其内核 ELF 的身份与加载布局；该检查不消费 builder 的 Verus 证明 | ostd/libs/linux-bzimage/builder/src/lib.rs::make_bzimage @97963e831 |
 | ACC_IMG | F_ASM（跨路线） | 确认 · 验收前置 | ABI、恢复目标与 ExTable 表项的链接检查需要汇编符号与段存在；不要求缺页恢复路径先证明 | ostd/src/arch/x86/ex_table.rs::ExTable::init; ostd/src/arch/x86/mm/util.rs::memcpy_fallible @97963e831 |
-| BZ_SETUP | BZ_LOAD | 确认 · 验收前置 | EFI 和 legacy 把逐段文件前缀与零尾部快照对应到实际物理页。EFI 需核对 alloc_at 的地址、大小、固件失败与正常返回分支。 | ostd/libs/linux-bzimage/setup/src/{loader.rs::load_elf,x86/amd64_efi/{alloc.rs::alloc_at,efi.rs},x86/legacy_i386/alloc.rs} @f06ae789d |
+| BZ_SETUP | BZ_LOAD | 确认 · 验收前置 | 逐段装载的条件 panic 包含平台分配失败。EFI 核对实际页地址，Legacy32 核对 E820 和槽位，再将段快照对应到物理内存。 | ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/amd64_efi/alloc.rs,x86/legacy_i386/alloc.rs} @124914ae2 |
 
 #### OSTD 公共模块
 
@@ -1181,14 +1182,14 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 | TB_IDT_LINK | 内核链接产物、trap.S 与选定 x86 平台 | trap_handler_table 的 256 个地址已重定位、规范、终身只读并对应同号入口。向量 3、4 支持用户态软件触发。21、29、30 的 stub 要求投递时 CPU 不压入错误码。各加载核具备 CPL0 和可共享的内核代码选择子。 | IDT_TABLE、IDT_LOAD、TRAP_DISP | 按最终 ELF、平台启用的异常及其栈布局建立 vectors_ready、valid_vectors 和 idt_load_context。ostd/src/arch/x86/trap/{idt.rs,trap.S}、verified_libs/vstd_extra/src/external/x86_idt.rs @c9a85a789。 |
 | TB_IOMMU | arch/x86/iommu（未纳入计划） | IrqRemapping::init 分配的 IRT 项与 remapping index，以及 DMA 设备地址映射/解除的硬件条件。 | PCI_ENC、PCI_MSIX、IRQLINE、IOAPIC_ENTRY、SA_DMA、DMA_MAP | #919 的 remapping 地址编码不等于 IOMMU / remapping 已验证。 |
 | TB_TDX | arch/x86/tdx_guest.rs（未纳入计划） | TDX 路径的初始化、中断语义与 DMA unprotect/reprotect 的输入条件。 | PITIRQ、DMA_MAP | 首个中断闭环限定为非 TDX 的 BSP 路径。 |
-| TB_HW_OPS | CPUID / MSR / volatile / 汇编的外部规约 | 主线的 APIC 与 AVX 探测依赖共享 CPUID 模型，TSC 回退时的叶 0x16 基频来自执行核。#963 的地址算术对任意 MSR 读值成立，物理地址对应实际设备仍依赖硬件输入。TSC 回退计算保留两条乘积上界假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。 | APIC_PROBE、APIC_RESERVE、LAPIC_DEV、CPU_FEAT、CPU_ENABLE、XSAVE、IDT_LOAD、TSC_VALUE、CAL_FREQ、PT_X86、IO_PIO、IO_MMIO、LOC_CELL、TASK_CTX、HPET、SERIAL_QEMU_CMOS、SA_DMA、DMA_MAP | 按操作记录 CPUID、控制寄存器、x87、lidt、切换汇编、CR3 和 invlpg 的作用。分别核对软件取得寄存器权限、Once 发布和 CPU 身份的证据。 |
+| TB_HW_OPS | CPUID / MSR / volatile / 汇编的外部规约 | 主线的 APIC 与 AVX 探测依赖共享 CPUID 模型，TSC 回退时的叶 0x16 基频来自执行核。#963 的地址算术对任意 MSR 读值成立，物理地址对应实际设备仍依赖硬件输入。TSC 回退计算保留两条乘积上界假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。#969 的预期序列限定软件写入顺序。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。 | APIC_PROBE、APIC_RESERVE、LAPIC_DEV、CPU_FEAT、CPU_ENABLE、XSAVE、IDT_LOAD、TSC_VALUE、CAL_FREQ、PT_X86、IO_PIO、IO_MMIO、LOC_CELL、TASK_CTX、HPET、PIT_CFG、PIC、SERIAL_QEMU_CMOS、SA_DMA、DMA_MAP | 按操作记录 CPUID、控制寄存器、x87、lidt、切换汇编、CR3 和 invlpg 的作用。分别核对软件取得寄存器权限、Once 发布和 CPU 身份的证据。 |
 | TB_ELF_RANGE | ELF 与链接产物 | mapping.rs 里 From<SetupVA> / From<SetupFileOffset> 的 VA 范围与 offset 上界假设。#916/#931 的 parser、get_data、opaque ELF 类型和 bytes_of 的字节布局。#956 的节名查找、节解码与 Rela 条目取自 xmas-elf 的外部模型，须对应到实际 EFI setup 文件。 | BZ_TRUST、BZ_ELF、BZ_RANGE、BZ_PE、BZ_RELOC | 通过 ELF parser 合同、链接断言或可独立检查的构建前置逐步缩小。 |
 | TB_EXTABLE_LINK | 最终内核链接产物 | __ex_table / __ex_table_end 符号与表项：仓库里只有声明，没有定义。 | F_RECOVER、ACC_IMG | 用镜像链接检查记录，不能由缺页恢复证明替代。 |
 | TB_ALLOC | 用户提供的全局 heap/frame allocator 与 alloc 外部规约 | __GLOBAL_HEAP_ALLOCATOR_REF 宏生成的接口与 alloc 的外部规约。 GlobalFrameAllocator 的可用区域、对齐和唯一性承诺；OSTD 元数据/包装不在此边界中。 | IDT_TABLE、SA_HEAP、MM_FRAME、HEAP_GLOBAL、LOC_DYNAMIC | x86 链上的 Box::new / Box::leak 只消费这份外部规约。 |
 | TB_STACK_CONFIG | 编译期 OSTD_TASK_STACK_SIZE_IN_PAGES 与 configured_stack_size_in_pages | 合法十进制输入由调用者/构建环境提供；该静态初始化仍 external_body。KERNEL_STACK_SIZE 已证上界/页对齐不保证非零。 | TASK_STACK、TASK_STACK_ALLOC | ostd/src/task/kernel_stack.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc；栈分配验收补非零与 guard-page 加法条件。 |
 | TB_CLIENT_HOOKS | OSTD 使用者的调度器、PRE/POST_SCHEDULE_HANDLER、用户缺页处理和 ostd_main | 注入回调的状态变化、进展及地址空间选择；当前源码没有具体客户可证明 handler 必定执行 CR3 切换。 | TASK_RUNTIME、TASK_COMPOSE、TASK_SW、F_RECOVER、BOOT_COMMON | ostd/src/task/{mod,processor}.rs; arch/x86/trap/mod.rs::handle_user_page_fault @8e681282d19b29bdc1b6e715930fe9224a0c88dc。按具体客户合同验收，不能凭调用关系臆定效果。 |
 | TB_MM_RAW | 现有原始内存/原子/PTE 外部规格 | item_into_raw/item_from_raw、frame 类型与引用计数、页表底层读写及 Pod 原始切片转换。#959 用 Pod::as_bytes_mut 连接借用前后的字节视图，VM 内存与这些字节的对应仍需证明。 | MM_FRAME、MM_PT、MM_KVA、VM_REPR、FPU_REPR | ostd/src/mm/{frame,page_table,kspace,vm_space} @8e681282d，ostd/libs/ostd-pod/src/lib.rs::Pod::as_bytes_mut @ce76e7de2。按调用者核对每项边界。 |
-| TB_SETUP_ENV | EFI/legacy 固件服务、解压库与链接布局 | EFI 和 legacy 分别建立物理分配与初始 CPU 状态。#948 的 EFI alloc_at 可能因地址、大小或固件分配失败而 panic，正常返回仅保证切片长度。编解码对应依赖 libflate 的 Vec、切片及默认 codec 模型。 | BZ_ENCODE、BZ_DECODE、BZ_LOAD、BZ_SETUP、BZ_IMG | ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/amd64_efi/{alloc,decoder}.rs,x86/legacy_i386/alloc.rs} @f06ae789d。用同一次构建的嵌入文件、目标字长和实际分配核对段交接。setup 控制台直接使用 uart_16550::SerialPort（console.rs @b94500acd）。 |
+| TB_SETUP_ENV | EFI/legacy 固件服务、解压库与链接布局 | EFI 和 legacy 分别建立物理分配与初始 CPU 状态。#948 的 EFI alloc_at 可能因地址、大小或固件分配失败而 panic，正常返回仅保证切片长度。编解码对应依赖 libflate 的 Vec、切片及默认 codec 模型。 | BZ_ENCODE、BZ_DECODE、BZ_LOAD、BZ_SETUP、BZ_IMG | ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/amd64_efi/{alloc,decoder}.rs,x86/legacy_i386/alloc.rs} @124914ae2。用同一次构建的嵌入文件、目标字长和实际分配核对段交接。setup 控制台直接使用 uart_16550::SerialPort（console.rs @b94500acd）。 |
 <!-- END GENERATED:trusted -->
 
 ## 附录 D：变更记录
@@ -1196,6 +1197,14 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 下列记录保留历史判断，当前关系以最新版本决定为准。
 
 <!-- BEGIN GENERATED:changes -->
+- **r12 · 2026-11-24**：按主线串口合入结果、#969 的 PIT/PIC 写入序列及 #967 的页表前置更新三条路线。
+  - 调整依赖 IO_PIO → PIT_CFG：PIT 逐次向 0x43、0x40、0x40 写入；每次 IoPort::write 匹配并消费预期端口和值。
+  - 调整依赖 IO_PIO → PIC：PIC 的四个 u8 端口按十项预期序列写入，最后两项分别匹配主从掩码。
+  - 调整依赖 PIT_CFG → PITIRQ：BSP 的无 APIC 定时器分支使用 SquareWaveGenerator；须在选定平台建立命令、IRQ0 周期和路由。RateGenerator 供 TSC 校准使用。
+  - 调整依赖 CPU_ENABLE → XSAVE：XSAVE 路径消费 enabled_on 中缓存大小等于当前 XCR0 所需长度的条件，启动方须建立对应的平台大小与本核权限。
+  - 调整依赖 BZ_LOAD → BZ_SETUP：逐段装载的条件 panic 包含平台分配失败。EFI 核对实际页地址，Legacy32 核对 E820 和槽位，再将段快照对应到物理内存。
+  - 调整依赖 IO_PIO → SERIAL_QEMU_CMOS：主线串口构造消费字节访问合同并返回七个连续地址；COM1 独占与轮询仍待接通。CMOS 使用 u8 端口，QEMU 直接写 0xF4。
+  - PR：主线 cfddc3d07 至 2aa424ec0 合入 #966、#967。#969 同时实施 PIT_CFG 和 PIC，#968 提供动态类型工具链。#919 关闭未合并。复核 #677、#879、#883、#887、#934、#948、#954、#955、#956、#959 的最新 head；设备、启动和权限的剩余条件分别留在对应节点。
 - **r11 · 2026-11-23**：纳入 #966 串口寄存器布局与字节端口访问证明，同步 #963 和 #964 合入后的进度。
   - 调整依赖 IO_PIO → SERIAL_QEMU_CMOS：串口分支已在构造和端口访问处消费静态 PIO 合同。ACPI 的验收前置仅约束 CMOS。
   - PR：#966 @9ba7887b0 实施串口布局与访问边界；上层 COM1 的端口独占和轮询进展仍待验证。#963 已合入 e9b249978，#964 已合入 cfddc3d07。

@@ -13,10 +13,10 @@ window.PLAN_BASE = {
   repo: "https://github.com/asterinas/vostd",
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
-    date: "2026-11-23",
-    sha: "cfddc3d0771d6f2d49587b2f7494f4b9305d1d5c",
-    snapshotAt: "2026-11-23 11:39（北京时间）",
-    snapshotSha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
+    date: "2026-11-24",
+    sha: "2aa424ec0f25fcbe142f6339e51c75024b77ef94",
+    snapshotAt: "2026-11-23 20:17（北京时间）",
+    snapshotSha: "2aa424ec0f25fcbe142f6339e51c75024b77ef94",
   },
 
   /* The three views, in tab order (x86 is the default). `note` is shown under the tab. */
@@ -25,7 +25,7 @@ window.PLAN_BASE = {
       "key": "x86",
       "name": "x86 平台",
       "sub": "APIC · IRQ · 陷阱 · CPU-local · x86 页表 · 定时器 · 故障恢复 · 用户态",
-      "note": "PIC 和 PIT 配置可复用静态端口合同。#966 在串口驱动验证七个寄存器的端口号和访问边界。#963 的 xAPIC 基址证明已合入，设备窗口仍待保留。"
+      "note": "#969 在 PIT 和 PIC 的实际写入处核对端口、参数与顺序。#966 的串口寄存器布局已合入，COM1 端口独占和发送轮询仍待验证。"
     },
     {
       "key": "bzimage",
@@ -151,7 +151,7 @@ window.PLAN_BASE = {
     { id: "VM_POD", lane: "common", face: "mm/io · mm/test", title: "Pod · 切片 · 可失败 VM I/O 测试",
       mods: ["mm/io", "mm/test"],
       todo: [
-        "#927 已合入 f0d568203，11 个 VM I/O 测试函数接入 Verus，恢复 Pod derive 并补充 cursor 返回值合同。补上仍注释的字节相等、可失败操作成功和精确复制量断言，明确运行期 ktest 覆盖。#934 已补部分复制成功与 PageFault 分支的计数和游标断言，字节内容仍待验证。",
+        "#927 已合入 f0d568203，11 个 VM I/O 测试函数接入 Verus，恢复 Pod derive 并补充 cursor 返回值合同。补上仍注释的字节相等、可失败操作成功和精确复制量断言，明确运行期 ktest 覆盖。#934 当前 head 已撤下先前新增的若干 PageFault 断言，部分复制量、故障游标和字节保持仍需在现行测试核对。",
       ],
       accept: "以 VM_REPR 合同恢复内容相等、成功返回和精确复制量断言，并明确恢复哪些运行期 ktest；测试须调用实际 Pod/VM I/O API。测试通过只验收这些例子，成功/部分故障全链由 F_BYTES 验收；原始转换/Vec 外部规约逐条记录。",
       src: "§4" },
@@ -209,7 +209,7 @@ window.PLAN_BASE = {
     { id: "PIC", lane: "x86", face: "arch/x86/kernel/irq/pic.rs", title: "PIC：init_and_disable / set_mask",
       mods: ["arch/x86/kernel"],
       todo: [
-        "证明端口、向量偏移、级联参数与写入参数；init_and_disable 调用 set_mask(0xff, 0xff)，需补“写入序列使 PIC 处于全屏蔽”的协议合同。irq 模块在 main 未启用，文件是普通 Rust。",
+        "#969 用预期序列核对 set_mask 的十次写入，覆盖主从向量偏移 0x20/0x28、级联参数 4/2 和最终掩码。init_and_disable 传入两个 0xFF。待在 PCAT_COMPAT 路径接入调用，用器件协议说明写入后所有 IRQ 均被屏蔽。",
       ],
       accept: "交付 init_and_disable 的端口访问序列与全屏蔽设备状态，供 ROUTE_MAP 的 PCAT_COMPAT 分支使用；核对向量偏移和级联参数。无需等待 MMIO allocator；端口写入到设备状态的协议依赖 TB_HW_OPS。",
       src: "§5 阶段 B" },
@@ -230,8 +230,8 @@ window.PLAN_BASE = {
     { id: "PIT_CFG", lane: "x86", face: "arch/x86/timer/pit.rs", title: "PIT 配置（pit::init）",
       mods: ["arch/x86/timer"],
       todo: [
-        "pit::init 写 0x43 命令字，再向 0x40 写低、高字节；TIMER_FREQ = 1000，分频值 1193（1193182 / 1000），字节 0xA9、0x04——已按 main 源码核对。pit 模块在 main 注释，x86 timer 只启用 TIMER_FREQ。",
-        "IoPort<u8, WriteOnlyAccess> 的边界与访问标记已验收，恢复 pit::init 并证明命令和两次数据写的顺序与硬件协议。",
+        "#969 启用 pit::init，逐次消费三项预期写入。六种 OperatingMode 对应命令 0x30 至 0x3A 的偶数值，先写 0x43；1000 Hz 配置的分频值为 1193，再向 0x40 写 0xA9 和 0x04。",
+        "将模式与分频参数接到 BSP 方波回退和 TSC 的频率发生器校准；两条路径各自建立硬件周期条件。enable_interrupt 与 IRQ0 路由仍待接通。",
       ],
       accept: "交付 pit::init 的 0x43 命令与 0x40 低/高字节写入合同、1000 Hz 目标下 divisor=1193 的计算，供 PITIRQ/CAL_FREQ 使用；参数证明及硬件协议输入均需记录。真实产生中断的进展由 PITIRQ 在选定平台验收。",
       src: "§5 阶段 B" },
@@ -443,7 +443,7 @@ window.PLAN_BASE = {
     { id: "XSAVE", lane: "x86", face: "arch/x86/cpu", title: "XSAVE / FXSAVE 硬件保存与恢复",
       mods: ["arch/x86/cpu"],
       todo: [
-        "#959 的 save/load 保留原指令路径。用 FpuContext 的布局和字节范围，证明本核实际保存大小适配缓冲、写入边界、恢复掩码与镜像合法性，再核对寄存器内容往返。Once 缓存的长度上界与执行 CPU 所需的字节数须建立对应。",
+        "#959 的 save/load 保留原指令路径。用 FpuContext 的布局和字节范围，证明本核实际保存大小适配缓冲、写入边界、恢复掩码与镜像合法性，再核对寄存器内容往返。XSAVE 模式的 enabled_on 已关联缓存长度与本核当前 XCR0 要求的字节数；须从启动处建立 platform_xsave_area_size 前置。",
       ],
       accept: "交付用户/任务调用者可用的 FPU save/load 前置及状态保存恢复关系，核对对齐、mask、容量和已启用模式；用实际调用场景建立条件。指令语义属 TB_HW_OPS，CPU 特性初始化由 CPU_ENABLE 提供。",
       src: "§5 阶段 C" },
@@ -498,7 +498,7 @@ window.PLAN_BASE = {
     { id: "PCI_ENC", lane: "x86", face: "arch/x86/pci.rs", title: "x86 PCI 配置与 MSI-X 地址编码",
       mods: ["arch/x86/pci", "bus/pci"],
       todo: [
-        "主线 #706 启用 has_pci_bus、encode_as_port、MSI-X 重映射地址构造及 read32/write32。#919 的增量是从配置地址恢复 bus/device/function 字段，从重映射地址恢复索引低 16 位。把这些后置条件接到主线现有函数及调用处。",
+        "主线 #706 的精确返回公式已给出配置地址和 MSI-X 重映射编码。#919 已关闭；评审要求先找到需要恢复字段的具体调用者。在 PCI_CFG 或 PCI_MSIX 使用处按需要从公式推出位域性质。",
       ],
       accept: "在主线 PCI 配置访问处核对总线号与掩码后的设备号、功能号，在 MSI-X 消费点核对索引位。端口事务与设备状态归 PCI_CFG，中断投递另行验收。",
       src: "§4" },
@@ -507,7 +507,7 @@ window.PLAN_BASE = {
       todo: [
         "#895 的 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit 可复用。#706 主线使用 location 编码，但 PciDeviceId 声明和导出已注释。恢复设备 ID 与枚举或设备构造的调用，核对 getter 和位操作的真实消费者。",
       ],
-      accept: "交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。与 #706/#919 协调同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。",
+      accept: "交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。按 #706 主线核对同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。",
       src: "§4 · §7" },
     { id: "PCI_CFG", lane: "common", face: "bus/pci · arch/x86/pci", title: "配置空间读写（地址 · 宽度 · 对齐 · 失败）",
       mods: ["bus/pci", "arch/x86/pci"],
@@ -701,7 +701,7 @@ window.PLAN_BASE = {
     { id: "MM_PT", lane: "common", face: "mm/page_table · mm/vm_space", title: "通用页表与 VmSpace 映射接口补齐",
       mods: ["mm/page_table", "mm/vm_space"],
       todo: [
-        "覆盖 cursor map/unmap/protect/query、item 原始转换和 frame 所有权往返，消解或逐项登记现存 external/admit/assume；#855 的常量证明不覆盖这些接口。",
+        "#967 已将 protect_next、底层 Entry 和 VmSpace 的属性回调前置限定为良构原始项；核对用户配置及内核 AVAIL1 的 trackedness 保持。覆盖 cursor map/unmap/protect/query、item 原始转换和 frame 所有权往返，消解或逐项登记现存 external/admit/assume；#855 的常量证明不覆盖这些接口。",
       ],
       accept: "交付 MM_KVA、内核缺页和用户地址空间可用的映射变化、失败保持、释放义务；VmSpace::unmap 溢出 assume 不能以配置 PR 已合入关闭。局部逻辑映射可先行，最终回收由 TLB_FREE 接线，底层原子/PTE 操作属逐条核对的 TB_MM_RAW。",
       src: "r3 源码复核" },
@@ -787,7 +787,7 @@ window.PLAN_BASE = {
       mods: ["arch/x86/mod", "arch/x86/cpu"],
       todo: [
         "#959 的 enable_cpu_features 在给定 X86CpuRegisterOwner、XSAVE、叶 0xD、合法 XCR0 和 576..=4096 容量等前提下更新 CR0/CR4/EFER/XCR0 与 x87，返回绑定本核的 FpuInitialization。用三处 Once 的见证读取特性、掩码及保存区长度。",
-        "#959 仍基于 #920 的 CpuFeatureModel。主线 #961 已恢复探测合同，仍须从 BSP/AP 入口取得本核 owner，核对 XSTATE 能力和缓存大小。该分支的 enable_essential_features 要求 XCR0 可读，正文提及的 tracked_legacy_initialization 在已查 head 中缺失。",
+        "#959 仍基于 #920 的 CpuFeatureModel。主线 #961 已恢复探测合同，仍须从 BSP/AP 入口取得本核 owner，核对 XSTATE 能力和缓存大小。enable_essential_features 要求 XCR0 可读且该配置的硬件长度等于平台值。512 字节 legacy 路径仍需构造初始化见证。",
       ],
       accept: "将实际启动 CPU、寄存器权限和完成见证对应起来，在同核与跨核使用时分别说明配置兼容性。对采用 legacy FXSAVE 的机器补齐 512 字节模式的见证来源。",
       src: "r3 源码复核" },
@@ -823,7 +823,7 @@ window.PLAN_BASE = {
     { id: "SERIAL_QEMU_CMOS", lane: "x86", face: "arch/x86/{serial,qemu,device/cmos}", title: "串口 · QEMU 出口 · CMOS",
       mods: ["arch/x86/serial", "arch/x86/qemu", "arch/x86/device"],
       todo: [
-        "#966 启用 device::serial。给定 port ≤ u16::MAX − 6，SerialPort::new 返回七个寄存器的地址序列，第 i 项等于 port + i，各项均可作 u8 端口访问。init 的合同覆盖偏移 0 至 4，send/recv 使用偏移 0，line_status 使用偏移 5。",
+        "#966 已合入 2aa424ec0。给定 port ≤ u16::MAX − 6，SerialPort::new 保证地址序列恰为连续七项且每项适合 u8 访问。init、send、recv 和 line_status 的函数体使用 IoPort，最终版本将公开的地址保证集中在构造函数。",
         "接入尚未启用的 COM1 控制台时，须用 0x3F8 建立构造前置，核对 0x3F8..0x400 预留范围的独占性，以及发送循环何时观察到 OUTPUT_EMPTY。CMOS 的世纪寄存器取自 FADT；QEMU 退出经 x86_64::Port 写 0xF4，分别核对。",
       ],
       accept: "交付 x86 基础设备的访问/转换合同；轮询终止需显式硬件进展假设，exit_qemu 非返回结果由目标平台记录，CMOS 输入真实性属 TB_HW_OPS。不等待 PIT/APIC 完成。",
@@ -850,7 +850,7 @@ window.PLAN_BASE = {
       src: "§6" },
     { id: "BZ_SETUP", lane: "bzimage", face: "libs/linux-bzimage/setup", title: "setup 物理内存、入口与 BootParams 交接",
       mods: ["libs/linux-bzimage"],
-      todo: ["EFI 的 efi_phase_boot 将解码结果交给 load_elf，legacy 直接传入 payload。#948 的 EFI alloc_at 只保证正常返回的切片长度。核对零地址、算术界限、UEFI 分配失败或返回地址不符时的 panic，并把成功路径的物理页、段快照与 BootParams 对应。Legacy32 按自身分配实现核对。"],
+      todo: ["EFI 的 efi_phase_boot 将解码结果交给 load_elf，legacy 直接传入 payload。#948 的 EFI alloc_at 只保证正常返回的切片长度。核对零地址、算术界限、UEFI 分配失败或返回地址不符时的 panic，并把成功路径的物理页、段快照与 BootParams 对应。分支已在装载处列出各段分配可能失败的条件；Legacy32 核对 E820 可用 RAM、已用区间与空槽，EFI 核对固件返回的页地址。"],
       accept: "用选定镜像说明 PT_LOAD 最终驻留地址、入口可执行和 BootParams 有效的依据。EFI 路径另需解码输入合同；记录 alloc_at、固件服务与初始 CPU 状态的边界。",
       src: "r3 源码复核" },
     { id: "BOOT_COMMON", lane: "common", face: "boot/mod · lib", title: "通用 BootInfo 与 OSTD 入口编排",
@@ -954,7 +954,7 @@ window.PLAN_BASE = {
     {
       "id": "TB_HW_OPS",
       "provider": "CPUID / MSR / volatile / 汇编的外部规约",
-      "input": "主线的 APIC 与 AVX 探测依赖共享 CPUID 模型，TSC 回退时的叶 0x16 基频来自执行核。#963 的地址算术对任意 MSR 读值成立，物理地址对应实际设备仍依赖硬件输入。TSC 回退计算保留两条乘积上界假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。",
+      "input": "主线的 APIC 与 AVX 探测依赖共享 CPUID 模型，TSC 回退时的叶 0x16 基频来自执行核。#963 的地址算术对任意 MSR 读值成立，物理地址对应实际设备仍依赖硬件输入。TSC 回退计算保留两条乘积上界假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。#969 的预期序列限定软件写入顺序。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。",
       "consumers": [
         "APIC_PROBE",
         "APIC_RESERVE",
@@ -971,6 +971,8 @@ window.PLAN_BASE = {
         "LOC_CELL",
         "TASK_CTX",
         "HPET",
+        "PIT_CFG",
+        "PIC",
         "SERIAL_QEMU_CMOS",
         "SA_DMA",
         "DMA_MAP"
@@ -1060,12 +1062,12 @@ window.PLAN_BASE = {
         "BZ_SETUP",
         "BZ_IMG"
       ],
-      "record": "ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/amd64_efi/{alloc,decoder}.rs,x86/legacy_i386/alloc.rs} @f06ae789d。用同一次构建的嵌入文件、目标字长和实际分配核对段交接。setup 控制台直接使用 uart_16550::SerialPort（console.rs @b94500acd）。"
+      "record": "ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/amd64_efi/{alloc,decoder}.rs,x86/legacy_i386/alloc.rs} @124914ae2。用同一次构建的嵌入文件、目标字长和实际分配核对段交接。setup 控制台直接使用 uart_16550::SerialPort（console.rs @b94500acd）。"
     }
   ],
 
   /* Reviewed upstream PRs without a separate implementation assignment. */
-  reviewedCandidates: [{"n":965,"head":"3026ba02472262ca08b81a1f87a36df52193391f","reviewedAt":"2026-11-23","note":"仅修改代码审阅技能及其参考资料。"},
+  reviewedCandidates: [{"n":965,"head":"abc2d33ca40a6d560dad9e9071ee15226c2ac134","reviewedAt":"2026-11-24","note":"仅修改代码审阅技能及其参考资料。"},
     {"n":930,"head":"5b25275eda60df30500cc5d2aea70c0e1d0f97bb","reviewedAt":"2026-11-16","note":"已合入 main 8e681282d19b29bdc1b6e715930fe9224a0c88dc；verified_bitflags 宏及 x86 页表/PE 头调用改为关联常量，移除旧 lint 与标注；pe_header 的长度/字段合同保留。该实现更新不增加依赖；涉及 flags 的开放分支需对齐本基线。"},
     {"n":933,"head":"d99455d023bbfa4834ebf02cbeea95244dd45148","reviewedAt":"2026-11-18","note":"仅更新审阅技能中对证明角色与资源记账的检查，没有修改验证对象。"},
     {"n":938,"head":"bc9132d66d943df4e039630d7dceadf3d03299fa","reviewedAt":"2026-11-18","note":"修改 when_used_as_spec 编码指南，没有变更合同或调用者。"},
@@ -1101,9 +1103,9 @@ window.PLAN_BASE = {
   ],
   /* Offline fallback: dashboard snapshot at the document baseline (machine-filled). */
   baseline: {
-    date: "2026-11-23T11:39:19+08:00",
-    sha: "b94500acd5ecf9ff19354332252ea7a95f7a90df",
-    totals: {"total": 18503, "verified_exec": 6389, "trusted": 732, "unverified": 9086, "unplanned": 2296, "verified_apis": 347},
+    date: "2026-11-23T20:17:41+08:00",
+    sha: "2aa424ec0f25fcbe142f6339e51c75024b77ef94",
+    totals: {"total":18503,"verified_exec":6446,"trusted":732,"unverified":9029,"unplanned":2296,"verified_apis":349},
     apis: {"boot": 10, "bus": 5, "cpu": 21, "io": 11, "mm": 191, "src": 1, "sync": 87, "task": 9, "timer": 6, "trap": 2, "util": 4},
     cols: ["group", "child", "total", "verified_exec", "trusted", "unverified", "unplanned", "spec", "proof"],
     rows: [
@@ -1137,14 +1139,14 @@ window.PLAN_BASE = {
       ["arch","riscv/trap",58,0,0,58,0,0,0],
       ["arch","x86/boot",582,0,0,0,582,0,0],
       ["arch","x86/cpu",519,0,0,519,0,0,0],
-      ["arch","x86/device",48,0,0,48,0,0,0],
+      ["arch","x86/device",48,41,0,7,0,22,0],
       ["arch","x86/ex_table",18,13,5,0,0,14,13],
       ["arch","x86/io",32,2,0,30,0,0,0],
       ["arch","x86/iommu",1072,0,0,0,1072,0,0],
       ["arch","x86/irq",56,0,0,56,0,0,0],
-      ["arch","x86/kernel",934,532,0,402,0,311,223],
+      ["arch","x86/kernel",934,532,0,402,0,303,224],
       ["arch","x86/mm",156,132,24,0,0,459,382],
-      ["arch","x86/mod",108,0,0,108,0,0,0],
+      ["arch","x86/mod",108,16,0,92,0,2,0],
       ["arch","x86/pci",26,26,0,0,0,9,0],
       ["arch","x86/qemu",15,0,0,15,0,0,0],
       ["arch","x86/serial",22,0,0,22,0,0,0],
@@ -1178,13 +1180,13 @@ window.PLAN_BASE = {
       ["mm","frame",1425,771,60,594,0,1325,1307],
       ["mm","heap",211,0,0,211,0,0,0],
       ["mm","io",318,310,8,0,0,622,260],
-      ["mm","kspace",280,112,57,111,0,387,360],
+      ["mm","kspace",280,112,57,111,0,388,356],
       ["mm","mod",16,16,0,0,0,13,80],
       ["mm","page_prop",28,28,0,0,0,17,34],
-      ["mm","page_table",1811,837,275,699,0,2249,3241],
+      ["mm","page_table",1811,837,275,699,0,2253,3241],
       ["mm","test",586,252,0,334,0,24,276],
       ["mm","tlb",169,38,89,42,0,33,0],
-      ["mm","vm_space",174,147,27,0,0,341,587],
+      ["mm","vm_space",174,147,27,0,0,342,587],
       ["panic","panic",71,0,0,71,0,0,0],
       ["smp","smp",53,0,0,53,0,0,0],
       ["sync","guard",24,22,0,2,0,0,0],
