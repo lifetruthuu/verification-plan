@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-24T22:31:58.406Z",
+  "generatedAt": "2026-11-25T08:45:05.622Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -144,25 +144,25 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "未知"
     },
     {
       "n": 802,
       "kind": "open",
       "draft": false,
-      "head": "fa3dbab608d15cc740c7bc47c979db5235e07428",
+      "head": "20e6c1e33513ca57d6d68e211bf1bdead3739dae",
       "title": "prove: EarlyFrameAllocator::alloc",
       "body": "This PR is the groundwork for verifying `ostd/src/cpu/local`: CPU-local storage is allocated in the early boot phase through `early_alloc`, and the cpu-local proofs consume exactly its (now verified) per-call contract. The `cpu/local` verification itself follows in a separate PR.\r\n\r\n## Limitations (trusted boundaries)\r\n\r\n- `new` is trusted (`external_body`): the region selection and its tie to the `early_allocator_region_1/2` models — hence the entry state of the type invariant — rest on trust.\r\n- `early_alloc`'s body is trusted: the per-call properties are verified, the cross-call progression (successive allocations never overlap) is trusted, provided by `alloc`'s verified monotone tails; the mutex-guarded global state is not modeled.\r\n- The `core::alloc::Layout` model is TCB; vstd has no value-level Layout model today (only the pair-level `valid_layout`) — if upstream gains one, the local model should converge or be removed.\r\n- `axiom_early_regions_wf` is declared but not yet consumed by any checked proof; either it gets a call site or it is removed in a follow-up.\r\n- The rest of the frame allocator (the global-frame-allocator family and metadata init) remains parked and unverified; only the early boot path is in scope.",
       "url": "https://github.com/asterinas/vostd/pull/802",
-      "updatedAt": "2026-11-10T03:44:09Z",
+      "updatedAt": "2026-11-25T06:48:08Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -288,26 +288,26 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 883,
       "kind": "open",
       "draft": false,
-      "head": "1f150558aa2c20bb2a44b5e2a29f66be4e19d680",
+      "head": "9883959b7a9aeffe0b7e46ad85dd0ad743b420da",
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-24T09:00:31Z",
+      "updatedAt": "2026-11-25T08:23:57Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "FAILURE",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "失败"
     },
     {
       "n": 886,
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -745,19 +745,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 934,
       "kind": "open",
       "draft": false,
-      "head": "e04dc39a2e4d3099eea77962de964b6d8b3543df",
+      "head": "5ff6c30e52c3619962a37c446d5d0fd540974708",
       "title": "prove: verify seven frame ktests",
       "body": "## Summary\n\nBring seven frame-management test functions into Verus verification. Cover allocation, cloning, release, borrowing, raw-pointer round trips, single-frame segment conversion, and linked-list push/pop operations.\n\nVerification covers successful allocation paths. Metadata-content assertions are retained for the migrated tests, while unsupported tests remain commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Frame allocation and reference management | `frame_allocation`, `frame_clone`, `frame_drop` |\n| Borrowing and raw-pointer permissions | `frame_ref_preserves_refcnt`, `frame_impls_non_null_ptr` |\n| Frame-to-segment conversion and iteration | `frame_to_segment` |\n| Linked-list insertion, traversal, and removal | `linked_list_push_pop` |\n\nThe frame tests check metadata values, reference counts, sizes, and addresses where supported. The raw-pointer test preserves the original `into_raw` → `from_raw` → `raw_as_ref` order, obtaining a borrowed pointer and reading permission from the restored frame before calling `raw_as_ref`.\n\nThe segment test proves that conversion preserves the frame's address, produces a page-sized segment, and yields the original metadata value during iteration.\n\nThe linked-list test retains all assertions on its successful allocation path, including cursor traversal in the order `2 → 1 → 3`, the terminal cursor state, pop results, and list sizes.\n\n## 2. Metadata representations\n\nAdd separate concrete representations for typed and untyped metadata carrying a `u32` value. Share their structure and representation implementations through `define_u32_frame_meta!`, while keeping their enum variants and typed/untyped trait behavior distinct.\n\nThe tests reuse these concrete types through `MockFrameMeta` and `MockUFrameMeta` aliases. The metadata model does not depend on the test module, and the original `Untyped` variant remains unchanged.\n\nExtend `MetaSlotSmall` to represent the linked-list test metadata. Use compact model layouts to retain the existing 64-byte size and 8-byte alignment checks for `MetaSlot`.\n\n## 3. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `Frame::borrow` | Specify that borrowing preserves the metadata-slot permission, supporting reference-count checks through the borrowed handle. |\n| `UniqueFrame::try_from_shared` | Expose the successful conversion's permissions, reference-count transition, and preservation of unrelated slots. |\n| Linked-list queries and cursor movement | Borrow owner permissions rather than consuming them, so callers can continue using the list or cursor. |\n| Linked-list insertion and removal | Specify metadata-value ordering and preservation of unrelated region entries. |\n| `CursorMut::current_meta` | Relate the returned metadata to the current element and preserve the list/region invariants after the mutable borrow ends. |\n| Frame-to-segment conversion | Add a proved bridge exposing the converted segment's invariant, address, size, and singleton iteration sequence without opening its internal representation. |\n| Segment iteration | Expose the finite iteration metric and add the test's metadata/permission invariant. |",
       "url": "https://github.com/asterinas/vostd/pull/934",
-      "updatedAt": "2026-11-24T02:55:50Z",
+      "updatedAt": "2026-11-25T08:02:23Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "FAILURE",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "失败"
     },
     {
       "n": 935,
@@ -767,14 +767,14 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Add initial specs for TLB",
       "body": "As the title shows.",
       "url": "https://github.com/asterinas/vostd/pull/935",
-      "updatedAt": "2026-11-18T18:00:39Z",
+      "updatedAt": "2026-11-25T06:20:33Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -846,20 +846,20 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 942,
-      "kind": "open",
+      "kind": "closed",
       "draft": false,
       "head": "3b0821b71b068164347e7d52a8624daf17bd94db",
       "title": "prove: verify kernel test result classification",
       "body": "~~Extract result classification from `KtestItem::run` into a verified helper in the same file, covering panic expectations and exact message matching while preserving runtime behavior. Panic capture and payload downcasting remain unverified.~~\r\nVerify how KtestItem::run decides whether a kernel test passes based on whether it panics as expected and, when a specific panic message is expected, whether it matches exactly. Panic capture and payload downcasting remain outside the proof.\r\n",
       "url": "https://github.com/asterinas/vostd/pull/942",
-      "updatedAt": "2026-11-18T09:19:36Z",
+      "updatedAt": "2026-11-25T03:26:12Z",
       "mergedAt": null,
-      "closedAt": null,
+      "closedAt": "2026-11-25T03:26:12Z",
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -925,19 +925,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "124914ae2e8d34cbef64a0f9f853a0cf3902eb6d",
+      "head": "808b77eea80c99601fbba4cc92eced1988ad1987",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-24T12:41:40Z",
+      "updatedAt": "2026-11-25T08:27:18Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "FAILURE",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "失败"
     },
     {
       "n": 951,
@@ -959,20 +959,20 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 952,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
-      "head": "484a329664870e750463170f60d4c94bebe83667",
+      "head": "9287da829800aab6cd715d78c43c740591b5e4e2",
       "title": "Sync the IRC11 vstd patch with upstream verus irc11",
       "body": "Port the weak-memory core of verus-lang/verus@irc11 (d2b273e8):\n\nLocal changes on top of upstream:\n\n- Fix `compare_exchange{,_weak}`: on failure, `update_fail` now receives the value actually read rather than `current`. Upstream's version lets a failed CAS prove `false`.\n- Also make the legacy `cell::PointsTo` and `raw_ptr::PointsToRaw` non-`Objective`, and keep the bounded tuple/`Option` and `GhostVar` impls.\n- Keep the SC atomics (atomic.rs, atomic_ghost.rs) available under weak-memory so OSTD still builds; upstream compiles them out.\n\nBecause SC atomics model no views, the locks and owners that publish non-atomic permissions through them keep hand-written `Objective` impls. Mark each one as a trusted assumption with a TODO to port it to `atomic_weak`, and wrap `Mutex`'s cell permission in `MutexPerm` to do the same for `Mutex`. Restate the vstd_extra pointer wrapper's `compare_exchange/swap_release` with `update_success/update_fail`, and relax its examples to upstream's weaker post-access timestamp facts.\n\nAdd rejection tests for publishing a pcell permission through an atomic invariant and for proving false from a failed `compare_exchange`, and run them in the IRC11 workflow.",
       "url": "https://github.com/asterinas/vostd/pull/952",
-      "updatedAt": "2026-11-18T19:01:33Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
+      "updatedAt": "2026-11-25T07:35:38Z",
+      "mergedAt": "2026-11-25T07:35:38Z",
+      "closedAt": "2026-11-25T07:35:38Z",
+      "mergeCommit": "5d1da312c748254f82bb3d7cb57f5b41ba93209a",
       "reviewDecision": null,
       "ciState": "FAILURE",
       "review": "无汇总结论",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -1008,7 +1008,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1026,7 +1026,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1080,7 +1080,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1181,33 +1181,33 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Dyn typing patches",
       "body": "This patch introduces a series of patches to Verus that enable dynamic typing. I have also extended `dv` to enable automatic patch application. Patches are numbered and intended to apply in order. The reason that I use multiple small patches instead of one big one is to streamline the process of upstreaming their contents. The patches are as follows:\n\n1. `0001-verus-dyn-supertrait-impls.patch` amends Verus' trait conflict checking to allow `dyn T` when `T` has a supertrait.\n2. `0002-verus-dyn-imported-traits.patch` fixes a bug in Verus' dyn-compatibility check, in which it would reject supertraits defined outside of the current crate, due to not importing the full context.\n3. `0003-verus-dyn-reject-diagnostics.patch` splits the error message for unsupported `dyn` types to clarify which features are lacking for a given case.\n4. `0004-verus-type-identity.patch` gives Verus a new `TypeTag` primitive and emits z3 axioms constructing the tags of each given type and asserting that upcasting an object to a `dyn` type preserves its tag.\n5. `0005-verus-any-surface.patch` declares `core::any::Any` so that `dyn Any` is a legal type, and specifies `Any::is` and `Any::dyn_value`, using `TypeTag`s as the representation for `Any`'s `TypeId` type.\n\nAn additional optional patch, `verus-dyn-spec-fn-generic.patch`, extends the range of a trait's spec functions so that if `foo = bar.to_dyn::<T>()`, spec-level facts about `bar` also apply to `foo`. Currently my verification does not depend on this, so I removed it from the critical path.\n\nOnce this PR is merged and stable, I will have a follow-up that is the actual proof work built on it.",
       "url": "https://github.com/asterinas/vostd/pull/968",
-      "updatedAt": "2026-11-24T03:22:04Z",
+      "updatedAt": "2026-11-25T08:35:11Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": null,
+      "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
-      "review": "无汇总结论",
-      "gate": "UNSTABLE",
+      "review": "需修改",
+      "gate": "BLOCKED",
       "ci": "失败"
     },
     {
       "n": 969,
       "kind": "open",
       "draft": false,
-      "head": "be886c880569fb4ba115a819b3911a811773ec14",
+      "head": "c76cd2cdb920c53a7f21988c38dc54dce48538b9",
       "title": "prove: verify x86 PIT configuration and 8259 PIC initialization",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/969",
-      "updatedAt": "2026-11-24T13:52:16Z",
+      "updatedAt": "2026-11-25T08:37:01Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "FAILURE",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "失败"
     }
   ],
   "candidates": []
