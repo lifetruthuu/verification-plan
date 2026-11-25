@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-25T08:45:05.622Z",
+  "generatedAt": "2026-11-25T21:47:22.354Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "失败"
     },
     {
@@ -288,26 +288,26 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
       "n": 883,
       "kind": "open",
       "draft": false,
-      "head": "9883959b7a9aeffe0b7e46ad85dd0ad743b420da",
+      "head": "a41d9e00096774b64fc57cdfb9c42927fe233fbc",
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-25T08:23:57Z",
+      "updatedAt": "2026-11-25T13:37:01Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "FAILURE",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "失败"
+      "ci": "成功"
     },
     {
       "n": 886,
@@ -331,18 +331,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 887,
       "kind": "open",
       "draft": false,
-      "head": "75d5d955855d555a8c64e58539f1e3a16f82033d",
+      "head": "3fd0fe2d571bf7c70ffd50c3d49b4d833242dbe7",
       "title": "prove x86 context data exceptions",
       "body": "## Summary\r\n\r\nEnable the x86 user-context data path and verify that register, pointer, TLS, and exception updates change only the requested field.\r\n\r\n- `UserContext` getters and setters, `take_exception`, and the `UserContextApi` instruction-pointer, stack-pointer, and trap-metadata operations preserve every other saved register, the trap number, the error code, and the pending exception.\r\n- `CpuException::type_` covers every variant. `is_cpu_exception` accepts vectors 0 through 31. `CpuExceptionType::is_fault_or_trap` classifies fault and trap variants.\r\n- `activate_tls_pointer` stays `external_body`: it is the FSBASE write, and this change supplies no hardware-state postcondition.\r\n- Exception construction, user-mode execution, FPU save/restore, trap dispatch, and `UserMode` stay out until their hardware and scheduling contracts exist.",
       "url": "https://github.com/asterinas/vostd/pull/887",
-      "updatedAt": "2026-11-23T09:45:25Z",
+      "updatedAt": "2026-11-25T09:37:27Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -745,19 +745,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 934,
       "kind": "open",
       "draft": false,
-      "head": "5ff6c30e52c3619962a37c446d5d0fd540974708",
+      "head": "e861fc864cdfbc6d3fad32361498055c010207c2",
       "title": "prove: verify seven frame ktests",
       "body": "## Summary\n\nBring seven frame-management test functions into Verus verification. Cover allocation, cloning, release, borrowing, raw-pointer round trips, single-frame segment conversion, and linked-list push/pop operations.\n\nVerification covers successful allocation paths. Metadata-content assertions are retained for the migrated tests, while unsupported tests remain commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Frame allocation and reference management | `frame_allocation`, `frame_clone`, `frame_drop` |\n| Borrowing and raw-pointer permissions | `frame_ref_preserves_refcnt`, `frame_impls_non_null_ptr` |\n| Frame-to-segment conversion and iteration | `frame_to_segment` |\n| Linked-list insertion, traversal, and removal | `linked_list_push_pop` |\n\nThe frame tests check metadata values, reference counts, sizes, and addresses where supported. The raw-pointer test preserves the original `into_raw` → `from_raw` → `raw_as_ref` order, obtaining a borrowed pointer and reading permission from the restored frame before calling `raw_as_ref`.\n\nThe segment test proves that conversion preserves the frame's address, produces a page-sized segment, and yields the original metadata value during iteration.\n\nThe linked-list test retains all assertions on its successful allocation path, including cursor traversal in the order `2 → 1 → 3`, the terminal cursor state, pop results, and list sizes.\n\n## 2. Metadata representations\n\nAdd separate concrete representations for typed and untyped metadata carrying a `u32` value. Share their structure and representation implementations through `define_u32_frame_meta!`, while keeping their enum variants and typed/untyped trait behavior distinct.\n\nThe tests reuse these concrete types through `MockFrameMeta` and `MockUFrameMeta` aliases. The metadata model does not depend on the test module, and the original `Untyped` variant remains unchanged.\n\nExtend `MetaSlotSmall` to represent the linked-list test metadata. Use compact model layouts to retain the existing 64-byte size and 8-byte alignment checks for `MetaSlot`.\n\n## 3. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `Frame::borrow` | Specify that borrowing preserves the metadata-slot permission, supporting reference-count checks through the borrowed handle. |\n| `UniqueFrame::try_from_shared` | Expose the successful conversion's permissions, reference-count transition, and preservation of unrelated slots. |\n| Linked-list queries and cursor movement | Borrow owner permissions rather than consuming them, so callers can continue using the list or cursor. |\n| Linked-list insertion and removal | Specify metadata-value ordering and preservation of unrelated region entries. |\n| `CursorMut::current_meta` | Relate the returned metadata to the current element and preserve the list/region invariants after the mutable borrow ends. |\n| Frame-to-segment conversion | Add a proved bridge exposing the converted segment's invariant, address, size, and singleton iteration sequence without opening its internal representation. |\n| Segment iteration | Expose the finite iteration metric and add the test's metadata/permission invariant. |",
       "url": "https://github.com/asterinas/vostd/pull/934",
-      "updatedAt": "2026-11-25T08:02:23Z",
+      "updatedAt": "2026-11-25T12:14:41Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "FAILURE",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "失败"
+      "ci": "成功"
     },
     {
       "n": 935,
@@ -774,7 +774,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -835,19 +835,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 940,
       "kind": "open",
       "draft": true,
-      "head": "f7becca72affdc5c3b99654bf7d7e4c5218b1c23",
-      "title": "prove: Verify RISC-V ISA extension parsers",
-      "body": "Enable the RISC-V CPU extension module and verify that both device-tree ISA parsers return exactly the flags matched by the existing extension table. Replace unsupported string and iterator operations with equivalent byte scans. The string parser requires valid UTF-8; the list parser accepts arbitrary bytes.\r\n\r\nComplete the shared `bitflags!` contracts for name lookup, known and unknown bits, and compound assignments.",
+      "head": "57162bd8c7511bc0a866ff078f527453a6079f23",
+      "title": "prove: verify RISC-V ISA extension parsers",
+      "body": "## Summary\r\n\r\nVerify the RISC-V ISA extension parsers (`parse_isa_string` and `parse_isa_extensions_list`) and the `EXTENSION_TABLE` lookup table in `ostd::arch::riscv::cpu::extension`, backed by centralized `fdt::node::NodeProperty` external specifications in `vstd_extra::external::fdt` and the existing verified `bitflags` crate.\r\n\r\n## Specification Models & Contracts\r\n\r\n| Item | What It Provides |\r\n| --- | --- |\r\n| `ExNodeProperty<'a>` / `NodeProperty::as_str` (`vstd_extra::external::fdt`) | Exposes `fdt::node::NodeProperty<'a>` (`name`, `value`) and specifies `NodeProperty::as_str` against `fdt 0.1.5`: returns `Some(s)` iff `valid_utf8(self.value@)`, with `s.spec_bytes()` being the prefix of `self.value@` stripped of all trailing NUL (`0u8`) bytes; annotated with `opens_invariants none` and `no_unwind`. |\r\n| `trimmed` / `trimmed_len` (private `spec fn`) | Characterizes the prefix length obtained by stripping trailing `0u8` bytes, matching `NodeProperty::as_str`. |\r\n| `isa_start` / `first_end` (private `spec fn`) | Models the optional `\"rv32\"` / `\"rv64\"` 4-byte prefix skip and the end of the first `_`-delimited segment (single-letter extensions). |\r\n| `name_at` / `has_name` (private `spec fn`) | Specifies an occurrence of byte sequence `name` within `b[lo..hi)` bounded by `delim` (or range boundaries), or at any position when `delim` is `None`. |\r\n| `recognized` (private `spec fn`) | Distinguishes the two device-tree formats: `riscv,isa` (single-byte names in `[isa_start, first_end)` or `_`-delimited names after `first_end`) vs. `riscv,isa-extensions` (NUL-delimited names across the full byte slice). |\r\n| `bits_for` / `table_bits` (private `spec fn`) | Canonical `Seq::fold_left` bitwise union of `e.flag.bits()` over all entries in `extension_table()` matching `recognized`. |\r\n| `extension_table()` (private opaque `spec fn`) | Macro-generated `Seq<ExtensionData>` matching `EXTENSION_TABLE`, paired with `lemma_extension_table_names_wf` and `lemma_extension_table_names_unique` (proving all 82 names are non-empty, `<= usize::MAX`, free of `0u8`/`b'_'`, and pairwise distinct). |\r\n\r\nAll parser specification helpers remain private to `ostd::arch::riscv::cpu::extension`. `IsaExtensions` uses the existing verified `bitflags` crate (`empty`, `union`, `bits`) without modifying `verified_libs/bitflags`.\r\n\r\n## Verified Scope\r\n\r\n| Function / Entry | Module | Contract / Scope |\r\n| --- | --- | --- |\r\n| `parse_isa_string` | `ostd::arch::riscv::cpu::extension` | `requires allowed_to_panic_if(!valid_utf8(isa.value@))`; `ensures valid_utf8(isa.value@)` and `result.bits() == table_bits(isa.value@, true)`. Preserves the original panic-on-invalid-UTF-8 behavior instead of strengthening preconditions on untrusted FDT bytes. |\r\n| `parse_isa_extensions_list` | `ostd::arch::riscv::cpu::extension` | Unconditionally verified for arbitrary byte slices; `ensures result.bits() == table_bits(isa_extensions.value@, false)`. |\r\n| `EXTENSION_TABLE` | `ostd::arch::riscv::cpu::extension` | Fixed-size `exec const [ExtensionData; N]` (`N = 82`, counted by `@one` in `define_isa_extensions!`) with `ensures EXTENSION_TABLE@ == extension_table()`. |\r\n| `init` / `has_extensions` / `GLOBAL_ISA_EXTENSIONS` | `ostd::arch::riscv::cpu::extension` | **Unverified** — kept commented out (deferred until `DEVICE_TREE` and `spin::Once` integration). |\r\n\r\n## Executable Code Changes & Justifications\r\n\r\nPer `AGENTS.md`, executable changes are kept minimal, behavior-preserving, and documented next to their original code in `Origin Rust:` blocks:\r\n\r\n- **Enable `arch::riscv::cpu::extension` in place**: Uncomments `pub(crate) mod cpu;` in `ostd/src/arch/riscv/mod.rs` (preserving `pub(crate) mod pci;`) and `pub mod extension;` in `ostd/src/arch/riscv/cpu/mod.rs`, keeping `cpu::context`, `cpu::local`, and other unverified RISC-V submodules disabled.\r\n- **Verified `bitflags` import and `union` (`use bitflags::bitflags;`, `extensions = extensions.union(ext_data.flag)`)**: Switches from `bitflags_upstream` to the verified `bitflags` crate. Replaces `|=` with `.union(...)` because `BitOrAssign` contracts for `bitflags` are split out into a separate follow-up PR; runtime bit semantics are identical.\r\n- **`isa.as_str().unwrap()` -> `isa.as_str().unwrap_or_panic()`**: Retains the exact `NodeProperty::as_str` call (backed by `vstd_extra::external::fdt`) and switches `.unwrap()` to `UnwrapOrPanic::unwrap_or_panic()` because `vstd`'s `Option::unwrap` requires `self.is_some()`, which would force `requires valid_utf8(isa.value@)` on `parse_isa_string` and block future callers reading raw device-tree data. Both panic iff `as_str()` returns `None` (`!valid_utf8(isa.value@)`).\r\n- **`str::starts_with` / `str::split('_')` in `parse_isa_string`**: Replaced with `bytes.starts_with(&[b'r', b'v', b'3', b'2']) || bytes.starts_with(&[b'r', b'v', b'6', b'4'])` and bounded `b'_'` scans + `str::split_at`, while keeping the original `ext_start >= isa_str.len()` early return, `for ch in first_part.chars()`, and both `EXTENSION_TABLE.iter().find(...)` lookups intact.\r\n  - *Why not specify the original callees directly*: `str::starts_with` and `str::split` are generic over the unstable `core::str::pattern::Pattern` trait and `core::str::Split` has no `IteratorSpec` in vendored `vstd`; `str` range indexing (`&isa_str[a..b]`) goes through `ExIndex::index` which carries no postcondition in `vstd` (and `SliceIndex::index` requires unstable `slice_index_methods`), whereas `str::split_at` is stable, O(1), and fully specified. Since `b'_'` and `\"rv32\"`/`\"rv64\"` are ASCII, byte-level prefix checks and `b'_'` splits coincide identically with UTF-8 char boundaries and `str::split('_')`.\r\n- **`slice::split(|&b| b == 0)` in `parse_isa_extensions_list`**: Replaced with a bounded `0u8` scan while keeping `!str.is_empty()`, `core::str::from_utf8(str)`, and `EXTENSION_TABLE.iter().find(...)` intact.\r\n  - *Why not specify `slice::split` directly*: `core::slice::Split` lacks an `IteratorSpec` in vendored `vstd`. The bounded scan visits the exact same NUL-delimited sub-slices in order.\r\n- **`EXTENSION_TABLE` slice -> fixed-size array `exec const`**: Changed from `const EXTENSION_TABLE: &[ExtensionData]` to `exec const EXTENSION_TABLE: [ExtensionData; N]` so Verus attaches `ensures EXTENSION_TABLE@ == extension_table()` while preserving static table storage and `EXTENSION_TABLE.iter()`.\r\n- **Centralized `fdt` external spec (`vstd_extra::external::fdt`)**: Placed `ExNodeProperty` and `assume_specification[NodeProperty::as_str]` in `verified_libs/vstd_extra/src/external/fdt.rs` with `fdt = \"=0.1.5\"` in `verified_libs/vstd_extra/Cargo.toml` (matching `ostd`'s existing lockfile version with zero transitive dependencies, and pinned with `=` like `acpi = \"=5.2.0\"` so patch updates cannot silently invalidate the audited boundary).\r\n\r\n## Trusted Boundaries & Deferred Scope\r\n\r\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `admit()`, `assume()`, `#[verifier::external_body]`, `allowed_to_panic_if(true)`, or `#[verifier::rlimit]`. The only new trusted boundary is `verified_libs/vstd_extra/src/external/fdt.rs` (`ExNodeProperty` and `assume_specification[NodeProperty::as_str]`), audited directly against `fdt 0.1.5` (`src/node.rs:495-497`).\r\n- **Bitflags improvements split out**: Unrelated `verified_libs/bitflags/src/lib.rs` contract additions (`from_name`, `*AssignSpecImpl`, open `known_bits`/`unknown_bits`, etc.) from the earlier draft have been removed from this PR and separated into an independent follow-up branch/PR (`prove: complete verified bitflags contracts`).\r\n- **Deferred / out of scope**:\r\n  - `init()`, `has_extensions()`, and `GLOBAL_ISA_EXTENSIONS` remain commented out pending `DEVICE_TREE` and `spin::Once` verification on RISC-V.\r\n  - `ostd::arch::riscv::cpu::{context, local}` and `ostd::arch::riscv::{boot, device, iommu}` remain disabled.",
       "url": "https://github.com/asterinas/vostd/pull/940",
-      "updatedAt": "2026-11-17T13:00:26Z",
+      "updatedAt": "2026-11-25T21:20:22Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
-      "ci": "成功"
+      "gate": "UNSTABLE",
+      "ci": "进行中"
     },
     {
       "n": 942,
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -925,19 +925,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "808b77eea80c99601fbba4cc92eced1988ad1987",
+      "head": "d0e2818f1ee2ec08b7df5f24a56f7c49d6337ab6",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-25T08:27:18Z",
+      "updatedAt": "2026-11-25T10:27:26Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "FAILURE",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "失败"
+      "ci": "成功"
     },
     {
       "n": 951,
@@ -997,47 +997,47 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 954,
       "kind": "open",
       "draft": false,
-      "head": "504dbddeddd05d8a1d770ac277fd97eb74a33e1e",
+      "head": "985ba190502d7ec68310ac3c92c753820aadf6a4",
       "title": "prove: specify the x86 context switch FFI contract",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/954",
-      "updatedAt": "2026-11-24T03:25:15Z",
+      "updatedAt": "2026-11-25T09:26:53Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
       "n": 955,
       "kind": "open",
       "draft": false,
-      "head": "02eae00e632f51556a2cb693e9eb4c95850d645a",
+      "head": "c1e430fcd5557b42b2f052a81238253da578ab69",
       "title": "prove: x86 idt construction",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/955",
-      "updatedAt": "2026-11-24T02:49:43Z",
+      "updatedAt": "2026-11-25T11:55:19Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
       "n": 956,
       "kind": "open",
       "draft": false,
-      "head": "394e534a11d51d48fb12e930a05d94ad69407f9a",
+      "head": "20d189ccbbd851af29f31dbbb883447111c3b495",
       "title": "prove: verify EFI setup relocation validation",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/956",
-      "updatedAt": "2026-11-24T02:58:36Z",
+      "updatedAt": "2026-11-25T09:19:30Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1069,18 +1069,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 959,
       "kind": "open",
       "draft": false,
-      "head": "25d3d1dbf43ff8b22902ea963d36e79c74bdf480",
+      "head": "7419886cc7be64ae048c88637822f4ceb2c6c2f6",
       "title": "prove: Verify x86 FPU initialization and context representation",
-      "body": "## Summary\n\nVerify x86 CPU feature/FPU initialization and the x86 FPU context representation in `ostd::arch::x86`, backed by centralized external register and `spin::Once` specifications in `vstd_extra::external::x86` and a strengthened `Pod::as_bytes_mut` contract in `ostd-pod`.\n\n## Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `FpuInitialization` (tracked) | Records a configured CPU together with completed initialization witnesses for `CPU_FEATURES`, `XSTATE_MAX_FEATURES`, and `XSAVE_AREA_SIZE` (optional for non-XSAVE); exposes `len`, `supported_mask`, `uses_xsave`, `configured_cpu`, `configured_xcr0`, and `enabled_on`. |\n| `FxSaveState` / `FpuState` (ghost) | Field-level model of the FXSAVE and XSAVE areas. `initialized(features)` specifies Intel SDM Table 11-1 reset values; `copied_from` specifies which regions `clone` copies and which reserved/tail regions it zeroes. |\n| `FpuContext` | Closed `type_inv` bounding `area_size` (`512` or `576..=4096`), closed `len`/`bytes`/`state`, open `has_initial_state` and `copied_from`, and public byte-equality lemmas (`lemma_initial_state_bytes`, `lemma_copied_bytes`). |\n| `X86CpuRegisterOwner` (tracked) | Exclusive per-CPU authority over CR0/CR4/XCR0/EFER and x87 registers (`X86CpuSnapshot`, `kernel_cpu`, `xcr0_readable`). Intentionally provides no constructor to forge hardware bindings. |\n| `FpuOnce<T, F>` | Wrapper over native `spin::Once`: the initializer closure must prove a `ValueInvariant`; `call_once` returns a `FpuOnceInitialized` witness consumed by subsequent `get_initialized` reads. `FpuOnce::get` stays outside `verus!` so its attribute contract is processed once without branch-specific warnings. |\n| `Pod::as_bytes_mut` | Adds `r@ == pod_bytes(*old(self))` so mutable byte views relate to the caller's initial field state. |\n\nFXSAVE construction is covered by a checked legacy initialization witness (`FpuInitialization::tracked_legacy_initialization`) derived from an existing CPU owner and a completed feature-cache witness. It requires configured FPU/FXSR and CR0/CR4 facts, yields length `512` and features `0`, and requires no XCR0 read. XSAVE construction retains XCR0 and bounded-storage obligations. The feature-cache invariant (`CpuFeaturesInvariant`) requires FPU support without ruling out the original non-XSAVE constructor branches.\n\nThe proofs establish byte equality for equal initial states and for clones whose source already has the reserved words and inactive tail zeroed. Arbitrary clones preserve the original reserved-word and inactive-tail clearing behavior. No additional byte-encoding axioms are introduced; the representation mapping and shared structural byte lemma remain private, while `FpuState::extended_state_area` reuses `MAX_XSAVE_AREA_SIZE` and public bounds are derived from its array length (`extended_state_area@.len() + 512 + 64`).\n\n## Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `enable_cpu_features` | `ostd::arch::x86` | Initializes `CPU_FEATURES`, updates CR4/XCR0/EFER and x87 via `enable_essential_features`, and yields a `Tracked<FpuInitialization>` via `proof_with` matching the updated `X86CpuSnapshot` (the exec signature is unchanged). |\n| `enable_essential_features` | `ostd::arch::x86::cpu::context` | Initializes `XSTATE_MAX_FEATURES` and `XSAVE_AREA_SIZE`, clears CR0 `TS`/`EM`, runs `fninit`, and returns `Tracked<FpuInitialization>` with bounded area length. |\n| `FpuInitialization::tracked_legacy_initialization` | `ostd::arch::x86::cpu::context` | Proof-only boundary producing a non-XSAVE `FpuInitialization` (`len == 512`, `supported_mask == 0`) from a configured CPU owner and feature-cache witness. |\n| `FpuContext::new` | `ostd::arch::x86::cpu::context` | Proves `r.len() == init.len()` and `r.has_initial_state(...)` for both XSAVE and legacy FXSAVE modes. |\n| `FpuContext::default` (inherent) | `ostd::arch::x86::cpu::context` | Delegates to `FpuContext::new` with the same initialization contract. |\n| `FpuContext::clone` (inherent) | `ostd::arch::x86::cpu::context` | Preserves length (`r.len() == self.len()`) and proves `r.copied_from(self)` (copying saved fields and active extended prefix; zeroing reserved words and inactive tail). |\n| `FpuContext::as_bytes` / `as_bytes_mut` | `ostd::arch::x86::cpu::context` | Exposes the bounded byte slice of length `self.len()`, relating pre- and post-mutation views to `self.bytes()`. |\n| `XSaveArea::new` | `ostd::arch::x86::cpu::context` | Proves `r.state().initialized(...)` matching Intel SDM Table 11-1 reset values and computed `features`. |\n| `FpuContext::save` / `load` | `ostd::arch::x86::cpu::context` | **Unverified** — kept with original signatures and bodies (deferred). |\n\n## Executable Code Changes & Justifications\n\nPer `AGENTS.md`, executable edits are kept minimal and behavior-preserving:\n\n- **Enable `arch::x86::cpu` (FPU context subtree) in place**: Uncomments `pub(crate) mod cpu` in `ostd/src/arch/x86/mod.rs` and `enable_cpu_features` so `arch::x86::cpu::context` enters compilation and verification for the first time, while keeping adjacent unverified modules disabled.\n- **Tracked signature on `enable_essential_features`**: Gains tracked `X86CpuRegisterOwner` and feature-cache completion witness parameters and returns `Tracked<FpuInitialization>`; runtime behavior is unchanged (ghost/tracked resources are erased).\n- **Inherent `default()`/`clone()` on `FpuContext`**: Following the `asterinas/vostd#446` approach, standard `Default`/`Clone` trait impls are converted to verified inherent methods (original trait impls preserved in `Origin Rust` comments) because trait signatures cannot carry `X86CpuRegisterOwner` and `FpuInitialization` resources. Concrete `default()`/`clone()` call syntax remains; generic `Default`/`Clone` trait dispatch is no longer supplied or claimed as verified. No in-tree callers are affected, as `arch::x86::cpu` was previously disabled as a whole and other `FpuContext` references only appear in placeholder structs under `riscv`/`loongarch`. Original allocation, register-read, and copy order is preserved without a `clone_with_cpu` trampoline.\n- **Explicit field initialization in `XSaveArea::new`**: Initializes the same integer fields explicitly because `Pod::new_zeroed` lacks a field-value contract.\n- **Thin register/bitflags wrappers and `FpuOnce`**: Wrap native `x86_64` register/bitflags operations and `spin::Once` (`CPU_FEATURES`, `XSTATE_MAX_FEATURES`, `XSAVE_AREA_SIZE`) to attach contracts while preserving native lazy publication, waiting/poisoning, and the original `u64` XSTATE mask. No capability-probe loop or BSP/AP comparison checks are added.\n- **Layout declarations and compile-time assertions**: Added `global layout` declarations for `FxSaveArea` and `XSaveArea` (checked by Verus during code generation) together with a `const _: ()` block asserting `FxSaveArea` and `XSaveArea` sizes/alignments and all modeled field offsets (`fxsave_area`, `features`, `compaction`, `reserved`, `extended_state_area`, plus `FxSaveArea`'s `tag` and `mxcsr`).\n- **Dependency addition**: Added `spin = \"0.9.4\"` under `[target.'cfg(target_arch = \"x86_64\")'.dependencies]` in `verified_libs/vstd_extra/Cargo.toml` (matching `ostd`'s existing `spin` version) to model `spin::Once`.\n\n## Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `assume()` or `admit()`. Trust is expressed through `assume_specification` on existing externally-implemented APIs (the `Cr0`/`Cr4`/`XCr0` `bits` accessors, `Cr0Flags::remove`, `FeatureInfo::has_xsave`/`has_fpu`, and `SpinOnce::new`) and through `external_body` wrappers, all confined to `vstd_extra::external::x86`, plus three `#[verus_verify(external_body)]` static-cell identity accessors in `ostd::arch::x86` (`cpu_features_ref`) and `ostd::arch::x86::cpu::context` (`max_features_ref`, `xsave_size_ref`) that bridge exec statics to symbolic `Loc` identities because Verus cannot relate exec-static reads across functions. `Pod` byte conversion remains an existing unsafe trusted implementation in `ostd-pod`.\n- **Unchanged boundaries**: CPUID capability and TSC specifications remain in their existing OSTD modules; the pre-existing disabled `if_tdx_enabled` macro and the `x86::cpuid` re-export remain unchanged.\n- **Deferred / out of scope**:\n  - `FpuContext::save` and `FpuContext::load` remain unverified; the representation invariant bounds byte-view length, not saved register contents, hardware store bounds, or restore-image validity.\n  - Full XSAVE save/restore semantics, real BSP/AP `X86CpuRegisterOwner` startup glue, legacy boot path, and cross-CPU configuration compatibility remain deferred.\n  - `UserContext` integration (kept separate from `asterinas/vostd#887` / `a47e74532`), `cfg_if`/`mod tdx` (`cvm_guest`), and `arch::cpu::local` remain disabled until their dependencies are integrated.\n",
+      "body": "## Summary\r\n\r\nVerify x86 CPU feature/FPU initialization and the x86 FPU context representation in `ostd::arch::x86`, backed by centralized external register and `spin::Once` specifications in `vstd_extra::external::x86` and strengthened `Pod::as_bytes_mut` / `Pod::new_zeroed` contracts in `ostd-pod`.\r\n\r\n## Specification Models & Contracts\r\n\r\n| Item | What It Provides |\r\n| --- | --- |\r\n| `FpuInitialization` (tracked) | Records an XSAVE-configured CPU together with completed initialization witnesses for `CPU_FEATURES`, `XSTATE_MAX_FEATURES`, and `XSAVE_AREA_SIZE`; exposes `len`, `supported_mask`, `uses_xsave`, `configured_cpu`, `configured_xcr0`, `enabled_on`, and `lemma_type_inv` (exporting its bounds and invariants without opening internal witnesses). |\r\n| `FxSaveState` / `FpuState` (ghost) | Field-level model of the FXSAVE and XSAVE areas. `initialized(features)` specifies Intel SDM Table 11-1 reset values; `copied_from` specifies which regions `clone` copies and which reserved/tail regions it zeroes. |\r\n| `FpuContext` | Closed `type_inv` bounding `area_size` (`512` or `576..=4096`) with cross-module export lemma `lemma_type_inv`, closed `len`/`bytes`/`state`, open `has_initial_state` and `copied_from` (referencing `source.type_inv()`), and public byte-equality lemmas (`lemma_initial_state_bytes`, `lemma_copied_bytes`). |\r\n| `X86CpuRegisterOwner` (tracked) | Exclusive per-CPU authority over CR0/CR4/XCR0/EFER and x87 registers (`X86CpuSnapshot`, `kernel_cpu`, `xcr0_readable`). Owner construction and hardware binding are intentionally deferred to a `vstd_extra`-internal bootstrap boundary. |\r\n| `FpuOnce<T, F>` | Wrapper over native `spin::Once`: the initializer closure must prove a `ValueInvariant`; `call_once` returns a `FpuOnceInitialized` witness consumed by subsequent `get_initialized` reads. `FpuOnce::get` stays outside `verus!` so its attribute contract is processed once without branch-specific warnings. |\r\n| `Pod::as_bytes_mut` / `Pod::zeroed_model` | `as_bytes_mut` adds `r@ == pod_bytes(*old(self))` to relate mutable byte views to the initial value. `unsafe trait Pod` adds an opt-in `zeroed_model() -> Option<Self>` (defaulting to `None`) so `Pod::new_zeroed` guarantees `Self::zeroed_model() matches Some(value) ==> r == value` for types that opt in. |\r\n\r\nInitialization is aligned with XSAVE-enabled x86 support: `CpuFeaturesInvariant` requires both FPU and XSAVE, and `FpuInitialization` carries completed witnesses for all three caches (`CPU_FEATURES`, `XSTATE_MAX_FEATURES`, `XSAVE_AREA_SIZE`). `FpuContext::type_inv` retains the `512 || 576..=4096` storage bound.\r\n\r\nThe proofs establish byte equality for equal initial states and for clones whose source already has the reserved words and inactive tail zeroed. Arbitrary clones preserve the original reserved-word and inactive-tail clearing behavior. No additional byte-encoding axioms are introduced; the representation mapping and shared structural byte lemma (`lemma_same_state_bytes`) remain private.\r\n\r\n## Verified Scope\r\n\r\n| Function / Entry | Module | Contract / Scope |\r\n| --- | --- | --- |\r\n| `enable_cpu_features` | `ostd::arch::x86` | Initializes `CPU_FEATURES`, updates CR4/XCR0/EFER and x87 via `enable_essential_features`, and yields `Tracked<FpuInitialization>` via `#[verus_spec]` / `proof_with` matching the updated `X86CpuSnapshot` (exec signature unchanged). |\r\n| `enable_essential_features` | `ostd::arch::x86::cpu::context` | Initializes `XSTATE_MAX_FEATURES` and `XSAVE_AREA_SIZE`, clears CR0 `TS`/`EM`, runs `fninit`, and yields `Tracked<FpuInitialization>` via `#[verus_spec]` / `proof_with` (exec signature unchanged). |\r\n| `FpuContext::new` | `ostd::arch::x86::cpu::context` | Proves `r.len() == init.len()` and `r.has_initial_state(...)` under `init.enabled_on(cpu)`. |\r\n| `FpuContext::default` (inherent) | `ostd::arch::x86::cpu::context` | Delegates to `FpuContext::new` with the same initialization contract. |\r\n| `FpuContext::clone` (inherent) | `ostd::arch::x86::cpu::context` | Preserves length (`r.len() == self.len()`) and proves `r.copied_from(self)` (copying saved fields and active extended prefix; zeroing reserved words and inactive tail). |\r\n| `FpuContext::as_bytes` / `as_bytes_mut` | `ostd::arch::x86::cpu::context` | Exposes the bounded byte slice of length `self.len()`, relating pre- and post-mutation views to `self.bytes()` and preserving `unexposed_bytes()`. |\r\n| `XSaveArea::new` | `ostd::arch::x86::cpu::context` | Uses native `Self::new_zeroed()` and proves `r.state().initialized(...)` matching Intel SDM Table 11-1 reset values and computed `features`. |\r\n| `FpuContext::save` / `load` | `ostd::arch::x86::cpu::context` | **Unverified** — kept with original signatures and bodies (deferred). |\r\n\r\n## Executable Code Changes & Justifications\r\n\r\nPer `AGENTS.md`, executable edits are kept minimal and behavior-preserving:\r\n\r\n- **Enable `arch::x86::cpu` (FPU context subtree) in place**: Uncomments `pub(crate) mod cpu` in `ostd/src/arch/x86/mod.rs` and `enable_cpu_features` so `arch::x86::cpu::context` enters compilation and verification for the first time, while keeping adjacent unverified modules disabled.\r\n- **Native signatures preserved via `#[verus_spec]`**: Both `enable_cpu_features` and `enable_essential_features` keep their original Rust signatures and pass/return tracked resources through `#[verus_spec]` / `proof_with!` (erased at runtime).\r\n- **Inherent `default()`/`clone()` on `FpuContext`**: Following the `asterinas/vostd#446` approach, standard `Default`/`Clone` trait impls are converted to verified inherent methods (original trait impls preserved in `Origin Rust` comments) because trait signatures cannot carry `X86CpuRegisterOwner` and `FpuInitialization` resources. Concrete `default()`/`clone()` call syntax remains; generic `Default`/`Clone` trait dispatch is no longer supplied or claimed as verified. No in-tree callers are affected, as `arch::x86::cpu` was previously disabled as a whole and other `FpuContext` references only appear in placeholder structs under `riscv`/`loongarch`. Original allocation, register-read, and copy order is preserved without a `clone_with_cpu` trampoline.\r\n- **Opt-in `Pod::zeroed_model` for `XSaveArea`**: `XSaveArea::new` retains the original `Self::new_zeroed()` call; `XSaveArea` replaces `#[derive(Pod)]` with an explicit `unsafe impl Pod for XSaveArea` supplying `zeroed_model()` (same runtime marker trait and behavior).\r\n- **Direct constant specs, thin register/bitflag operator wrappers, and `FpuOnce`**: The 12 `x86_64` flag constants (`Cr0Flags::*`, `Cr4Flags::*`, `XCr0Flags::*`) use direct `assume_specification` with native constant names preserved at OSTD call sites. Thin wrappers are retained only where Rust's orphan rule blocks foreign `BitOrSpecImpl`/`BitOrAssignSpecImpl` impls (`cr0_or`, `cr4_or`, `xcr0_or`, `cr4_or_assign`, `xcr0_or_assign`), where CPU-owner authority must be passed to register I/O, or for `FpuOnce` wrapping `spin::Once` (`CPU_FEATURES`, `XSTATE_MAX_FEATURES`, `XSAVE_AREA_SIZE`).\r\n- **Layout declarations and compile-time offset assertions**: Added `global layout` declarations for `FxSaveArea` and `XSaveArea` (checked by Verus during code generation) together with a zero-runtime-cost `const _: ()` block guarding `size_of::<XSaveArea>() == MAX_XSAVE_AREA_SIZE` and the 7 hardware field offsets (`offset_of!`) not covered by `global layout`.\r\n- **Dependency addition**: Added `spin = \"0.9.4\"` under `[target.'cfg(target_arch = \"x86_64\")'.dependencies]` in `verified_libs/vstd_extra/Cargo.toml` (matching `ostd`'s existing `spin` version) to model `spin::Once`.\r\n\r\n## Trusted Boundaries & Deferred Scope\r\n\r\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `assume()`, `admit()`, or `allowed_to_panic_if(true)`. Trust is expressed through `assume_specification` on existing external items (the 12 `Cr0Flags`/`Cr4Flags`/`XCr0Flags` constants, `bits` accessors, `Cr0Flags::remove`, `FeatureInfo::has_xsave`/`has_fpu`, and `SpinOnce::new`) and through `external_body` wrappers, all confined to `vstd_extra::external::x86`, plus three `#[verus_verify(external_body)]` static-cell identity accessors (`cpu_features_ref`, `max_features_ref`, `xsave_size_ref`) bridging exec statics to symbolic `Loc` identities. `Pod` byte conversion and `Pod::new_zeroed` remain existing unsafe trusted implementations in `ostd-pod`, with `Pod::zeroed_model` governed by `unsafe trait Pod`'s safety invariant.\r\n- **Unchanged boundaries**: CPUID capability and TSC specifications remain in their existing OSTD modules; the pre-existing disabled `if_tdx_enabled` macro and the `x86::cpuid` re-export remain unchanged.\r\n- **Deferred / out of scope**:\r\n  - `FpuContext::save` and `FpuContext::load` remain unverified; the representation invariant bounds byte-view length, not saved register contents, hardware store bounds, or restore-image validity.\r\n  - Full XSAVE save/restore semantics, real BSP/AP `X86CpuRegisterOwner` startup glue, legacy FXSAVE boot path, and cross-CPU configuration compatibility remain deferred.\r\n  - `UserContext` integration (kept separate from `asterinas/vostd#887` / `a47e74532`), `cfg_if`/`mod tdx` (`cvm_guest`), and `arch::cpu::local` remain disabled until their dependencies are integrated.\r\n\r\n## Review Updates (`25d3d1dbf..7419886cc`)\r\n\r\n- Removed `allowed_to_panic_if(true)` (`e4592aa8a`), trimmed extra doc comments, merged `crate` / `x86_64` imports, and aligned `Origin Rust:` comments (`e4592aa8a`, `32f59e2db`, `7419886cc`).\r\n- Switched `enable_essential_features` to `#[verus_spec]` to preserve its native Rust signature and referenced `FpuContext::type_inv` from `FpuContext::copied_from` instead of restating bounds (`e35d4b8e7`).\r\n- Added opt-in `Pod::zeroed_model()` to restore `Self::new_zeroed()` in `XSaveArea::new` and pruned size/alignment checks duplicated by `global layout` from `const _: ()` (`7db3e292f`).\r\n- Aligned `FpuInitialization` with XSAVE-only support (removing the unused `tracked_legacy_initialization` path) and documented that `X86CpuRegisterOwner` construction is deferred to a `vstd_extra`-internal bootstrap boundary (`9be95fbb6`).\r\n- Added cross-module `lemma_type_inv` exports on `FpuInitialization` and `FpuContext`, removed obsolete XSAVE preconditions/dead assertions, and simplified `vstd::array::*` imports (`32f59e2db`).\r\n- Replaced the 12 `external_body` flag-constant getters with direct `assume_specification`, restored native `Cr0Flags`/`Cr4Flags`/`XCr0Flags` names at call sites, removed the redundant `final(cpu)@.fxsr` postcondition, and moved `lemma_initial_state_bytes`/`lemma_copied_bytes` into the `FpuContext` API block (`7419886cc`).",
       "url": "https://github.com/asterinas/vostd/pull/959",
-      "updatedAt": "2026-11-24T13:59:27Z",
+      "updatedAt": "2026-11-25T19:11:07Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1195,20 +1195,42 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 969,
       "kind": "open",
       "draft": false,
-      "head": "c76cd2cdb920c53a7f21988c38dc54dce48538b9",
+      "head": "43cc4d8d5f3073511655743b2111a277dbc5d1c1",
       "title": "prove: verify x86 PIT configuration and 8259 PIC initialization",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/969",
-      "updatedAt": "2026-11-25T08:37:01Z",
+      "updatedAt": "2026-11-25T09:14:41Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "FAILURE",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "失败"
+      "ci": "成功"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 976,
+      "title": "fix: allow untracked mappings beyond frame metadata coverage in the page table model",
+      "url": "https://github.com/asterinas/vostd/pull/976",
+      "head": "705aa426d4796ba8cf7cd121e5e2def95988d36d",
+      "updatedAt": "2026-11-25T15:42:34Z"
+    },
+    {
+      "n": 974,
+      "title": "prove: ktest in mm/kspace/kvirt_area",
+      "url": "https://github.com/asterinas/vostd/pull/974",
+      "head": "a2402c3a05b0070c09f6e0b02067f709ff64c229",
+      "updatedAt": "2026-11-25T14:13:25Z"
+    },
+    {
+      "n": 965,
+      "title": "Refine review skill structural checks and evidence handling",
+      "url": "https://github.com/asterinas/vostd/pull/965",
+      "head": "a2fa279356e822863030e6c3c946d7fad9d1832f",
+      "updatedAt": "2026-11-25T09:28:35Z"
+    }
+  ]
 };
