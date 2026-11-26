@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-26T08:29:55.127Z",
+  "generatedAt": "2026-11-26T21:40:10.890Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -286,27 +286,27 @@ window.PLAN_PR_SNAPSHOT = {
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "进行中"
+      "ci": "成功"
     },
     {
       "n": 883,
       "kind": "open",
       "draft": false,
-      "head": "3a8f13b0a22422f469ec092a5cbf51f931c010dc",
+      "head": "2ab9e1ce0a0e2382dcedcdf60ff5e22586f7edaf",
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-26T08:01:49Z",
+      "updatedAt": "2026-11-26T10:36:29Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -340,10 +340,10 @@ window.PLAN_PR_SNAPSHOT = {
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
-      "ci": "进行中"
+      "gate": "UNKNOWN",
+      "ci": "成功"
     },
     {
       "n": 895,
@@ -565,18 +565,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 923,
       "kind": "open",
       "draft": false,
-      "head": "38f3177997b09129271cbdebbce9c6243c551542",
+      "head": "cfb7d80541fb040212c5065765b32addd7e0ebbc",
       "title": "Verify heap slots and free-slot list",
-      "body": "Enable `mm::heap::slot` and `slot_list` in place and verify ten existing functions. Prove empty construction, LIFO push/pop, exclusive slot ownership transfer, preservation of remaining links, and exact slot address/type/size and physical-address conversion.\n\nKeep the `usize` link representation, using existing vstd permission-aware reads/writes and provenance helpers to verify memory access. Runtime behavior is preserved. Slab allocation, large alloc/dealloc, and the global allocator remain disabled.\n\nOverlaps #505 in scope; implemented independently from main without its external raw-pointer read/write specifications.",
+      "body": "## Summary\n\nEnable `ostd::mm::heap::{slot, slot_list}` in place and verify ten existing functions across `SlotInfo`, `HeapSlot`, and `SlabSlotList`, including:\n\n- Exclusive linear-mapped byte ownership, `SlabSlot` alignment (`align_of::<usize>()`), exact pointer/type/size accessors, and `paddr_to_vaddr` round-trip conversion in `SlotInfo::size` and `HeapSlot::{new, paddr, size, info, as_ptr}`.\n- Empty list construction, LIFO push/pop sequence transitions, exclusive slot ownership transfer, link preservation, and address uniqueness (`no_duplicates()`) in `SlabSlotList::{default, new, push, pop}`.\n- Retaining the original `usize` intrusive-link representation using `vstd::raw_ptr` permissions (`PointsToRaw`, `PointsTo<usize>`, `IsExposed`) rather than adding external raw-pointer read/write axioms.\n\nOverlaps #505 in scope; implemented independently from `main` without external raw-pointer read/write specifications.\n\n## Executable Code Changes\n\n- Add `pub(super) fn HeapSlot::into_memory(self) -> Tracked<PointsToRaw>` (`ostd/src/mm/heap/slot.rs`) to move the private erased permission into `SlabSlotList::push` without widening field visibility (erased at runtime).\n- In `SlabSlotList::push` (`ostd/src/mm/heap/slot_list.rs`), replace `slot_ptr.cast::<usize>().write(original_head.map_or(0, |h| h.as_ptr() as usize))` with an explicit `match` using `vstd::raw_ptr::expose_provenance` and `ptr_mut_write`, and gate the inline `const { assert!(...) }` with `#[cfg(not(verus_keep_ghost))]` (enforced by `requires` under Verus).\n- In `SlabSlotList::pop` (`ostd/src/mm/heap/slot_list.rs`), replace `original_head.as_ptr().cast::<usize>().read() as *mut u8` with `vstd::raw_ptr::ptr_mut_read` and `with_exposed_provenance::<u8>`.\n- Gate `#[derive(Debug)]` on `SlabSlotList` with `#[cfg_attr(not(verus_keep_ghost), derive(Debug))]` because its erased `Ghost`/`Tracked` fields do not implement `Debug` (`Debug` remains active in non-verify builds).\n- Preserve `HeapSlot::new`'s original 2-argument Rust signature via `#[verus_spec(with Tracked(mem): Tracked<PointsToRaw>)]`.\n\nAll executable adaptations carry adjacent `Origin Rust:` comments. No changes to the original executable logic.\n\n## Trusted Boundaries\n\n- Keep the pre-existing `unsafe impl Sync` and `unsafe impl Send` for `SlabSlotList<SLOT_SIZE>` verbatim outside `verus!` (no `#[verifier::external]` needed; all methods take `&mut self` with exclusive slot ownership, as discussed with @hiroki-chen).\n- Rely only on existing `vstd` (`raw_ptr`, `layout`, `std_specs::ptr`) and `vstd_extra::external::ptr` specifications; no new `assume_specification` is added.\n- No `assume()`, `admit()`, `#[verifier::external_body]`, `#[verifier::external]`, or `allowed_to_panic_if` is introduced.\n\n## Out of Scope\n\n- Slab allocator verification (`ostd/src/mm/heap/slab.rs`, `Slab`, `SlabMeta`).\n- Large slot allocation and deallocation (`HeapSlot::{alloc_large, dealloc_large}`, `LargeAllocFrameMeta`).\n- Global allocator trait and dispatch (`GlobalHeapAllocator`, `extern \"Rust\"` upcalls, `#[alloc_error_handler]`, `#[global_allocator]`, `AllocDispatch`).\n- Optional migration of `HeapSlot` from `impl Inv` to `#[verifier::type_invariant]` (deferred pending maintainer preference).\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nEnable `pub mod heap;` in `ostd/src/mm/mod.rs` with `slot` and `slot_list` active (`13 verified, 0 errors` in focused verification across `mm::heap::slot` and `mm::heap::slot_list`, zero warnings in `mm::heap`, and clean full-crate verification across `x86_64`, `riscv64`, and `loongarch64`).\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `HeapSlot::inv` (`open`, `ostd::mm::heap::slot`) | States linear-mapping bounds (`LINEAR_MAPPING_BASE_VADDR <= addr` and `addr + size <= VMALLOC_BASE_VADDR`), `align_of::<usize>()` alignment for `SlotInfo::SlabSlot`, and exclusive `PointsToRaw` byte-range and provenance ownership. |\n| `SlotInfo::size` / `HeapSlot::{info, as_ptr}` (`dual_spec`) | Uses `#[verus_verify(dual_spec, open)]` for `SlotInfo::size` and `#[verus_verify(dual_spec)]` (closed) for `HeapSlot::{info, as_ptr}` with self-referential `returns` contracts, avoiding duplicate spec mirror functions. |\n| `HeapSlot::memory` (`closed`, `ostd::mm::heap::slot`) | Exposes the slot's erased `PointsToRaw` permission for specs (`HeapSlot::inv`, `new`, `into_memory`). |\n| `SlotNode` (`tracked struct`, `ostd::mm::heap::slot_list`) | Private linear resource per queued free slot holding the link word `PointsTo<usize>`, tail bytes `PointsToRaw`, and `IsExposed` provenance for the next pointer's integer round-trip. |\n| `SlabSlotList::slots` (`closed`, `ostd::mm::heap::slot_list`) | Models the free list as `Seq<*mut u8>` in insertion order (last element is the head returned by `pop`). |\n| `SlabSlotList::inv` (`closed`, `ostd::mm::heap::slot_list`) | Relates `head` to `slots.last()`, tracks per-node `SlotNode` permissions and link words over `Set::range(0, slots.len() as int)` via `node_inv(i)`, and maintains `slots.map_values(|p: *mut u8| p.addr()).no_duplicates()`. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `SlotInfo::size` | `ostd::mm::heap::slot` | `#[verus_verify(dual_spec, open)]`; exact `returns self.size()`. |\n| `HeapSlot::new` | `ostd::mm::heap::slot` | Keeps original `(addr, info)` Rust signature with `with Tracked(mem): Tracked<PointsToRaw>`; establishes `res.inv()`, `res.as_ptr() == addr.as_ptr()`, `res.info() == info`, and `res.memory() == mem`. |\n| `HeapSlot::into_memory` | `ostd::mm::heap::slot` | `pub(super)` consuming helper ensuring `res@ == self.memory()`. |\n| `HeapSlot::paddr` | `ostd::mm::heap::slot` | Under `self.inv()`, rules out subtraction underflow, proves `paddr_to_vaddr(res) == self.as_ptr().addr()`, and returns `(self.as_ptr().addr() - LINEAR_MAPPING_BASE_VADDR) as Paddr`. |\n| `HeapSlot::{size, info, as_ptr}` | `ostd::mm::heap::slot` | Exact `returns` contracts (`self.info().size()`, `self.info()`, `self.as_ptr()`). |\n| `SlabSlotList::{default, new}` | `ostd::mm::heap::slot_list` | Establishes `res.inv()` and `res.slots() == Seq::empty()`. |\n| `SlabSlotList::push` | `ostd::mm::heap::slot_list` | Under `old(self).inv()`, `slot.inv()`, `cfg!(feature = \"allow_panic\") ==> slot.info() is SlabSlot`, `SLOT_SIZE >= size_of::<usize>()`, and `slot.info() is SlabSlot ==> slot.info().size() == SLOT_SIZE` (ruling out both documented panic paths under `allow_panic` while preserving early-return behavior for non-slab slots in default builds), derives address freshness from `PointsTo::is_disjoint` (local `tracked_distinct`), preserves `final(self).inv()`, updates `slots()` conditionally on `SlabSlot`, and exposes `final(self).slots().map_values(|p: *mut u8| p.addr()).no_duplicates()`. |\n| `SlabSlotList::pop` | `ostd::mm::heap::slot_list` | Under `old(self).inv()`, preserves `final(self).inv()`, exposes `no_duplicates()` on both `old(self).slots()` and `final(self).slots()`, proves `res is None <==> old(self).slots().len() == 0`, and on `Some(slot)` restores `slot.inv()`, `slot.as_ptr() == old(self).slots().last()`, `slot.info() == SlabSlot(SLOT_SIZE)`, `SLOT_SIZE >= size_of::<usize>()`, and `final(self).slots() == old(self).slots().drop_last()`. |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, executable edits are minimal, behavior-preserving, and annotated with adjacent `Origin Rust:` comments:\n\n- **`HeapSlot::into_memory` (`ostd/src/mm/heap/slot.rs`)**: `HeapSlot`'s fields remain private per review feedback; this `pub(super)` helper consumes `HeapSlot` (no `Drop` impl) to extract its erased `Tracked<PointsToRaw>` for `SlabSlotList::push`.\n- **Permission-aware link write/read (`ostd/src/mm/heap/slot_list.rs`)**: `assume_specification` cannot attach tracked `PointsTo<usize>` / `IsExposed` permissions to raw `<*mut usize>::{write, read}`; using `vstd::raw_ptr::{expose_provenance, ptr_mut_write, ptr_mut_read, with_exposed_provenance}` compiles to the same `as usize`, `core::ptr::{write, read}`, and `as *mut u8` operations while verifying exclusive access and provenance.\n- **Inline `const { assert! }` (`ostd/src/mm/heap/slot_list.rs`)**: Verus does not translate inline `const` blocks; gating it under `#[cfg(not(verus_keep_ghost))]` keeps the compile-time assertion in non-verify builds while `push`'s `requires SLOT_SIZE >= size_of::<usize>()` enforces the same bound under Verus.\n- **`#[derive(Debug)]` on `SlabSlotList` (`ostd/src/mm/heap/slot_list.rs`)**: `Ghost<Seq<*mut u8>>` and `Tracked<Map<int, SlotNode>>` do not implement `core::fmt::Debug`; `#[cfg_attr(not(verus_keep_ghost), derive(Debug))]` preserves `Debug` in non-verify builds.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `assume()`, `admit()`, `#[verifier::external_body]`, `#[verifier::external]`, `assume_specification`, or `allowed_to_panic_if`.\n  - Pre-existing `unsafe impl Sync` and `unsafe impl Send` for `SlabSlotList<SLOT_SIZE>` remain verbatim outside `verus!` as the thread-safety boundary (all methods take `&mut self` with no interior mutability and exclusive ownership of queued slots).\n  - Under `feature = \"allow_panic\"`, `SlabSlotList::push` statically rules out both panic paths via `requires` (`cfg!(feature = \"allow_panic\") ==> slot.info() is SlabSlot` and `slot.info() is SlabSlot ==> slot.info().size() == SLOT_SIZE`), so no panic permission is needed; under the default configuration, the non-panicking early return for non-slab slots is preserved and modeled in `ensures`.\n- **Deferred / out of scope**:\n  - `ostd/src/mm/heap/slab.rs` (`Slab`, `SlabMeta`), `HeapSlot::{alloc_large, dealloc_large}`, `LargeAllocFrameMeta`, and global allocator dispatch (`GlobalHeapAllocator`, `AllocDispatch`, `#[global_allocator]`, `#[alloc_error_handler]`).\n  - Optional migration of `HeapSlot` from `impl Inv` to `#[verifier::type_invariant]` and any future per-node frame lemmas needed once `slab.rs` is verified.\n\n</details>\n",
       "url": "https://github.com/asterinas/vostd/pull/923",
-      "updatedAt": "2026-11-16T08:00:40Z",
+      "updatedAt": "2026-11-26T15:44:02Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -763,18 +763,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 935,
       "kind": "open",
       "draft": false,
-      "head": "17dbb8a8cb01ada6e4b0acf8054662b14aa7cee1",
+      "head": "606ef10e5e8c73fe29281d89ac83d6ab248f947f",
       "title": "Add initial specs for TLB",
       "body": "As the title shows.",
       "url": "https://github.com/asterinas/vostd/pull/935",
-      "updatedAt": "2026-11-26T02:35:13Z",
+      "updatedAt": "2026-11-26T18:58:37Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -839,14 +839,14 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: verify RISC-V ISA extension parsers",
       "body": "## Summary\r\n\r\nVerify the RISC-V ISA extension parsers (`parse_isa_string` and `parse_isa_extensions_list`) and the `EXTENSION_TABLE` lookup table in `ostd::arch::riscv::cpu::extension`, backed by centralized `fdt::node::NodeProperty` external specifications in `vstd_extra::external::fdt`, reusable UTF-8 string lemmas in `vstd_extra::external::str`, and the existing verified `bitflags` crate.\r\n\r\n## Specification Models & Contracts\r\n\r\n| Item | What It Provides |\r\n| --- | --- |\r\n| `ExNodeProperty<'a>` / `trim_trailing_nul_len` / `lemma_trim_trailing_nul_len` / `NodeProperty::as_str` (`vstd_extra::external::fdt`) | Exposes `fdt::node::NodeProperty<'a>` (`name`, `value`), defines deterministic recursive `trim_trailing_nul_len(b: Seq<u8>) -> int` (with boundary lemma `lemma_trim_trailing_nul_len`), and specifies `NodeProperty::as_str` against `fdt 0.1.5`: returns `Some(s)` iff `valid_utf8(prop.value@)`, with `s.spec_bytes() == prop.value@[..trim_trailing_nul_len(prop.value@)]`; annotated with `opens_invariants none` and `no_unwind`. |\r\n| UTF-8 string lemmas (`vstd_extra::external::str`) | Reusable `pub proof fn`s (`lemma_str_bytes_eq_iff_view_eq`, `lemma_single_byte_str`, `lemma_encode_utf8_contains_ascii`, `lemma_ascii_char_boundary_after`) built on `vstd::utf8` lemmas. |\r\n| `isa_start` / `first_end` (private `spec fn`) | Uses `Seq::is_prefix_of` to model the optional `\"rv32\"` or `\"rv64\"` prefix skip. Models the end of the first `_`-delimited segment (single-letter extensions). |\r\n| `name_at` / `has_name` (private `spec fn`) | Specifies an occurrence of byte sequence `name` within `b[lo..hi)` bounded by `delim` (or range boundaries), or at any position when `delim` is `None`. |\r\n| `recognized` (private `spec fn`) | Distinguishes the two device-tree formats: `riscv,isa` (reusing `trim_trailing_nul_len`, matching single-byte names in `[isa_start, first_end)` or `_`-delimited names after `first_end`) vs. `riscv,isa-extensions` (NUL-delimited names across the full byte slice). |\r\n| `bits_for` / `table_bits` (private `spec fn`) | Canonical `Seq::fold_left` bitwise union of `e.flag.bits()` over all entries in `extension_table()` matching `recognized`. |\r\n| `extension_table()` (private opaque `spec fn`) | Macro-generated `Seq<ExtensionData>` matching `EXTENSION_TABLE`, paired with `lemma_extension_table_wf` (proving all 82 names are non-empty, `<= usize::MAX`, free of `0u8`/`b'_'`, and pairwise distinct). |\r\n\r\nAll parser specification helpers remain private to `ostd::arch::riscv::cpu::extension`. `IsaExtensions` uses the existing verified `bitflags` crate (`empty`, `union`, `bits`, `from_bits_retain`) without modifying `verified_libs/bitflags`.\r\n\r\nEach extension lookup records its result in a ghost variable and invokes its step lemma after the branches rejoin. The step lemmas use the fixed extension table directly, and the single-character step reuses vstd’s `lemma_seq_contains_after_push`. A shared proof connects `Seq::is_prefix_of` to the slice comparison used by the executable prefix checks.\r\n\r\n## Verified Scope\r\n\r\n| Function / Entry | Module | Contract / Scope |\r\n| --- | --- | --- |\r\n| `parse_isa_string` | `ostd::arch::riscv::cpu::extension` | `requires allowed_to_panic_if(!valid_utf8(isa.value@))`, `ensures valid_utf8(isa.value@)`, and `returns IsaExtensions::from_bits_retain(table_bits(isa.value@, true))`. Preserves the original panic trigger for invalid UTF-8. (`no_unwind when valid_utf8(isa.value@)` is blocked by upstream callees lacking `no_unwind`: `<[T]>::starts_with`, `<[T]>::iter`, `vstd::array::array_as_slice`, `str::split_at`, `ForLoopGhostIterator::next`, `Iterator::find`, `UnwrapOrPanic::unwrap_or_panic`, and `bitflags` methods.) |\r\n| `parse_isa_extensions_list` | `ostd::arch::riscv::cpu::extension` | Accepts arbitrary byte slices and specifies `returns IsaExtensions::from_bits_retain(table_bits(isa_extensions.value@, false))`. (`no_unwind` is similarly blocked by `Index::index`, `<[T]>::iter`, `Iterator::find`, and `bitflags` methods.) |\r\n| `EXTENSION_TABLE` | `ostd::arch::riscv::cpu::extension` | Preserves the original slice type `exec const EXTENSION_TABLE: &[ExtensionData]` with `ensures EXTENSION_TABLE@ == extension_table()`. |\r\n| `init` / `has_extensions` / `GLOBAL_ISA_EXTENSIONS` | `ostd::arch::riscv::cpu::extension` | **Unverified** — kept commented out (deferred until `DEVICE_TREE` and `spin::Once` integration). |\r\n\r\n## Executable Code Changes & Justifications\r\n\r\nThe `Origin Rust:` blocks document the executable changes and retain the original parser code.\r\n\r\n- **Enable `arch::riscv::cpu::extension` in place**: Splits the commented block in `ostd/src/arch/riscv/mod.rs` to enable `pub(crate) mod cpu;` (leaving `boot`, `device`, and `iommu` commented out), and comments out `pub mod context;` and `pub mod local;` in `ostd/src/arch/riscv/cpu/mod.rs` so only the already-uncommented `pub mod extension;` is verified.\r\n- **Verified `bitflags` import and `union` (`use bitflags::bitflags;`, `extensions = extensions.union(ext_data.flag)`)**: Switches from `bitflags_upstream` to the verified `bitflags` crate. Replaces `|=` with `.union(...)` because `BitOrAssign` contracts for `bitflags` are split out into a separate follow-up PR; runtime bit semantics are identical.\r\n- **`isa.as_str().unwrap()` -> `isa.as_str().unwrap_or_panic()`**: Retains the exact `NodeProperty::as_str` call (backed by `vstd_extra::external::fdt`) and switches `.unwrap()` to `UnwrapOrPanic::unwrap_or_panic()` because `vstd`'s `Option::unwrap` requires `self.is_some()`, which would force `requires valid_utf8(isa.value@)` on `parse_isa_string` and block future callers reading raw device-tree data. The change preserves the panic trigger. `as_str()` returns `None` exactly when `isa.value@` is invalid UTF-8. The panic message and reported source location change.\r\n- **`str::starts_with` / `str::split('_')` in `parse_isa_string`**: Replaced with `isa_str.as_bytes().starts_with(b\"rv32\") || isa_str.as_bytes().starts_with(b\"rv64\")` and bounded `b'_'` scans with chained `str::split_at`, while preserving the original `ext_start >= isa_str.len()` early return, `for ch in first_part.chars()`, and both direct `if let Some(ext_data) = EXTENSION_TABLE.iter().find(...)` lookups (including the original closures `|e| e.name.len() == 1 && e.name.chars().next() == Some(ch)` and `|e| e.name == part`) without extra executable lookup temporaries.\r\n  - *Why not specify the original callees directly*: `str::starts_with` and `str::split` are generic over the unstable `core::str::pattern::Pattern` trait; `str` range indexing (`&isa_str[a..b]`) lacks an `assume_specification` for `<str as Index<I>>::index` in vendored `vstd` (and `SliceIndex::index` requires unstable `slice_index_methods`), whereas `str::split_at` is stable, O(1), and fully specified. Since `\"rv32\"`, `\"rv64\"`, and `b'_'` are ASCII, byte-level prefix checks and `b'_'` splits coincide identically with UTF-8 char boundaries and `str::split('_')`.\r\n- **`slice::split(|&b| b == 0)` in `parse_isa_extensions_list`**: Replaced with a bounded `0u8` scan while keeping `if !str.is_empty()`, `core::str::from_utf8(str)`, and the direct `if let Some(ext_data) = EXTENSION_TABLE.iter().find(|e| e.name == ext_name)` lookup intact without extra executable lookup temporaries.\r\n  - *Why not specify `slice::split` directly*: `<[T]>::split` and `core::slice::Split` are not specified in vendored `vstd`; adding a complete lazy `FnMut` iterator adapter contract in `vstd_extra` is deferred to a follow-up. The bounded scan visits the exact same NUL-delimited sub-slices in order.\r\n- **Centralized `fdt` external spec (`vstd_extra::external::fdt`)**: Placed `ExNodeProperty`, `trim_trailing_nul_len`, `lemma_trim_trailing_nul_len`, and `assume_specification[NodeProperty::as_str]` in `verified_libs/vstd_extra/src/external/fdt.rs` with `fdt = \"=0.1.5\"` in `verified_libs/vstd_extra/Cargo.toml` (matching `ostd`'s existing lockfile version with zero transitive dependencies, and pinned with `=` like `acpi = \"=5.2.0\"` so patch updates cannot silently invalidate the audited boundary).\r\n\r\n## Trusted Boundaries & Deferred Scope\r\n\r\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `admit()`, `assume()`, `#[verifier::external_body]`, `allowed_to_panic_if(true)`, or `#[verifier::rlimit]`. The only new trusted boundary is `verified_libs/vstd_extra/src/external/fdt.rs` (`ExNodeProperty` and `assume_specification[NodeProperty::as_str]`), audited directly against `fdt 0.1.5` (`src/node.rs:495-497`).\r\n- **Bitflags improvements split out**: Unrelated `verified_libs/bitflags/src/lib.rs` contract additions (`from_name`, `*AssignSpecImpl`, open `known_bits`/`unknown_bits`, etc.) from the earlier draft have been removed from this PR and separated into an independent follow-up branch/PR (`prove: complete verified bitflags contracts`).\r\n- **Deferred / out of scope**:\r\n  - `init()`, `has_extensions()`, and `GLOBAL_ISA_EXTENSIONS` remain commented out pending `DEVICE_TREE` and `spin::Once` verification on RISC-V.\r\n  - `ostd::arch::riscv::cpu::{context, local}` and `ostd::arch::riscv::{boot, device, iommu}` remain disabled.",
       "url": "https://github.com/asterinas/vostd/pull/940",
-      "updatedAt": "2026-11-26T05:38:26Z",
+      "updatedAt": "2026-11-26T13:04:56Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -925,11 +925,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "8231d6e6f65a8accfbebdefeb27a2c36e62683fc",
+      "head": "c762f8e27d0bb25af35fc3dd4d55cd4b61d49abc",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-26T08:21:40Z",
+      "updatedAt": "2026-11-26T16:06:26Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1001,7 +1001,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: specify the x86 context switch FFI contract",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/954",
-      "updatedAt": "2026-11-26T08:15:04Z",
+      "updatedAt": "2026-11-26T10:52:49Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1080,7 +1080,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1188,7 +1188,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1206,7 +1206,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1249,11 +1249,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 976,
       "kind": "open",
       "draft": false,
-      "head": "3e500e15f15a73033d27f6cab0167e47179ec698",
+      "head": "2e06880c5ad060b7befbd135af68ff117c23f884",
       "title": "fix: allow untracked mappings beyond frame metadata coverage in the page table model",
       "body": "Fix #975 \n\nThis PR separates the physical address range encodable by a leaf PTE from the range covered by frame metadata. Tracked mappings still require a valid metadata slot. Untracked mappings can extend beyond `MAX_PADDR` as long as they satisfy the page-alignment and architecture-specific PTE bounds.",
       "url": "https://github.com/asterinas/vostd/pull/976",
-      "updatedAt": "2026-11-26T08:19:17Z",
+      "updatedAt": "2026-11-26T10:46:12Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1267,42 +1267,42 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 977,
       "kind": "open",
       "draft": false,
-      "head": "89cb38e6bc0a525e89b00be55dbe06ff948dbf12",
+      "head": "06327ccfdfe3b6a5c917a4914bc49e5f22115b30",
       "title": "prove: verify x86 TLB flush and page table activation functions",
       "body": "## Summary\n\nRestore and verify four x86-64 memory management functions, replacing their `external_body` stubs:\n\n- `tlb_flush_addr`\n- `tlb_flush_addr_range`\n- `tlb_flush_all_excluding_global`\n- `activate_page_table`\n\nThe verification covers address validity, page alignment, loop termination, and panic freedom under the specified preconditions.\n\n## Executable Code Changes\n\nNone. The original Asterinas implementations, including the `step_by` loop, are restored without modification.\n\n## Trusted Boundaries\n\nAdd external specifications in `vstd_extra` for:\n\n- `external/x86.rs`: x86_64 address, paging, TLB, and CR3 APIs, based on `x86_64` 0.15.5.\n- `external/iter.rs`: `StepBy` and `Iterator::step_by`, including an iterator-model axiom, pending upstream `vstd` support.\n\nNo new `admit()`, `assume()`, or executable `external_body` annotations are introduced.\n\n## Out of Scope\n\n- `tlb_flush_all_including_global`, `current_page_table_paddr`, and `Debug` for `PageTableEntry`.\n- Restoring cross-module callers.\n- Modeling hardware TLB and CR3 state transitions.",
       "url": "https://github.com/asterinas/vostd/pull/977",
-      "updatedAt": "2026-11-26T08:23:34Z",
+      "updatedAt": "2026-11-26T09:55:45Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
-      "review": "需修改",
-      "gate": "BLOCKED",
-      "ci": "进行中"
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
     }
   ],
   "candidates": [
     {
-      "n": 982,
-      "title": "doc: sync mm doc with upstream",
-      "url": "https://github.com/asterinas/vostd/pull/982",
-      "head": "2675708059c52df49c87f405095a4ed88872a271",
-      "updatedAt": "2026-11-26T08:27:22Z"
+      "n": 984,
+      "title": "prove: verify x86 trap GDT layout and selector indices",
+      "url": "https://github.com/asterinas/vostd/pull/984",
+      "head": "e89201cb675d61c0ff2b0cfe05439ac01e8cf7ce",
+      "updatedAt": "2026-11-26T18:28:29Z"
+    },
+    {
+      "n": 983,
+      "title": "prove: verify x86 TSC and RDRAND hardware accessors",
+      "url": "https://github.com/asterinas/vostd/pull/983",
+      "head": "75ec8b0531059331caf5090ab3ab6254aa5ef4af",
+      "updatedAt": "2026-11-26T17:22:31Z"
     },
     {
       "n": 981,
-      "title": "prove: Verify x86 MMIO window construction and ACPI table lookup",
+      "title": "prove: verify x86 MMIO window construction and ACPI table lookup",
       "url": "https://github.com/asterinas/vostd/pull/981",
-      "head": "c9ece7aa46342f835619af9492901c87ac4547fa",
-      "updatedAt": "2026-11-26T08:11:39Z"
-    },
-    {
-      "n": 979,
-      "title": "prove: verify x86 COM1 console initialization",
-      "url": "https://github.com/asterinas/vostd/pull/979",
-      "head": "cd64ad99a6eb42daf42830f589eb09c756e2f62c",
-      "updatedAt": "2026-11-26T07:30:07Z"
+      "head": "d3e35705243714a02db50c7785ec479948edd64f",
+      "updatedAt": "2026-11-26T16:51:55Z"
     }
   ]
 };
