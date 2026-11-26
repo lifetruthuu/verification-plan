@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-26T06:09:27.726Z",
+  "generatedAt": "2026-11-26T08:29:55.127Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -277,29 +277,29 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 879,
       "kind": "open",
       "draft": false,
-      "head": "d801813981323fef4012af8a43da68c13e93f672",
+      "head": "27efd7c490c6d6fb101b23e09f30dd48a637700b",
       "title": "prove: add nested local IRQ guard protocol",
       "body": "## Summary\r\n\r\n  - Add `specs::task::irq`, a logical protocol for local IRQ state. `tracked_disable` saves the current IF state and increments the nesting depth. `tracked_restore` consumes an `IrqRestorePermission`\r\n  in reverse acquisition order and restores the saved state. `lemma_nested_restore` shows that a nested disable/restore round trip returns the state to its original value.\r\n  - In `ostd/src/arch/x86/irq.rs`, add trusted contracts for `enable_local`, `disable_local`, and `is_local_enabled`. They use a `LocalIrqHardware` resource that carries the CPU and IF state.\r\n  - In `ostd/src/trap/irq.rs`, remove `external_body` from `DisabledLocalIrqGuard::transfer_to` and replace it with a contract that Verus checks: after the transfer, the old instance's `was_enabled` is `false`.",
       "url": "https://github.com/asterinas/vostd/pull/879",
-      "updatedAt": "2026-11-23T07:01:00Z",
+      "updatedAt": "2026-11-26T08:20:58Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "进行中"
     },
     {
       "n": 883,
       "kind": "open",
       "draft": false,
-      "head": "a41d9e00096774b64fc57cdfb9c42927fe233fbc",
+      "head": "3a8f13b0a22422f469ec092a5cbf51f931c010dc",
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-25T13:37:01Z",
+      "updatedAt": "2026-11-26T08:01:49Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -331,19 +331,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 887,
       "kind": "open",
       "draft": false,
-      "head": "3fd0fe2d571bf7c70ffd50c3d49b4d833242dbe7",
+      "head": "d41697db1dbb660c3c0dd86bbaa08362d42d11a9",
       "title": "prove x86 context data exceptions",
       "body": "## Summary\r\n\r\nEnable the x86 user-context data path and verify that register, pointer, TLS, and exception updates change only the requested field.\r\n\r\n- `UserContext` getters and setters, `take_exception`, and the `UserContextApi` instruction-pointer, stack-pointer, and trap-metadata operations preserve every other saved register, the trap number, the error code, and the pending exception.\r\n- `CpuException::type_` covers every variant. `is_cpu_exception` accepts vectors 0 through 31. `CpuExceptionType::is_fault_or_trap` classifies fault and trap variants.\r\n- `activate_tls_pointer` stays `external_body`: it is the FSBASE write, and this change supplies no hardware-state postcondition.\r\n- Exception construction, user-mode execution, FPU save/restore, trap dispatch, and `UserMode` stay out until their hardware and scheduling contracts exist.",
       "url": "https://github.com/asterinas/vostd/pull/887",
-      "updatedAt": "2026-11-25T09:37:27Z",
+      "updatedAt": "2026-11-26T08:19:12Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "SUCCESS",
+      "ciState": "PENDING",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "成功"
+      "ci": "进行中"
     },
     {
       "n": 895,
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -756,7 +756,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -774,7 +774,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -889,11 +889,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 944,
       "kind": "open",
       "draft": false,
-      "head": "2980e2cee7bf4abdee9e715248c9d8356d478fd3",
-      "title": "prove: Verify RISC-V user context data operations",
-      "body": "Enable in-place Verus verification of the RISC-V saved user-context data operations. Specify zero initialization, register access and mutation, exception consumption, TLS pointer access, trap-frame conversion, and instruction/stack pointer access. Mutating operations preserve the remaining saved context through complete state contracts.\n\nKeep `as_trap_frame` and the IP/SP methods in their original `UserContextApiInternal` and `UserContextApi` implementations, and verify the existing `activate_tls_pointer` no-op in its original inherent impl. Enable the original user trait declarations on RISC-V and the crate-visible `TrapFrame` reexport needed by their existing import path. All changes stay in eight existing files.\n\nThe executable rewrites expose zero initialization to Verus: replace the derived `GeneralRegs::default` with an explicit implementation and initialize `UserContext` through `RawUserContext::zeroed`. Every field retains its original default value, with the original Rust forms recorded beside the changes. Hardware execution, trap handlers, assembly, and unfinished trap-number/error methods remain commented in place. The verified scope covers saved data and concrete trait implementations; it does not establish hardware execution or generic trait contracts.",
+      "head": "895e242d4f5f9fe7b5e6e81140782141e7ca4667",
+      "title": "prove: verify RISC-V user context data operations",
+      "body": "## Summary\n\nVerify RISC-V user-space CPU context operations in `arch::riscv::{cpu::context, trap}`, including:\n\n- Default initialization of CPU context structures.\n- General-purpose register access and modification (31 getter/setter pairs).\n- Exception handling, TLS, instruction pointer, and stack pointer accessors.\n- Trap frame access and mutable register borrowing.\n\nIntroduce `UserContextView` to model context state. All mutating operations preserve unrelated fields.\n\n## Executable Code Changes\n\n- Replace derived `Default` implementations for `GeneralRegs` and `RawUserContext` with equivalent explicit implementations.\n- Enable the RISC-V CPU context, trap, and user modules with architecture-specific gates.\n\nNo changes to the original executable logic.\n\n## Trusted Boundaries\n\nAdd transparent external type specifications for `riscv::register::scause::{Trap, Exception, Interrupt}` in `vstd_extra::external::riscv`, using the existing `riscv` 0.11.1 dependency.\n\nNo new `assume`, `admit`, `external_body`, or `assume_specification` is introduced.\n\n## Out of Scope\n\n- Hardware execution, trap entry, and interrupt/page-fault handling.\n- `trap_number`, `trap_error_code`, `UserMode`, and `ReturnReason`.\n- `TrapFrame`'s derived `Default` implementation.\n- Cross-architecture trait-level specifications for `UserContextApi` and `UserContextApiInternal`.",
       "url": "https://github.com/asterinas/vostd/pull/944",
-      "updatedAt": "2026-11-19T09:43:53Z",
+      "updatedAt": "2026-11-26T07:36:09Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -925,11 +925,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "105a3768c72c48bec25a6e8cc0573dec2cb8c8a2",
+      "head": "8231d6e6f65a8accfbebdefeb27a2c36e62683fc",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-26T03:41:30Z",
+      "updatedAt": "2026-11-26T08:21:40Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -997,11 +997,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 954,
       "kind": "open",
       "draft": false,
-      "head": "985ba190502d7ec68310ac3c92c753820aadf6a4",
+      "head": "b86b7eab0457543ee2d8b8ea93b4ca9bd90186ba",
       "title": "prove: specify the x86 context switch FFI contract",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/954",
-      "updatedAt": "2026-11-25T09:26:53Z",
+      "updatedAt": "2026-11-26T08:15:04Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1015,11 +1015,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 955,
       "kind": "open",
       "draft": false,
-      "head": "c1e430fcd5557b42b2f052a81238253da578ab69",
+      "head": "b00942221571aade60572a7a5bfbee7cb3821dd5",
       "title": "prove: x86 idt construction",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/955",
-      "updatedAt": "2026-11-25T11:55:19Z",
+      "updatedAt": "2026-11-26T08:18:53Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1033,11 +1033,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 956,
       "kind": "open",
       "draft": false,
-      "head": "20d189ccbbd851af29f31dbbb883447111c3b495",
+      "head": "e1649d5316dcc2de74e085f4027be71091c12c5b",
       "title": "prove: verify EFI setup relocation validation",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/956",
-      "updatedAt": "2026-11-25T09:19:30Z",
+      "updatedAt": "2026-11-26T08:14:09Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1195,11 +1195,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 969,
       "kind": "open",
       "draft": false,
-      "head": "43cc4d8d5f3073511655743b2111a277dbc5d1c1",
+      "head": "abf9d4c2bafb0f2f91632a5374d32266fe8bd89d",
       "title": "prove: verify x86 PIT configuration and 8259 PIC initialization",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/969",
-      "updatedAt": "2026-11-25T09:14:41Z",
+      "updatedAt": "2026-11-26T08:11:51Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1249,38 +1249,60 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 976,
       "kind": "open",
       "draft": false,
-      "head": "a69759b8decfb447ed001e98c36f0b36ad740261",
+      "head": "3e500e15f15a73033d27f6cab0167e47179ec698",
       "title": "fix: allow untracked mappings beyond frame metadata coverage in the page table model",
       "body": "Fix #975 \n\nThis PR separates the physical address range encodable by a leaf PTE from the range covered by frame metadata. Tracked mappings still require a valid metadata slot. Untracked mappings can extend beyond `MAX_PADDR` as long as they satisfy the page-alignment and architecture-specific PTE bounds.",
       "url": "https://github.com/asterinas/vostd/pull/976",
-      "updatedAt": "2026-11-26T03:39:55Z",
+      "updatedAt": "2026-11-26T08:19:17Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": null,
+      "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
-      "review": "无汇总结论",
-      "gate": "CLEAN",
+      "review": "需修改",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
       "n": 977,
       "kind": "open",
       "draft": false,
-      "head": "126316d81688a741abf1a596d7ed0a26eff748fc",
+      "head": "89cb38e6bc0a525e89b00be55dbe06ff948dbf12",
       "title": "prove: verify x86 TLB flush and page table activation functions",
-      "body": "## Summary\n\nRestore the upstream x86-64 executable bodies and verify the TLB flush and page-table activation entry points (`tlb_flush_addr`, `tlb_flush_addr_range`, `tlb_flush_all_excluding_global`, and `activate_page_table`) in `ostd::arch::x86::mm` using attribute-mode `#[verus_verify]` + `#[verus_spec]`, removing four `#[verifier::external_body]` `unimplemented!()` stubs. Supporting external specifications are centralized in `vstd_extra::external::x86` (for `x86_64` 0.15.5 paging/TLB/CR3 APIs) and `vstd_extra::external::iter` (for `core::iter::StepBy` / `Iterator::step_by`).\n\n## Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `X86_CANONICAL_LOWER_END` / `X86_CANONICAL_UPPER_START` / `X86_PHYS_ADDR_END` (`vstd_extra::external::x86`) | Architectural 48-bit canonical virtual address boundaries (`0x0000_8000_0000_0000`, `0xffff_8000_0000_0000`) and 52-bit physical address exclusive upper bound (`1 << 52`). |\n| `is_canonical_vaddr` / `is_valid_x86_paddr` (`vstd_extra::external::x86`) | Open predicates matching `x86_64::VirtAddr::try_new` (bits 48..64 sign-extend bit 47) and `x86_64::PhysAddr::try_new` (bits 52..64 zero, with `memory_encryption` disabled). |\n| `ExVirtAddr` / `VirtAddr::new` (`vstd_extra::external::x86`) | External type wrapper and `assume_specification` for `VirtAddr::new`: `requires is_canonical_vaddr(addr)`, `opens_invariants none`, `no_unwind when is_canonical_vaddr(addr)`. |\n| `ExPhysAddr` / `phys_addr_as_u64` / `PhysAddr::new` (`vstd_extra::external::x86`) | External type wrapper with `u64` projection `phys_addr_as_u64`; `PhysAddr::new` requires `is_valid_x86_paddr(addr)`, ensures `phys_addr_as_u64(ret) == addr`, and carries `opens_invariants none`, `no_unwind when is_valid_x86_paddr(addr)`. |\n| `ExPageSize` (`PageSizeSpec` / `PageSizeSpecImpl`) / `ExSize4KiB` / `ExAddressNotAligned` / `ExPhysFrame<S>` + `PhysFrame::from_start_address` (`vstd_extra::external::x86`) | Models the sealed `x86_64::structures::paging::PageSize` trait (implementing `obeys_page_size_spec() == true` and `spec_size() == 4096` for `Size4KiB`). `PhysFrame::<S>::from_start_address` is `opens_invariants none` / `no_unwind` and ensures `S::obeys_page_size_spec() ==> (ret is Ok <==> phys_addr_as_u64(address) % S::spec_size() == 0)`. |\n| `ExCr3` / `ExCr3Flags` + `Cr3Flags::{empty, PAGE_LEVEL_WRITETHROUGH, PAGE_LEVEL_CACHE_DISABLE}` / `Cr3::write` (`vstd_extra::external::x86`) | External type wrappers, external constant declarations for `Cr3Flags::{PAGE_LEVEL_WRITETHROUGH, PAGE_LEVEL_CACHE_DISABLE}`, and `opens_invariants none` / `no_unwind` contracts for `Cr3Flags::empty` and `Cr3::write`. |\n| `tlb::flush` / `tlb::flush_all` (`vstd_extra::external::x86`) | Models `invlpg` and CR3 reload as `opens_invariants none` and `no_unwind` (audited against `x86_64` 0.15.5, where `Cr3::read` / `Cr3::read_raw` masks bits 52..63 to zero so `PhysAddr::new` cannot panic). |\n| `ExStepBy<I>` / `ExIteratorStepBy` / `step_by_post` / `axiom_step_by_postcondition` (`vstd_extra::external::iter`) | Models `core::iter::Iterator::step_by` (`requires step != 0`) and connects `StepBy<I>` to `vstd`'s prophetic `IteratorSpec` model (`obeys_prophetic_iter_laws`, exact strided `remaining` sequence, sound `produces` preservation via `Seq::all`, and `decrease() is Some` equivalence). Planned to be upstreamed to `vstd` and removed once upstream support lands. |\n\nAll `x86_64` external specifications are placed in `verified_libs/vstd_extra/src/external/x86.rs` (already gated under `#[cfg(target_arch = \"x86_64\")]` in `external/mod.rs`), keeping `vstd_extra` clean across RISC-V and LoongArch targets.\n\n## Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `tlb_flush_addr` | `ostd::arch::x86::mm` | `requires is_canonical_vaddr(vaddr as u64)`, `opens_invariants none`, `no_unwind`. Restores `tlb::flush(VirtAddr::new(vaddr as u64))` and rules out the `VirtAddr::new` panic path. |\n| `tlb_flush_addr_range` | `ostd::arch::x86::mm` | `requires range.start < range.end ==> (range.end <= X86_CANONICAL_LOWER_END as usize \\|\\| range.start >= X86_CANONICAL_UPPER_START as usize)`. Restores `for vaddr in range.clone().step_by(PAGE_SIZE) { tlb_flush_addr(vaddr); }` and proves every stepped address is canonical and the loop terminates. (`opens_invariants none` / `no_unwind` are omitted because upstream `Range::clone`, `Iterator::step_by`, and `Iterator::next` lack those clauses.) |\n| `tlb_flush_all_excluding_global` | `ostd::arch::x86::mm` | `opens_invariants none`, `no_unwind`. Restores `tlb::flush_all()`. |\n| `activate_page_table` | `ostd::arch::x86::mm` | `requires is_valid_x86_paddr(root_paddr as u64)`, `root_paddr % PAGE_SIZE == 0`, and `root_pt_cache is Writeback \\|\\| root_pt_cache is Writethrough \\|\\| root_pt_cache is Uncacheable`. Restores `PhysFrame::from_start_address(PhysAddr::new(...)).unwrap()`, the `CachePolicy` -> `Cr3Flags` match (proving the `panic!` arm unreachable), and `unsafe { Cr3::write(addr, flags) }`. (`opens_invariants none` / `no_unwind` are omitted because `vstd`'s `Result::unwrap` does not declare them.) |\n| `tlb_flush_all_including_global` | `ostd::arch::x86::mm` | **Unverified** — left unchanged (`#[verus_verify] #[verifier::external_body]`), deferred as out of scope (requires `Cr4::update` / `Cr4Flags::PAGE_GLOBAL` external specifications). |\n| `current_page_table_paddr` | `ostd::arch::x86::mm` | **Unverified** — left unchanged (`#[verifier::external_body]` with `when_used_as_spec(current_page_table_paddr_spec)`), matching RISC-V and LoongArch where hardware register read transitions are not modeled as a pure 0-arg `spec fn`. |\n| `fmt::Debug for PageTableEntry` | `ostd::arch::x86::mm` | **Unverified** — left unchanged (`#[verifier::external_body]` due to `&dyn fmt::Debug` unsized coercion in `DebugStruct::field`). |\n\n## Executable Code Changes & Justifications\n\n- **No algorithmic or behavioral rewrites**: The import `use x86_64::{instructions::tlb, structures::paging::PhysFrame, VirtAddr};` and the original upstream Asterinas executable bodies of `tlb_flush_addr`, `tlb_flush_addr_range`, `tlb_flush_all_excluding_global`, and `activate_page_table` are uncommented verbatim in place, replacing the four `#[verifier::external_body]` `unimplemented!()` stubs. All four functions (along with the still-`external_body` `tlb_flush_all_including_global`) use attribute-mode `#[verus_verify]` + `#[verus_spec(...)]` outside `verus!`, preserving item order and leaving executable syntax unchanged.\n- **`for` loop preserved verbatim via external `StepBy` specification**: Rather than rewriting `for vaddr in range.clone().step_by(PAGE_SIZE)` into a manual `while` loop or adding a `verus!` `iter:` binder, `core::iter::StepBy` and `Iterator::step_by` are modeled in `vstd_extra::external::iter` and attached via `#[verus_spec(iter => invariant ...)]`, keeping the `for` loop header and runtime iteration identical to upstream Asterinas.\n- **No dependency changes**: `vstd_extra` already depends on `x86_64 = \"0.15.5\"` (under `cfg(target_arch = \"x86_64\")`, with `default-features = false, features = [\"instructions\"]`, matching `ostd`'s `x86_64` version with `memory_encryption` disabled).\n\n## Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `admit()`, `assume()`, `#[verifier::external_body]` on executable code, `allowed_to_panic_if(true)`, or `#[verifier::rlimit]`, and **removes four** pre-existing `#[verifier::external_body]` stubs in `ostd/src/arch/x86/mm/mod.rs`. All new trusted specifications are centralized in `verified_libs/vstd_extra/src/external/`:\n  - `verified_libs/vstd_extra/src/external/x86.rs`: audited against `x86_64 0.15.5` (`src/addr.rs`, `src/structures/paging/{page,frame}.rs`, `src/instructions/tlb.rs`, `src/registers/control.rs`) with `memory_encryption` disabled. Hardware TLB invalidation and CR3 activation side effects remain outside Verus's pure memory model.\n  - `verified_libs/vstd_extra/src/external/iter.rs`: `ExStepBy`, `ExIteratorStepBy`, and `axiom_step_by_postcondition`, audited against Rust 1.100.0 (`0ef1bc386`, `library/core/src/iter/adapters/step_by.rs` and `library/core/src/iter/traits/iterator.rs`), with explicit `TODO`s to upstream to `vstd` and remove the local model once upstream support lands.\n- **Deferred / out of scope**:\n  - `tlb_flush_all_including_global` (`Cr4::update` / `Cr4Flags::PAGE_GLOBAL`), `current_page_table_paddr` (hardware CR3 read), and `impl fmt::Debug for PageTableEntry` remain untouched.\n  - Wiring up currently commented-out cross-module callers in `ostd/src/mm/{tlb,page_table/mod,page_table/node/mod}.rs` and `ostd/src/task/kernel_stack.rs` is left to their respective module verification PRs.\n  - Modeling hardware TLB/CR3 state transitions (e.g., connecting `activate_page_table` to `current_page_table_paddr` or `tlb_flush_*` to `ostd/specs/mm/tlb.rs`) is out of scope here.\n",
+      "body": "## Summary\n\nRestore and verify four x86-64 memory management functions, replacing their `external_body` stubs:\n\n- `tlb_flush_addr`\n- `tlb_flush_addr_range`\n- `tlb_flush_all_excluding_global`\n- `activate_page_table`\n\nThe verification covers address validity, page alignment, loop termination, and panic freedom under the specified preconditions.\n\n## Executable Code Changes\n\nNone. The original Asterinas implementations, including the `step_by` loop, are restored without modification.\n\n## Trusted Boundaries\n\nAdd external specifications in `vstd_extra` for:\n\n- `external/x86.rs`: x86_64 address, paging, TLB, and CR3 APIs, based on `x86_64` 0.15.5.\n- `external/iter.rs`: `StepBy` and `Iterator::step_by`, including an iterator-model axiom, pending upstream `vstd` support.\n\nNo new `admit()`, `assume()`, or executable `external_body` annotations are introduced.\n\n## Out of Scope\n\n- `tlb_flush_all_including_global`, `current_page_table_paddr`, and `Debug` for `PageTableEntry`.\n- Restoring cross-module callers.\n- Modeling hardware TLB and CR3 state transitions.",
       "url": "https://github.com/asterinas/vostd/pull/977",
-      "updatedAt": "2026-11-26T05:59:14Z",
+      "updatedAt": "2026-11-26T08:23:34Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": null,
-      "ciState": "SUCCESS",
-      "review": "无汇总结论",
-      "gate": "CLEAN",
-      "ci": "成功"
+      "reviewDecision": "CHANGES_REQUESTED",
+      "ciState": "PENDING",
+      "review": "需修改",
+      "gate": "BLOCKED",
+      "ci": "进行中"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 982,
+      "title": "doc: sync mm doc with upstream",
+      "url": "https://github.com/asterinas/vostd/pull/982",
+      "head": "2675708059c52df49c87f405095a4ed88872a271",
+      "updatedAt": "2026-11-26T08:27:22Z"
+    },
+    {
+      "n": 981,
+      "title": "prove: Verify x86 MMIO window construction and ACPI table lookup",
+      "url": "https://github.com/asterinas/vostd/pull/981",
+      "head": "c9ece7aa46342f835619af9492901c87ac4547fa",
+      "updatedAt": "2026-11-26T08:11:39Z"
+    },
+    {
+      "n": 979,
+      "title": "prove: verify x86 COM1 console initialization",
+      "url": "https://github.com/asterinas/vostd/pull/979",
+      "head": "cd64ad99a6eb42daf42830f589eb09c756e2f62c",
+      "updatedAt": "2026-11-26T07:30:07Z"
+    }
+  ]
 };
