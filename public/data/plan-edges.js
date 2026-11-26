@@ -25,7 +25,7 @@ window.PLAN_EDGES = [
 
   { "to": "TLB_SHOOT", "from": "TLB_REQ", "gate": "accept", "need": "入队不丢失与全刷覆盖合同", "ev": "ostd/src/mm/tlb.rs::dispatch_tlb_flush,do_remote_flush @97963e831" },
   { "to": "TLB_SHOOT", "from": "SMP_IPI", "gate": "accept", "need": "目标核/队列/回调安全合同；完成 ACK 与投递进展由本项协议补充，不能从 inter_processor_call 名称推得", "ev": "ostd/src/mm/tlb.rs::dispatch_tlb_flush,do_remote_flush; ostd/src/smp.rs::inter_processor_call @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
-  { "to": "TLB_SHOOT", "from": "PT_X86", "gate": "accept", "need": "当前核的失效效果", "ev": "ostd/src/mm/tlb.rs::do_remote_flush; ostd/src/arch/x86/mm/mod.rs::tlb_flush_addr_range @97963e831" },
+  { "to": "TLB_SHOOT", "from": "PT_X86", "gate": "accept", "need": "远端处理器须执行对应的本核失效并给出完成证据；#977 提供部分执行入口及规范地址条件，外部指令合同仍缺失效后置。", "ev": "ostd/src/mm/tlb.rs::do_remote_flush，ostd/src/arch/x86/mm/mod.rs::tlb_flush_addr_range，verified_libs/vstd_extra/src/external/x86.rs @126316d81" },
 
   { "to": "TLB_FREE", "from": "TLB_SHOOT", "gate": "accept", "need": "frame 保留到安全完成点：dispatch 明说异步，入队不够", "ev": "ostd/src/mm/tlb.rs::issue_tlb_flush_with,dispatch_tlb_flush,sync_tlb_flush; OpsStack::push,push_from,clear_without_flush @97963e831" },
   { "to": "TLB_FREE", "from": "MM_FRAME", "gate": "accept", "need": "page_keeper 持有 Frame 所有权并延迟最终释放，不能仅传入 frame 就视为保留", "ev": "ostd/src/mm/tlb.rs::issue_tlb_flush_with; OpsStack::push,clear_without_flush @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
@@ -33,14 +33,14 @@ window.PLAN_EDGES = [
   /* ===== consumers in: x86 平台 ===== */
   { "to": "ACPI_MADT", "from": "ACPI_TABLES", "gate": "accept", "need": "有效的 AcpiTables、find_table::<Madt>、表长度与条目访问合同", "ev": "ostd/src/arch/x86/kernel/irq/mod.rs::init @97963e831" },
 
-  { "to": "PIC", "from": "IO_PIO", "gate": "accept", "need": "PIC 的四个 u8 端口按十项预期序列写入，最后两项分别匹配主从掩码。", "ev": "ostd/src/arch/x86/kernel/irq/pic.rs::set_mask，ostd/src/io/io_port/mod.rs::IoPort::write @f2bdb88a6" },
+  { "to": "PIC", "from": "IO_PIO", "gate": "accept", "need": "init_and_disable 需要调用者序列以 mask_writes(0xff,0xff) 开头，依次消费十项且保留后缀。", "ev": "ostd/src/arch/x86/kernel/irq/pic.rs::init_and_disable,set_mask，ostd/src/io/io_port/mod.rs::PortWriteSequence @43cc4d8d5" },
 
   { "to": "IOAPIC_REG", "from": "IO_ALLOC", "gate": "accept", "need": "IoApicAccess::new 需要独占 [base,base+0x20)。恢复设备路径时，须用 builder 的可执行接口排除该范围。", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApicAccess::new，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @b94500acd" },
 
   { "to": "IOAPIC_ENTRY", "from": "IOAPIC_REG", "gate": "accept", "need": "寄存器选择 / 数据访问合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable,disable @97963e831" },
   { "to": "IOAPIC_ENTRY", "from": "IRQLINE", "gate": "accept", "need": "IrqLine::num / remapping_index，以及重定向项被禁用前 IRQ 不被释放的生命周期合同", "ev": "ostd/src/arch/x86/kernel/irq/ioapic.rs::IoApic::enable; ostd/src/trap/irq.rs::IrqLine @97963e831" },
 
-  { "to": "PIT_CFG", "from": "IO_PIO", "gate": "accept", "need": "PIT 逐次向 0x43、0x40、0x40 写入；每次 IoPort::write 匹配并消费预期端口和值。", "ev": "ostd/src/arch/x86/timer/pit.rs::init，ostd/src/io/io_port/mod.rs::IoPort::write @f2bdb88a6" },
+  { "to": "PIT_CFG", "from": "IO_PIO", "gate": "accept", "need": "pit::init 消费调用者提供的 init_writes(mode) 三项前缀。受保护端口必须传入 PortWriteSequence。", "ev": "ostd/src/arch/x86/timer/pit.rs::init，ostd/src/io/io_port/mod.rs::needs_write_sequence,IoPort::write @43cc4d8d5" },
 
   { "to": "APIC_RESERVE", "from": "IO_ALLOC", "gate": "accept", "need": "xAPIC 需要永久排除从 MSR 基址起的 1024 字节。主线 builder 只保证登记窗口和分离，仍须提供设备保留及排他效果。", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init，ostd/src/io/io_mem/allocator.rs::IoMemAllocatorBuilder @b94500acd" },
   { "to": "APIC_RESERVE", "from": "IO_WIN", "gate": "accept", "need": "该 1024 字节范围属于登记窗口，且权限尚未被其他设备占用", "ev": "ostd/src/arch/x86/kernel/apic/mod.rs::init @97963e831" },
@@ -246,7 +246,7 @@ window.PLAN_EDGES = [
   { "to": "HPET", "from": "ACPI_TABLES", "gate": "accept", "need": "ACPI HPET 表发现、基址和字段可读合同", "ev": "ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "HPET", "from": "ROUTE_MAP", "gate": "accept", "need": "Hpet::new 调用 IRQ_CHIP.map_isa_pin_to(irq,0)，需映射句柄与释放合同；仅约束完整构造，getter 可先证明", "ev": "ostd/src/arch/x86/timer/hpet.rs::Hpet::new @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
-  { "to": "SERIAL_QEMU_CMOS", "from": "IO_PIO", "gate": "accept", "need": "主线串口构造消费字节访问合同并返回七个连续地址；COM1 独占与轮询仍待接通。CMOS 使用 u8 端口，QEMU 直接写 0xF4。", "ev": "ostd/src/arch/x86/{device/serial.rs::SerialPort::new,device/cmos.rs,qemu.rs} @2aa424ec0" },
+  { "to": "SERIAL_QEMU_CMOS", "from": "IO_PIO", "gate": "accept", "need": "主线串口使用 u8 端口；集成 #969 时 COM1 须证明基址至偏移 4 的可写端口不在 PIC/PIT 序列范围中。", "ev": "ostd/src/arch/x86/device/serial.rs::SerialPort::new，ostd/src/io/io_port/mod.rs::needs_write_sequence @43cc4d8d5" },
   { "to": "SERIAL_QEMU_CMOS", "from": "ACPI_TABLES", "gate": "accept", "need": "CMOS 的 FADT 世纪寄存器编号来源，仅约束 CMOS 子项", "ev": "ostd/src/arch/x86/device/cmos.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   /* ===== consumers in: OSTD 公共模块 ===== */
@@ -270,7 +270,7 @@ window.PLAN_EDGES = [
   { "to": "TASK_COMPOSE", "from": "SYNC_GUARD", "gate": "accept", "need": "默认 FIFO 通过 disable_irq().lock() 保护 run queue 的权限和恢复合同", "ev": "ostd/src/task/scheduler/fifo_scheduler.rs::enqueue,local_rq_with,mut_local_rq_with @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
   { "to": "TASK_COMPOSE", "from": "TRAP_DATA", "gate": "accept", "need": "TaskBuilder::build 用 UserContext::tls_pointer 初始化 TaskContext TLS 字段", "ev": "ostd/src/task/mod.rs::TaskBuilder::build; arch/x86/cpu/context.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
-  { "to": "COMMON_AUDIT", "from": "KTEST_RESULT", "gate": "accept", "need": "公共辅助库验收清单消费 KtestItem::run 的结果分类合同及捕获边界。", "ev": "ostd/libs/ostd-test/src/lib.rs::KtestItem::run,classify_test_result @3b0821b71b068164347e7d52a8624daf17bd94db" },
+  { "to": "COMMON_AUDIT", "from": "KTEST_RESULT", "gate": "accept", "need": "公共辅助库仍需核对主线测试运行入口的结果分类、panic 捕获和消息匹配；已关闭的 #942 仅供参考。", "ev": "ostd/libs/ostd-test/src/lib.rs::KtestItem::run @fece47de1" },
 
   /* ===== consumers in: x86 平台 ===== */
   { "to": "ACC_SCOPE", "from": "LOC_ACC", "gate": "accept", "need": "当前范围的 LOC_ACC 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序", "ev": "ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
