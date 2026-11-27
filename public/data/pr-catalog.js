@@ -111,13 +111,14 @@ window.PLAN_PR_CATALOG = [
     "implements": ["TRAP_DATA"],
     "reuses": ["IDT_TABLE", "TRAP_EXC"],
     "note": "主线同步保留 x86 UserContext 数据访问和独立字段保持。activate_tls_pointer 的 FSBASE 写入及用户执行仍缺状态合同。",
-    "reviewedHead": "d41697db1dbb660c3c0dd86bbaa08362d42d11a9",
+    "reviewedHead": "cc4815f33a2df1ff5adbaa2f5cb6d3b873dd5d5b",
     "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/arch/x86/{mod.rs,cpu/context/mod.rs::UserContext::take_exception,trap/mod.rs}，ostd/src/user.rs::UserContextApi @1f8a35856",
       "ostd/src/user.rs，ostd/src/arch/x86/cpu/context/mod.rs @75d5d9558",
       "ostd/src/user.rs，ostd/src/arch/x86/cpu/context/mod.rs @3fd0fe2d5",
-      "ostd/src/{user.rs,arch/x86/cpu/context/mod.rs} @d41697db1"
+      "ostd/src/{user.rs,arch/x86/cpu/context/mod.rs} @d41697db1",
+      "ostd/src/arch/x86/cpu/context/mod.rs::PageFaultErrorCode 使用原 bitflags 宏路径，UserContext 的数据合同见同文件 @cc4815f33"
     ]
   },
   {
@@ -286,7 +287,7 @@ window.PLAN_PR_CATALOG = [
     "n": 918,
     "scope": "ostd-test 初始化与格式化证明。",
     "implements": [],
-    "reuses": [],
+    "reuses": ["KTEST_DISCOVERY"],
     "note": "",
     "reviewedHead": "30581d3014f3ddf537d406f997ddc3abe416b514",
     "reviewedAt": "2026-11-14"
@@ -448,12 +449,13 @@ window.PLAN_PR_CATALOG = [
     "implements": ["MM_FRAME", "VM_POD"],
     "reuses": [],
     "note": "七个 frame 测试继续实施； linked-list owner getter、ref_count 与测试侧取值合同已调整。真实元数据生命周期、失败与 VM I/O 故障游标继续单独核对。",
-    "reviewedHead": "e861fc864cdfbc6d3fad32361498055c010207c2",
-    "reviewedAt": "2026-11-26",
+    "reviewedHead": "dfbbd017f145704de2246cebef8702c6c8338671",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/mm/frame/{mod.rs,unique.rs,test.rs::linked_list}，ostd/specs/mm/frame/meta_owners.rs，ostd/src/mm/test.rs @c3b70735c",
       "ostd/src/mm/{frame/test.rs,frame/unique.rs,test.rs,io.rs} @e04dc39a2",
-      "ostd/src/mm/frame/{linked_list.rs,unique.rs,test.rs}，ostd/specs/mm/frame/meta_owners.rs @e861fc864"
+      "ostd/src/mm/frame/{linked_list.rs,unique.rs,test.rs}，ostd/specs/mm/frame/meta_owners.rs @e861fc864",
+      "ostd/specs/mm/embedding/mod.rs::lemma_preserve_unlinked_slots 改用 MAX_NR_PAGES，ostd/src/mm/io.rs 补回 math::min。ostd/src/mm/{frame/test,test}.rs 与前次 head 相同 @dfbbd017f"
     ]
   },
   {
@@ -462,12 +464,13 @@ window.PLAN_PR_CATALOG = [
     "implements": ["TLB_REQ"],
     "reuses": ["TLB_SHOOT", "TLB_FREE"],
     "note": "remaining_slots 给出待入队容量。issue 在槽耗尽或操作自身升级时得到 all_user，否则与旧集合取并且容量减一。push_from 合并时也可能升级为非全局全刷，仍缺每核执行、确认及帧保留。",
-    "reviewedHead": "606ef10e5e8c73fe29281d89ac83d6ab248f947f",
+    "reviewedHead": "c48862c08a4dcc9c00cf9bfb019b68062615b64d",
     "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/specs/mm/tlb.rs::FlushSet；ostd/src/mm/tlb.rs::issue_tlb_flush_with,OpsStack::push_from @76d55a69d3",
       "ostd/src/mm/tlb.rs::TlbFlushOp::escalates_to_all，ostd/specs/mm/tlb.rs @17dbb8a8c",
-      "ostd/src/mm/tlb.rs::TlbFlusher::issue_tlb_flush,OpsStack::push_from，ostd/specs/mm/tlb.rs @606ef10e5"
+      "ostd/src/mm/tlb.rs::TlbFlusher::issue_tlb_flush,OpsStack::push_from，ostd/specs/mm/tlb.rs @606ef10e5",
+      "ostd/{specs,src}/mm/tlb.rs 与上次 head 相同，perform_on_current 仍是未接回的外部体 @c48862c08"
     ]
   },
   {
@@ -550,7 +553,7 @@ window.PLAN_PR_CATALOG = [
     "n": 948,
     "scope": "builder 的三种编码、EFI decode_payload 与两个 setup 共用的 ELF 段初始化",
     "implements": ["BZ_ENCODE", "BZ_DECODE", "BZ_LOAD"],
-    "reuses": ["BZ_SETUP", "BZ_IMG", "BZ_PE", "BZ_LEGACY_ALLOC", "BZ_EFI_ALLOC", "BZ_EFI_HANDOFF"],
+    "reuses": ["BZ_SETUP", "BZ_IMG", "BZ_PE", "BZ_LEGACY_ALLOC", "BZ_EFI_ALLOC", "BZ_EFI_HANDOFF", "BZ_EFI_E820"],
     "note": "按审阅恢复 Vec 返回值及 decoder 内的 unwrap。有效压缩流的读取成功来自 alloc-only 切片解码器的两条 libflate 公理。load_elf 现要求每个 PT_LOAD 满足分配前置。两个 alloc_at 的外部合同均仅给出长度，物理地址、独占使用与入口交接另验。",
     "reviewedHead": "c762f8e27d0bb25af35fc3dd4d55cd4b61d49abc",
     "reviewedAt": "2026-11-27",
@@ -606,13 +609,14 @@ window.PLAN_PR_CATALOG = [
     "implements": ["TASK_CTX"],
     "reuses": ["TASK_SW"],
     "note": "同步主线后 FFI 定义相同。cur 返回权限与栈对齐来自可信包装，须由 switch_to_task 建立独占、有效延续和栈寿命。",
-    "reviewedHead": "b86b7eab0457543ee2d8b8ea93b4ca9bd90186ba",
+    "reviewedHead": "46f4d2e8d1c6af845f8067daa5c0a3bed0a21ff8",
     "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/arch/x86/task/{mod.rs::context_switch,switch.S}，ostd/src/task/processor.rs::switch_to_task @10bf577c1",
       "ostd/src/arch/x86/task/mod.rs @504dbdded",
       "ostd/src/arch/x86/task/mod.rs @985ba1905",
-      "ostd/src/arch/x86/task/mod.rs @b86b7eab0"
+      "ostd/src/arch/x86/task/mod.rs @b86b7eab0",
+      "ostd/src/arch/x86/task/mod.rs 的 context_switch 合同与上次 head 相同 @46f4d2e8d"
     ]
   },
   {
@@ -621,13 +625,14 @@ window.PLAN_PR_CATALOG = [
     "implements": ["IDT_TABLE", "IDT_LOAD"],
     "reuses": ["TRAP_DISP"],
     "note": "init 和 published_idt 显式要求 Once 未观察到 poison，VirtAddr::new 要求规范地址。实际 trap 初始化仍须建立这些条件、向量有效性和每核加载，Once 包装的发布关系属可信边界。",
-    "reviewedHead": "b00942221571aade60572a7a5bfbee7cb3821dd5",
+    "reviewedHead": "a7fa539b89663384b8aa8ffe8355fe54f5a68387",
     "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/arch/x86/{mod.rs,trap/{idt.rs::init,published_idt,trap.S,mod.rs}}，verified_libs/vstd_extra/src/external/{x86_idt,smart_ptr}.rs @4fdc660b8",
       "ostd/src/arch/x86/trap/idt.rs::init，verified_libs/vstd_extra/src/external/x86/idt.rs @02eae00e6",
       "ostd/src/arch/x86/trap/idt.rs::init @c1e430fcd",
-      "ostd/src/arch/x86/trap/idt.rs，verified_libs/vstd_extra/src/external/x86/idt.rs @b00942221"
+      "ostd/src/arch/x86/trap/idt.rs，verified_libs/vstd_extra/src/external/x86/idt.rs @b00942221",
+      "ostd/src/arch/x86/trap/idt.rs 及其 external 规格与上次 head 相同，arch/x86/mod.rs 的串口声明来自主线 @a7fa539b8"
     ]
   },
   {
@@ -636,13 +641,14 @@ window.PLAN_PR_CATALOG = [
     "implements": ["BZ_RELOC"],
     "reuses": ["BZ_ELF", "BZ_OUT", "BZ_EFI_OUT"],
     "note": "随 #978 移除 allowed_to_panic_if。调用者须建立解析安全且成功、节可读及全部条目受支持。Rela64 布局和可读 Rela 节的类型关系已写入 xmas-elf 规约。实际 make_bzimage 仍须由当前 setup ELF 建立这些条件，并记录运行时拒绝后留下的文件内容。",
-    "reviewedHead": "e1649d5316dcc2de74e085f4027be71091c12c5b",
+    "reviewedHead": "652001d88e393c2064d9d6378748eb4810c5952f",
     "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/libs/linux-bzimage/{builder/src/lib.rs::make_bzimage,assert_elf64_reloc_supported,setup/src/x86/linker.ld}，verified_libs/vstd_extra/src/external/xmas_elf.rs @a592aaef6",
       "ostd/libs/linux-bzimage/builder/src/lib.rs::assert_elf64_reloc_supported @394e534a1",
       "ostd/libs/linux-bzimage/builder/src/lib.rs::assert_elf64_reloc_supported @20d189ccb",
-      "ostd/libs/linux-bzimage/builder/src/lib.rs::{make_bzimage,assert_elf64_reloc_supported}、verified_libs/vstd_extra/src/external/xmas_elf.rs @e1649d531"
+      "ostd/libs/linux-bzimage/builder/src/lib.rs::{make_bzimage,assert_elf64_reloc_supported}、verified_libs/vstd_extra/src/external/xmas_elf.rs @e1649d531",
+      "ostd/libs/linux-bzimage/builder/src/lib.rs::assert_elf64_reloc_supported 及本 PR 其余 6 个文件与上次 head 相同 @652001d88"
     ]
   },
   {
@@ -726,7 +732,7 @@ window.PLAN_PR_CATALOG = [
     "n": 969,
     "scope": "PIT 与 8259 PIC 的端口、命令及软件写入顺序",
     "implements": ["PIT_CFG", "PIC"],
-    "reuses": ["IO_PIO", "IO_PIO_ALLOC", "SERIAL_QEMU_CMOS"],
+    "reuses": ["IO_PIO", "IO_PIO_ALLOC", "SERIAL_QEMU_CMOS", "COM1_SEND"],
     "note": "PIT 的三项与 PIC 的十项写入由调用者提供序列，驱动消费前缀并保留后缀。相对上次核对，分支交付文件内容相同；尚须在平台入口建立协议和设备效果。",
     "reviewedHead": "abf9d4c2bafb0f2f91632a5374d32266fe8bd89d",
     "reviewedAt": "2026-11-27",
@@ -879,5 +885,15 @@ window.PLAN_PR_CATALOG = [
     "reviewedHead": "ccf88d6601d88ea32c2c1bf751791392ac23145e",
     "reviewedAt": "2026-11-27",
     "evidence": ["ostd/src/mm/{frame/unique.rs,io.rs,page_table/cursor/mod.rs,vm_space.rs} @ccf88d660"]
+  },
+  {
+    "n": 985,
+    "scope": "CpuSet 迭代的成员关系、升序与完整性",
+    "implements": ["COMMON_AUDIT"],
+    "reuses": [],
+    "note": "覆盖 cpu/set 的一个现有 API。产生的项都属于集合且严格升序，全部项成功产生时，迭代结果的集合等于原集合。原 ktest 用 collect 检查结果，远端 TLB 分派仍待接入。",
+    "reviewedHead": "41d1723b32c87a8ca4f8fd254970de2a9b59b066",
+    "reviewedAt": "2026-11-27",
+    "evidence": ["ostd/src/cpu/set.rs::CpuSet::iter 与同文件 ktest，ostd/src/mm/tlb.rs::TlbFlusher::dispatch @41d1723b3"]
   }
 ];

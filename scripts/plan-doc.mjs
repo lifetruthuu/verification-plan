@@ -27,6 +27,17 @@ export function renderBlocks(plan, model) {
 
   out.meta = `计划版本 r${plan.revision}（${plan.updatedAt}）· 源码基线 main [\`${plan.doc.sha.slice(0, 9)}\`](${plan.repo}/commit/${plan.doc.sha}) · 仪表盘快照 ${plan.doc.snapshotAt}（\`${plan.doc.snapshotSha.slice(0, 9)}\`）· ${plan.nodes.length} 个工作项、${model.edges.length} 条依赖`;
 
+  const packages = [plan.prGuidance];
+  for (const lane of plan.lanes) {
+    packages.push(`### ${lane.name}`);
+    for (const item of lane.packages) {
+      packages.push(`**${item.title}**（${item.ids.join("、")}）`,
+        `${item.baseline} ${item.scope}`,
+        `${item.accept} 验证命令为 \`${item.command}\`。[原始执行入口](${item.source})`);
+    }
+  }
+  out.packages = packages.join("\n\n");
+
   /* ---- work items ---- */
   const items = [];
   for (const l of plan.lanes) {

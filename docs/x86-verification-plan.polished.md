@@ -1,20 +1,16 @@
 # VOSTD x86 验证计划
 
 <!-- BEGIN GENERATED:meta -->
-计划版本 r15（2026-11-27）· 源码基线 main [`7cd0bcdcd`](https://github.com/asterinas/vostd/commit/7cd0bcdcddfca4091415daeebc8b4017f65a7700) · 仪表盘快照 2026-11-26 22:39（北京时间）（`7cd0bcdcd`）· 132 个工作项、235 条依赖
+计划版本 r16（2026-11-27）· 源码基线 main [`3a9bc536f`](https://github.com/asterinas/vostd/commit/3a9bc536f9e67072fc484c3802205c3e975a6e1a) · 仪表盘快照 2026-11-27 11:54（北京时间）（`3a9bc536f`）· 133 个工作项、236 条依赖
 <!-- END GENERATED:meta -->
 
 本次范围是先完成 x86 验证，按 x86 平台、独立的 bzImage、OSTD 公共模块三条路线推进。RISC-V、LoongArch 适配与多架构迁移不纳入本次计划。bzImage 只在最终镜像、运行与范围验收处连接 x86；它的解析、格式、压缩与 setup 局部证明可以独立开展。
 
-## 0. 本次修订（r15）
+## 0. 本次修订（r16）
 
-暂缓消除 bzImage 中 `SetupVA → SetupFileOffset` 的 `assume`。正常构建的 setup ELF 为两个调用点提供有界段地址，但现有 `From` 接口也接受由任意 `usize` 构造的地址。BZ_TRUST 继续登记假设并核对实际产物，保留正向转换的执行接口。[PR #915 评审讨论](https://github.com/asterinas/vostd/pull/915#discussion_r4540618810)
+本版将三条路线的近期工作排成九份候选 PR。每份从现有源码入口出发，写明将首次进入验证的执行体、能复用的合同、消费结果的位置和验证命令。图中的节点继续记录可以分别验收的性质；同一段执行流程可在一份 PR 中覆盖多个节点。
 
-### 上一版（r14）
-
-从主线 `fece47de1` 复核到 `7cd0bcdcd`。#979 已接入 COM1 的静态端口和初始化入口。#978 移除 may_panic，#980 放宽可返回错误的公共 API 前置，#982 同步 MM 文档。[主线差异](https://github.com/asterinas/vostd/compare/fece47de1b346d9d886ba3b03d4b6f6adc69945f...7cd0bcdcddfca4091415daeebc8b4017f65a7700)
-
-#981 的引导窗口与 ACPI 查表需要引导入口提供初始化见证。#983 给出 TSC 频率读取与 RDRAND 包装，#984 处理 GDT 布局与选择子。本轮把相应的调用证明，以及两种 setup 的物理分配、启动交接、heap、CPU-local 和等待队列拆成可独立提交的工作项。三条路线的整体运行仍在选定镜像上验收。
+主线已合入 #976。页表叶映射的架构物理地址上界与跟踪帧的元数据范围分别检查，映射调用者仍须建立各自的前置。#985 已为 CpuSet 迭代提交成员、升序和完整性证明，后续任务在调用者使用这些保证时衔接。bzImage 的正向地址转换沿用 r15 的暂缓决定，构建调用处记录正常 setup ELF 的地址范围。[主线变更](https://github.com/asterinas/vostd/compare/7cd0bcdcddfca4091415daeebc8b4017f65a7700...3a9bc536f9e67072fc484c3802205c3e975a6e1a) · [CpuSet PR](https://github.com/asterinas/vostd/pull/985) · [地址转换评审](https://github.com/asterinas/vostd/pull/915#discussion_r4540618810)
 
 ## 1. 路线与依赖口径
 
@@ -44,15 +40,75 @@ PCI 按类型、编码、配置事务、location 枚举、BAR、capability、MSI
 
 `DMA_MAP` 补上 coherent、registry、cache policy、映射与释放。main 仍注释了 mapping-set 插入和部分硬件映射动作，`dma_type` 仍是占位；这些是明确的工作缺口。`SA_DMA` 保留 stream slice 同步与地址合同。对 CPU/设备一致性和设备完成的条件须分别说明，返回 `Ok(())` 不足以证明设备已经完成访问。
 
-`COMMON_AUDIT` 覆盖尚未单列的 `cpu/set`、`user::UserMode`、timer/jiffies、console/logger/panic、util 与辅助库入口。它必须把缺口归属到可执行工作项并关闭，不能仅提交一张清单便验收。`ACC_SCOPE` 在同一集成提交核对所有当前项、启用路径、验证命令和运行产物。三条路线的内置行数统计已同步到上游 7cd0bcdcd。工作项完成数取自显式验收记录。
+`COMMON_AUDIT` 覆盖尚未单列的 `cpu/set`、`user::UserMode`、timer/jiffies、console/logger/panic、util 与辅助库入口。它必须把缺口归属到可执行工作项并关闭，不能仅提交一张清单便验收。`ACC_SCOPE` 在同一集成提交核对所有当前项、启用路径、验证命令和运行产物。内置行数统计的日期与提交见页首。工作项完成数取自显式验收记录。
 
 ## 3. 并行推进与近期投入
 
-可以从下面三个位置各开一个 PR。验证命令是提交该工作时要运行的检查。
+选题时先对照目标架构、feature 与模块开关，写出原始调用从哪里进入、走过哪些分支、结果交给谁。优先让未接入的 Rust 执行体进入 Verus，或让现有合同在下一层真实调用中得到使用。若一份工作只加强已验证函数的合同，说明它解锁的调用者。拆开较大的任务时，每份应有能单独核对的结果，例如 EFI 内存表写回与 EFI 物理段装载。近期任务的基线和分支条件见各项说明，命令用于完成接入后的验证。
 
-- **x86 · COM1 状态位**　从 `ostd/src/arch/x86/serial.rs::line_sts` 开始，证明 `send` 每次轮询所见的 `OUTPUT_EMPTY` 等于这一次 0x3FD 读值的第 5 位；位为零时继续等，置位时才能写数据。#979 已验证未知位截断。用 `cargo dv focus -p ostd -- --verify-only-module arch::serial` 核对调用合同，设备最终就绪另列为进展前提。
-- **bzImage · EFI 内存类型**　在 #948 的 setup 构建上单独证明 `ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/efi.rs::parse_memory_type` 的分类，覆盖 `efi_phase_runtime` 实际消费的常规 RAM、需接受页和保留区分支。局部命令为 `PAYLOAD_FILE=/dev/null cargo dv verify -p linux-bzimage-setup --target x86_64-unknown-none`；真实固件内存图在 `BZ_EFI_E820` 的后续循环验收。
-- **公共模块 · VM 读取一个 Pod 值**　在 `ostd/src/mm/io.rs` 的非可失败 `VmReader::read_val` 路径证明返回值的字节等于旧游标前缀。现有合同已处理短缓冲返回 `InvalidArgs` 与游标保持；在持有旧内存视图的调用处检查内容相等，局部运行 `cargo dv focus -p ostd -- --verify-only-module mm::io`。在 `mm::test::io` 的写后读测试恢复断言时，另须接通通过 `from_kernel_space` 重建的内存视图。
+<!-- BEGIN GENERATED:packages -->
+从一段尚未验证的原始执行流程选题，连同相关函数、分支和使用结果的调用者提交一份 PR。一个函数若独立承载完整算法或关键状态转移，也可单独交付。小型 getter、位运算及辅助引理随使用它们的路径提交。优先保留原 Rust 执行体，在原位置补规约与证明。
+
+### x86 平台
+
+**控制台字符串写入 COM1**（COM1_SEND）
+
+主线 3a9bc536f 的 ostd/src/arch/x86/serial.rs 已接入 #979 的轮询和状态截断，ostd/src/lib.rs 尚未启用 console.rs。#969 正修改底层 device/serial.rs 的写入前置。 把 console.rs::Stdout::write_str 的原字节循环接入验证，沿 arch/x86/serial.rs::{line_sts,send} 到 SerialPort::{line_status,send}，证明一次调用产生的写入序列。
+
+空串无写入，普通 UTF-8 字节按序各写一次，8 和 0x7f 各展开为 [8,32,8]。每次写前对应状态读的第 5 位为 1，正常返回依赖设备最终就绪。 验证命令为 `cargo dv verify -p ostd`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/console.rs#L9)
+
+**IOAPIC 重定向项的读写、启用与屏蔽**（IOAPIC_REG、IOAPIC_ENTRY）
+
+主线 3a9bc536f 的 ostd/src/arch/x86/kernel/irq/ioapic.rs 保留原始驱动，kernel::irq 尚未启用。局部证明可以从给定的独占窗口和有效 IRQ 开始，构造设备依赖 IO_ALLOC 的区间保留。 在原文件接入 IoApicAccess::{read,write,max_redirection_entry} 及其调用者 IoApic::{enable,disable}。跟踪一次选择寄存器和数据访问的顺序，以及同一表项低、高半部的写入。
+
+在 0x10 + 2 × index + 1 可用 u8 表示的条件下核对普通 IRQ、重映射 IRQ、屏蔽三条路径。越界返回 InvalidArgs，启用时发现表项低八位非零返回 AccessDenied，二者均未写表项；保留读取能力字与真实设备效果的边界。 验证命令为 `cargo dv focus -p ostd -- --verify-only-module arch::kernel::irq::ioapic`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/arch/x86/kernel/irq/ioapic.rs#L73)
+
+**本核 TLB 请求的三种执行分支**（PT_LOCAL_FLUSH、PT_FLUSH_NONGLOBAL）
+
+主线 3a9bc536f 的 ostd/src/mm/tlb.rs::TlbFlushOp::perform_on_current 是外部体。#977 @06327ccfd 已接回 x86 的三个刷新包装，#935 与 #677 在公共文件处理请求记账。 在协调后的分支上接回 perform_on_current 原有 match，让 Address、Range、All 分支消费对应的 x86 合同，用 OpsStack::flush_all 的逐项调用核对本核覆盖的请求。
+
+单地址须为规范地址；非空范围由调用者建立页对齐起点和同一规范区间，每个相交页都得到覆盖，空范围无操作；All 覆盖本核非全局项。硬件失效语义列为输入，远端确认归 TLB_SHOOT。 验证命令为 `cargo dv verify -p ostd`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/mm/tlb.rs#L204)
+
+### bzImage 启动链
+
+**从 setup ELF 到 Legacy32、Efi64 输出文件**（BZ_RANGE、BZ_OUT、BZ_RELOC、BZ_EFI_OUT）
+
+主线 3a9bc536f 的 builder/src/lib.rs::make_bzimage 尚无调用证明。#931 已证 to_flat_binary 的逐段字节，#916 已证 PE 头为 368 字节；Efi64 检查接续分支 #956（652001d88）。 在 make_bzimage 原入口串起读取、to_flat_binary、4096 对齐填零和公共写入，并沿 Efi64 分支串起 .rela 检查、make_pe_coff_header、seek(0) 与覆写。以同次构建的 ELF 建立相应解析和范围前提。
+
+正常返回时 Legacy32 文件等于对齐后的 setup；先由实际 ELF 建立 setup 足以容纳 PE 和 Linux boot header，再证明 Efi64 文件仅前 368 字节替换为 PE 头，0x1f1 起的 Linux boot header 保留。写明宿主文件 I/O 的成功前提、失败时可能已写入的前缀，并用实际产物核对。缺节或不支持的重定位在公共写入之后、覆写之前拒绝。 验证命令为 `cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/linux-bzimage/builder/src/lib.rs#L54)
+
+**将 EFI 内存图写入 BootParams 的 E820 表**（BZ_EFI_E820）
+
+主线 3a9bc536f 的 setup/src/x86/amd64_efi/efi.rs 保留原分类函数与填表循环；接续分支 #948（c762f8e27）提供的 x86_64 setup 验证配置。 沿 parse_memory_type、efi_phase_runtime 的原循环及 e820_entries 写回覆盖类型分类、逐页接受、同类连续区间合并和满表停止。按固件给出的遍历顺序建立循环不变式，列出成功接受页面和区间运算的前提。
+
+在 call_aster_entrypoint 接收的 BootParams 上证明前缀内容与计数。核对空表、表满仍可合并、满表后遇到需要新增表项的描述符才停止等情况；页接受的顺序依照原实现。 验证命令为 `PAYLOAD_FILE=/dev/null cargo dv verify -p linux-bzimage-setup --target x86_64-unknown-none`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/efi.rs#L288)
+
+**把 EFI 按址分配的物理页交给 ELF 装载器**（BZ_EFI_ALLOC、BZ_LOAD）
+
+分支 #948（c762f8e27）的 alloc_at 为 external_body，后置只给出切片长度；load_segment 已有逐字节初始化快照。 在 setup/src/x86/amd64_efi/alloc.rs 的 alloc_pages、alloc_at 和 loader.rs::load_segment 调用处建立 AllocateType::Address、页数向上取整、请求地址与返回切片的对应，再沿原复制和清零操作定位实际写入。
+
+在固件按址成功并授予独占页的前提下，证明段文件前缀和零尾部落在请求的物理区间。记录固件失败、地址不符和越界的原有失败条件，区分固件保证与 Rust 包装层已证性质。 验证命令为 `PAYLOAD_FILE=/dev/null cargo dv verify -p linux-bzimage-setup --target x86_64-unknown-none`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/alloc.rs#L6)
+
+### OSTD 公共模块
+
+**从注册测试项到按模块和名称枚举**（KTEST_DISCOVERY）
+
+可从主线开始。ostd/libs/ostd-test/src/lib.rs 的 KtestIter::new/default 已由 #918 验证，KtestItem::new/info 与 KtestIter::next 仍为普通 Rust。 从 ostd-macros 的 #[ktest] 生成的注册语句出发，验证 KtestItem::new、KtestIter::next 的索引和 clone，以及 KtestItem::info 返回的元数据。
+
+给定链接器提供的有效、固定测试表，成功取项保留登记的模块名、函数名等元数据并推进一位，空表和表尾保持下标并返回 None。用 asterinas/asterinas 的 osdk/deps/test-kernel/src/lib.rs @885e0f5c4 核对建树与过滤调用。登记链接段和运行测试的 panic 分类各自标明边界。 验证命令为 `cargo dv verify -p ostd-test`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/ostd-test/src/lib.rs#L248)
+
+**读取 PCI 配置字并构造设备标识**（PCI_CFG、PCI_TYPES）
+
+主线已启用 x86 arch::pci::read32，#706 的返回合同保证 Ok。device_info.rs 的子宽度读取和设备 ID 构造、cfg_space.rs 的偏移枚举仍在注释中。 原位接入 PciDeviceLocation::read32/read16/read8、PciDeviceId::new 以及构造所用的偏移枚举，以同一次 32 位读数核对截取位置。
+
+证明每次调用的对齐偏移和选取的字节或半字。沿 PciDeviceId::new 的八次读取核对每个结果字段，分别保留各次读数，设备快照的一致性和 CF8/CFC 的实际硬件效果由后续事务证明承担。 验证命令为 `cargo dv focus -p ostd -- --verify-only-module bus::pci::device_info`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/bus/pci/device_info.rs#L33)
+
+**建立一页 slab 并追踪小槽借还**（HEAP_SLAB、SA_HEAP）
+
+接续 #923 与 #505。主线 mm/mod.rs 的 heap 入口关闭，#923 覆盖 HeapSlot 和空闲链，#505 与 slab 分配计数有重合。 在对应 slot 和 frame 权限可用时，原位接入 mm/heap/slab.rs 的 Slab::new、SlabMeta::alloc 及 Slab::dealloc。实际槽尺寸需保证循环中最后一个槽完整落在页内，并满足链指针对齐。
+
+由 SlabCache::alloc/dealloc 对 capacity 和 nr_allocated 的使用核对新页的空闲链、一次借出与归还后的计数和独占权限，验证满页与错页分支，记录释放时仍有借出槽的 panic 条件。调用处见 asterinas/asterinas 的 osdk/deps/heap-allocator/src/slab_cache.rs @885e0f5c4。 验证命令为 `cargo dv focus -p ostd -- --verify-only-module mm::heap::slab`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/mm/heap/slab.rs#L86)
+<!-- END GENERATED:packages -->
 
 PIC、PIT 配置和 PCI 配置访问可以并行，分别使用同一份静态 PIO 合同。APIC 模式探测、IDT 构表、ACPI 表读取、FPU 布局、低层 context-switch ABI、页表硬件包装和 bzImage 各入口也可独立开展。IOAPIC 寄存器证明可从给定窗口出发，MADT 与实际窗口的一致性在 `ROUTE_MAP` 验收；BAR 探测从给定 location 出发，无需完整 PCI 枚举。
 
@@ -100,7 +156,7 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 
 阶段 A 交付资源与 CPU 状态接口。IRQ 模型先确定 IF、嵌套深度与恢复权，公开 guard 入口要能取得 owner；CPU-local 存储先以早期独占内存初始化，再建立 GS/CPU 身份。本地 `get_with`、跨核 `get_on_cpu`、单指令 `CpuLocalCell` 消费不同合同，不能统一等待一个大型 accessor 证明。`WriteIrqDisabled` 写侧禁 IRQ、读侧禁抢占，`SYNC_GUARD` 负责把锁证明与真实 guard 生命周期连接。
 
-阶段 B 的设备方案可在给定合法端口或窗口下先验证寄存器协议。xAPIC 和 IOAPIC 还要取得永久排除结果。x2APIC 单独走 ECX[21] 探测与 MSR 路径。#955 的 IDT 对 3、4 号门开放 Ring3，其余为 Ring0，实际平台仍需说明 21、29、30 号入口的错误码条件并接回 trap 初始化。HPET 的 VolatileRef 走线性映射，平台 ISA 路由仍待核对。 COM1 的初始化写序列与 send 的每次轮询可分开提交。HPET 比较器数量/范围、每核 TSS 对应和本核范围刷新各有独立消费者。
+阶段 B 的设备方案可在给定合法端口或窗口下先验证寄存器协议。xAPIC 和 IOAPIC 还要取得永久排除结果。x2APIC 单独走 ECX[21] 探测与 MSR 路径。#955 的 IDT 对 3、4 号门开放 Ring3，其余为 Ring0，实际平台仍需说明 21、29、30 号入口的错误码条件并接回 trap 初始化。HPET 的 VolatileRef 走线性映射，平台 ISA 路由仍待核对。 COM1 输出从控制台的字符串循环验收到实际端口写入。其初始化另看启动调用与八次寄存器写入。HPET 比较器范围在构造访问寄存器时消费，每核 TSS 在 GDT 装载时消费。
 
 阶段 C 组合时间、故障恢复、多核与任务。deadline 消费 `TSC_VALUE`，完整 PIT 回退留在 `CAL_FREQ`；AP 特性启用归 `CPU_ENABLE`，无需等待全部 FPU save/load。IPI API 本身允许异步且可能不执行，TLB shootdown 必须另证完成协议与进展，不能从函数名推得 ACK。在 `TASK_CTX` 对照 #954 和 switch.S 核对寄存器、独占记录、返回槽与挂起栈。`TASK_SW` 在 processor 消费这些保证，并验证任务唯一运行权、栈刷新、RCU 和 IRQ 权限。调度 hook 是否切换地址空间仍待具体客户证据。
 
@@ -110,13 +166,11 @@ P1 的 `PITIRQ` 验收实际 PIT 编程产生 IRQ0，到路由、IDT/汇编入�
 
 setup 的控制台直接构造 `uart_16550::SerialPort`（0x3F8）。`main_legacy32` 使用启动器提供的 E820；`efi_phase_boot` 通过 UEFI 取得物理页。两条路径均可独立于内核 PCI 和 MMIO 初始化推进。[setup 源码](https://github.com/asterinas/vostd/tree/7cd0bcdcddfca4091415daeebc8b4017f65a7700/ostd/libs/linux-bzimage/setup/src)
 
-`BZ_ELF` 提供 setup ELF 的段表与范围前提。`BZ_RANGE` 跟踪 `to_flat_binary` 的逐段结果和末端对齐。提交 `BZ_OUT` 时，在 `make_bzimage` 的公共写入点核对填零后的 setup。Legacy32 在这里得到最终文件。Efi64 另用一份 PR 验 `BZ_EFI_OUT` 的 PE 头覆写，核对 0x1f1 处开始的 Linux boot header 得以保留。
+`make_bzimage` 是两种镜像的共同入口。一份宿主 builder 证明可以从读取 setup ELF 开始，复用逐段复制和 PE 头合同，覆盖对齐填零、公共写入与 Efi64 的检查和覆写。按执行分支分别核对文件内容和拒绝时机，证据归入 BZ_RANGE、BZ_OUT、BZ_RELOC 和 BZ_EFI_OUT。
 
 `BZ_PARSE` 跟踪编码名称与 OS 字符串转换。`BZ_ENCODE` 的 Raw 格式保持字节，Gzip/Zlib 输出在库模型下可解码回原输入。#948 已恢复 `decode_payload -> Vec<u8>`，内部对压缩流读取调用 unwrap。提交 `BZ_DECODE` 时应在 EFI 调用处用同次构建的嵌入流建立解码前置，记录两条切片解码器公理的适用配置。
 
-`BZ_RELOC` 可以单独提交宿主 builder 的调用证明。#956 在 `assert_elf64_reloc_supported` 入口要求实际 setup ELF 可解析、节可读且全部重定位类型受支持；用 Efi64 产物核对链接脚本产生的 `.rela` 与类型 8。另用缺节或不支持类型的样本检查运行时拒绝的输出文件，此时 setup 已写出，PE 头尚未覆盖。
-
-可以先分别提交 `legacy_i386/alloc.rs` 的 E820 区间保留（BZ_LEGACY_ALLOC）和 `amd64_efi/alloc.rs` 的按址分配（BZ_EFI_ALLOC）。它们给 `load_segment` 提供实际物理区间，`BZ_LOAD` 提供段内文件前缀与清零尾部的快照。`BZ_EFI_E820` 另验收 `efi_phase_runtime` 写回的表长、合并与截断，内核 parse_memory_regions 消费表前缀。
+setup 的物理段装载由所选模式的分配器和共享的 `load_segment` 配合完成。Legacy32 由 E820 可用区间提供目标页，EFI 调用固件按物理地址分配。同一路径连同段前缀复制、尾部清零一并核对。EFI 的另一份工作从固件内存图开始，覆盖分类、页接受、表项合并、容量限制及 BootParams 写回。
 
 Legacy32 的 `BZ_SETUP` 用原始 ELF、ESI 中的 BootParams 和入口 0x8001000 验收。EFI 的 `BZ_EFI_HANDOFF` 核对解码得到的 ELF、退出 boot services 后的 BootParams 和 RSI 交接到入口 0x8001200。两个交接各自计入范围验收；镜像与平台运行检查使用选定模式的实际产物。
 
@@ -124,7 +178,7 @@ Legacy32 的 `BZ_SETUP` 用原始 ELF、ESI 中的 BootParams 和入口 0x800100
 
 `IO_GLOBAL` 的 PIO 初始化扫描 `.sensitive_io_ports`。主线 PCI 的两个端口直接用 `exec static` 构造，最终链接产物还需给出 `[0xCF8,0xD00)` 被永久预占的证据。MMIO 的 `remove`、映射别名和显式回收也各有独立验收条件。
 
-`SYNC_WAKER` 跟踪等待任务的通知与关闭，`SYNC_QUEUE` 跟踪队列登记和出队，`SYNC_WAIT` 核对条件重查及取消。CPU-local 按 chunk 分配、当前核地址换算和释放归还分开验证。堆的单页 slab 小槽和大块 Segment 分别对照 OSDK 的 slab cache 与全局分配器分支验收。
+`SYNC_WAKER` 跟踪等待任务的通知与关闭，`SYNC_QUEUE` 跟踪队列登记和出队，`SYNC_WAIT` 核对条件重查及取消。CPU-local 的动态槽可沿分配、按核取址、逐核析构和归还验证同一槽的生命周期，三个节点分别记录地址、初始化与所有权证据。堆的单页 slab 小槽和大块 Segment 分别对照 OSDK 的 slab cache 与全局分配器分支验收。
 
 任务的 current-task/调度注入/park-unpark、`WaitQueue`、Mutex/RwMutex/RwArc 分别验收。局部等待证明可采用给定的切换合同，最终资源交接在 `TASK_SW` 组合。`TASK_COMPOSE` 另验收 TaskBuilder 的栈/SP/TLS、首次执行与退出、内置 FIFO 和实际调度；远端 `set_need_preempt` 消费 SMP IPI 的回调合同，因此保留真实跨路线关系，同时不让 current-task 的消费者等待完整调度路径。RCU `finish_grace_period` 的实际调用属于任务切换验收，不要求所有设备配置先完成 RCU。
 
@@ -147,6 +201,10 @@ Legacy32 的 `BZ_SETUP` 用原始 ELF、ESI 中的 BootParams 和入口 0x800100
 <!-- END GENERATED:candidates -->
 
 ## 8. 验证与维护
+
+验证 PR 以固定的 VOSTD 原执行体为比较基线。恢复已注释代码时，对照原 Rust 或其对应上游提交，在原位置接入目标和必要依赖。保留原有 API、控制流、错误与 panic 路径、资源释放，以及硬件读写或原子操作的顺序。优先补 `requires`、`ensures`、循环不变式和擦除的 proof/ghost 代码，并复用 vstd 与 vstd_extra 的规格。若受 Verus 限制必须调整执行代码，在改动旁写明限制并用 `Origin Rust:` 保留原文，在 PR 说明中逐处核对可观察行为。贡献者可对照本地 `.codex/skills/kverus-common/references/exec-code-preservation.md`、`kverus-spec` 和 `kverus-semantic-audit` 的执行差异核对方法。[VOSTD 执行代码保留规范](https://github.com/asterinas/vostd/blob/3a9bc536f/docs/coding-guidelines/maintainability.md#preserve-exec-code) · [证明与可信边界规范](https://github.com/asterinas/vostd/blob/3a9bc536f/docs/coding-guidelines/proof-engineering.md)
+
+提交时标明本次新验证的原始入口、分支和真实调用者，另列加强的既有合同、仍关闭的路径及可信输入。给出模块确已启用的证据和该配置下的 Verus 结果；使用最终镜像或客户运行时观测的软件行为，另附产物和运行记录。
 
 后续证明提交可用 `cargo dv focus --package ostd -- --verify-only-module <module_path>` 迭代，再按仓库要求运行 `make`。main 上的 builder 独立使用 `cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu`。#948 分支新增 `make verify-bzimage`，分别验证宿主 builder 和 x86_64-unknown-none 的 setup；后者使用 PAYLOAD_FILE=/dev/null。启动交接和镜像验收需要真实 payload、选定模式和运行记录。
 
@@ -173,14 +231,14 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 以下条目与页面共用 `plan-data.js`；公共验收规则和每项限定条件一起适用。
 
 <!-- BEGIN GENERATED:items -->
-每项交付 todo 指定的真实执行 API/合同、至少一个实际调用者的前置建立与结果使用证据、固定提交和适用验证命令结果；成功/失败/资源释放与剩余可信输入逐项记录。requires 可支持局部证明，最终验收须说明其来源。只写纯规格、保留未说明的注释/桩、PR 合并或 CI 通过均不自动结项。已完成项按其明确限定交付评定。
+逐项写出相对固定基线新进入 Verus 的原始执行体、已有执行体上新增的合同，以及仍依赖的可信输入。在真实调用处核对前置的来源、返回值或资源的使用，并覆盖适用的失败、释放与可观察效果。优先在原 Rust 上添加规约、循环不变式和证明；如 Verus 确需改写 exec，在改动旁以 Origin Rust: 保存原文和具体原因，并在 PR 中说明行为等价的依据。记录目标配置、验证命令和结果，分别标明条件证明、已接入调用与运行证据。
 
 #### x86 平台
 
 **IO_WIN** — 引导 MMIO 窗口 → 登记权限
 
 - 实施 PR：#981；复用 / 协调：#706、#953；模块：boot/memory_region、arch/x86/io
-- 要做什么：#981 的 construct_io_mem_allocator_builder 在给定引导见证与上下区输入边界时，返回按 expected_mmio_ranges 排列的两个对齐区间。其 has_registered_windows() 后置等价于 usize_ranges_match_registered(ret@)。 以 late_init_on_bsp 的构造调用为一项 PR，从实际引导图证明低区存在、两端点的加法/对齐界及高区为空的回退。将两项与登记清单逐一对应，供 io::init 建立 has_registered_windows()。
+- 要做什么：#981 的 construct_io_mem_allocator_builder 在给定引导见证和区间边界时返回两个对齐窗口，并给出 has_registered_windows() 与登记清单相符的条件。 接回 late_init_on_bsp 中的窗口构造和 io::init 的原调用关系。用本次发布的内存图证明低区存在、两端点的加法与对齐有界、高区为空时选择原回退值，并将窗口序列与引导登记清单对应。
 - 验收 / 限定：在已启用的 BSP 调用处使用返回窗口，记录固件内存图与登记值的来源。主线 BSP 调用仍在注释中，设备区间排除另由 IO_ALLOC 交付。启用该入口后运行 cargo dv focus -p ostd -- --verify-only-module arch::io。
 - 前置：EARLY_INFO_INIT（确认 · 验收前置）
 
@@ -243,15 +301,15 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **IOAPIC_REG** — IOAPIC：寄存器访问
 
 - 实施 PR：—；复用 / 协调：#706；模块：arch/x86/kernel
-- 要做什么：IoApicAccess::new 需要独占 [base,base+0x20)。#706 缺少可调用的 remove，先在给定独占窗口下验证寄存器选择与数据访问互斥，接入时补上保留结果及端点边界。MADT 地址由 ROUTE_MAP 核对。
-- 验收 / 限定：交付给 IOAPIC_ENTRY 的间接寄存器读写合同：选择/数据事务互斥、偏移有界、max_redirection_entry 的含义及映射存活。以给定合法窗口证明，固件地址到该窗口的对应由 ROUTE_MAP 组合；寄存器效果属 TB_HW_OPS。
+- 要做什么：在独占且存活的设备窗口内，沿 IoApicAccess::{read,write,max_redirection_entry} 到重定向项 enable/disable，核对选择寄存器与数据寄存器的成对访问。IOAPIC 构造另须消耗 IoMemAllocatorBuilder::remove 的区间保留。 按原代码处理能力字第 16..23 位加一转 u8 的结果，并在访问表项时建立寄存器地址对 u8 的可表示性。
+- 验收 / 限定：使同一实例的选择与数据访问可按顺序交给 IoApic::{enable,disable} 使用，两个 32 位寄存器落入窗口并在访问期间保持有效。固件基址与窗口归属在设备初始化时建立，设备读写效果依赖 TB_HW_OPS。
 - 前置：IO_ALLOC（确认 · 验收前置）
 
 **IOAPIC_ENTRY** — IOAPIC：重定向项 enable / disable
 
 - 实施 PR：—；复用 / 协调：—；模块：arch/x86/kernel
-- 要做什么：重定向项 enable / disable 的效果与失败合同。当前代码未启用且没有规格。
-- 验收 / 限定：交付给 ROUTE_MAP 的 enable/disable 表项效果、向量/remapping 编码、屏蔽与句柄存活合同；核对索引边界及失败时权限保持。设备投递语义属 TB_HW_OPS，IRT 状态属 TB_IOMMU。
+- 要做什么：原位接入 IoApic::{enable,disable}，用 IoApicAccess 的读写合同证明普通 IRQ 与重映射 IRQ 的两次表项写入，以及禁用时写掩码和清高半部。核对 map_gsi_pin_to 和 disable_gsi 对索引及结果的使用。
+- 验收 / 限定：越界索引返回 InvalidArgs；enable 发现原低八位非零返回 AccessDenied；两种失败均无表项写入。成功启动和禁用各自按原顺序写低、高半部；disable 对有效索引直接写掩码。给出 IRQ 存活、MMIO 独占及寄存器编号的边界，设备投递与 IRT 状态另据 TB_HW_OPS、TB_IOMMU 核对。
 - 前置：IOAPIC_REG（确认 · 验收前置）、IRQLINE（确认 · 验收前置）
 
 **PIT_CFG** — PIT 配置（pit::init）
@@ -369,7 +427,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **TMR_DEADLINE** — APIC timer：deadline 模式
 
 - 实施 PR：—；复用 / 协调：#983；模块：arch/x86/timer、timer/mod
-- 要做什么：以 init_deadline_mode_config 为一项 PR，在已发布 Hz 下证明间隔计算并记录 CONFIG。随后在 timer_callback 单独证明本次 read_tsc() 与间隔相加可表示，并把结果交给 IA32_TSC_DEADLINE。#983 的时间戳读数无数值后置，时钟推进和溢出边界由平台/调用者建立。
+- 要做什么：在 arch/x86/timer/apic.rs 接回 deadline 配置、init_deadline_mode 和 timer_callback 的原调用关系。从已发布频率计算 tsc_interval，在首次发布 CONFIG 后核对选择子分支、LVT timer 写参和初次及后续 deadline 重装。 区分 CONFIG 已存在时保留的值与初次发布值。#983 的时间戳没有数值上界，逐次说明 tsc_interval 与读数相加可表示的来源；需要正间隔时，证明 Hz 至少为 TIMER_FREQ。
 - 验收 / 限定：交付给 BSP/AP timer 调用者的 deadline 选择、频率到间隔转换、加法不溢出、回调重装与资源释放合同；保持原模式选择并建立非零频率来源。时钟推进和 MSR 效果属 TB_HW_OPS，不能从 CPUID 检测直接推得。
 - 前置：LAPIC_DEV（确认 · 验收前置）、IRQLINE（确认 · 验收前置）、PREEMPT_PIN（确认 · 验收前置）、TSC_VALUE（确认 · 验收前置）
 
@@ -502,7 +560,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **SERIAL_QEMU_CMOS** — COM1 端口预留与 UART 初始化
 
 - 实施 PR：#966、#979；复用 / 协调：#969；模块：arch/x86/serial、arch/x86/device
-- 要做什么：#966 的 SerialPort::new 返回连续七个地址；#979 将 CONSOLE_COM1_PORT 和 serial::init 接入 x86 模块，静态合同给出七个端口都在 [0x3F8,0x400) 内。现有 init 调用驱动入口，缺少 UART 初始化写序列的后置。 以 device/serial.rs::SerialPort::init 为一项 PR，给出八次写入的地址、值和顺序，在 serial::init 消费。对接 #969 时，在 COM1 固定基址建立偏移 0..=4 避开 PIC/PIT 写序列的前置。
+- 要做什么：主线 #966、#979 已验证七个寄存器的地址和静态 COM1 的构造，并接入 serial::init。 沿 reserve_io_port_range!、静态 COM1 和 serial::init 到设备驱动初始化核对端口独占，以及八次原始写入的地址、值、顺序。#969 正在修改同文件的写端口前置，对接时从 COM1 固定基址证明偏移 0..=4 避开 PIC/PIT 的写序列。
 - 验收 / 限定：以 CONSOLE_COM1_PORT 核对八次端口写入。另附最终链接产物中的 .sensitive_io_ports 记录和 allocator::init 对该整段的排除证据，标明 BSP 调用点当前在注释中。UART 状态变化依赖器件合同。运行 cargo dv focus -p ostd -- --verify-only-module arch::device::serial。
 - 前置：IO_PIO（确认 · 验收前置）
 
@@ -513,11 +571,11 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 - 验收 / 限定：完成条件：所有当前工作项交付均有固定提交/消费者证据；x86 make 验证与 builder 验证通过，ABI/ExTable 和选定 BSP/AP、用户态、TLB/PCI 运行场景有记录；占位/注释执行路径不得计为证明。硬件/架构 boot/IOMMU/TDX/用户回调等剩余边界逐项获明确记录。
 - 前置：LOC_ACC（确认 · 验收前置）、VM_POD（确认 · 验收前置）、TLB_FREE（确认 · 验收前置）、CAL_FREQ（确认 · 验收前置）、SMP_COMPOSE（确认 · 验收前置）、XSAVE（确认 · 验收前置）、TASK_SW（确认 · 验收前置）、PCI_IRQ（确认 · 验收前置）、SA_DMA（确认 · 验收前置）、BZ_TRUST（确认 · 验收前置）、BZ_ENCODE（确认 · 验收前置）、ACC_RUN（确认 · 验收前置）、IO_GLOBAL（确认 · 验收前置）、KFAULT_MAP（确认 · 验收前置）、SYNC_API（确认 · 验收前置）、PCI_DEVICE（确认 · 验收前置）、HPET（确认 · 验收前置）、SERIAL_QEMU_CMOS（确认 · 验收前置）、HEAP_GLOBAL（确认 · 验收前置）、BZ_SETUP（确认 · 验收前置）、BOOT_COMMON（确认 · 验收前置）、COMMON_AUDIT（确认 · 验收前置）、TASK_COMPOSE（确认 · 验收前置）、BZ_PARSE（确认 · 验收前置）、IO_MMIO_ALLOC（确认 · 验收前置）、COM1_SEND（确认 · 验收前置）、QEMU_EXIT（确认 · 验收前置）、BZ_EFI_OUT（确认 · 验收前置）、BZ_EFI_HANDOFF（确认 · 验收前置）、LOC_DYNAMIC_DROP（确认 · 验收前置）、HEAP_SLAB（确认 · 验收前置）、HEAP_LARGE（确认 · 验收前置）
 
-**COM1_SEND** — COM1 单字节发送与退格序列
+**COM1_SEND** — 从控制台字符串到 COM1 的轮询和字节写入
 
-- 实施 PR：#979；复用 / 协调：#966；模块：arch/x86/serial、arch/x86/device
-- 要做什么：验证 send(u8) 每次写前已观察到 OUTPUT_EMPTY。普通输入写原字节一次，8 和 0x7F 都依次写 [8,32,8]。#979 已验证 line_sts 截断未知位，调用方尚无上述输出合同。 首个 PR 可只改 line_sts 的合同，在 send 的现有轮询处证明 OUTPUT_EMPTY 与本次状态端口读值的第 5 位相等。记录读入设备字节的见证；保留硬件进展作为单独条件。
-- 验收 / 限定：在 console.rs::Stdout::write_str 恢复调用后，用普通字节和退格各核对一次可观察的写入。轮询的正常返回依赖设备最终就绪，主线允许循环没有 decreases。运行 cargo dv focus -p ostd -- --verify-only-module arch::serial。
+- 实施 PR：#979；复用 / 协调：#966、#969；模块：console/console、arch/x86/serial、arch/x86/device
+- 要做什么：主线 #979 已接入 line_sts 和 send，并证明状态位截断。原 console.rs 中 Stdout::write_str 的字节循环尚未进入验证。 在原位置接入 Stdout::write_str，沿 line_status、line_sts 和 send 把每次状态读取与随后的本次写入相连。在字符串循环中累计已处理输入前缀对应的端口写入序列。
+- 验收 / 限定：在各次轮询最终观察到 OUTPUT_EMPTY 的前提下，核对原 write_str 的返回与本次调用产生的写入。每次写 DATA 前最后一次状态读的第 5 位为 1；按 UTF-8 字节顺序输出，8 和 0x7f 各展开为 [8,32,8]，其他字节各写一次，空串无写入。硬件就绪属于设备前提。接入 console 后运行 cargo dv verify -p ostd。
 - 前置：IO_PIO（确认 · 验收前置）
 
 **QEMU_EXIT** — QEMU 调试出口的写值与非返回条件
@@ -544,21 +602,21 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **TSS_LOCAL** — 建立 LOCAL_TSS 与当前 CPU 的地址对应
 
 - 实施 PR：#984；复用 / 协调：—；模块：arch/x86/trap、cpu/local
-- 要做什么：以 StaticCpuLocal::as_ptr 在 gdt::init 的调用为一项 PR。#984 目前通过外部体取得非空和对齐；从执行核的基址、链接偏移和栈切换期间的 CPU 固定条件，建立该指针指向本核的长期有效 TSS。
+- 要做什么：接续 #984，把 StaticStorage 和 StaticCpuLocal 的取址、LOCAL_TSS.as_ptr() 与 gdt::init 构造每核 TSS 描述符放在同一条调用路径核对。现有外部体仅给出非空与对齐，仍需由当前 CPU 的存储和链接偏移说明地址归属、固定条件与描述符使用期间的寿命。
 - 验收 / 限定：在 LOCAL_TSS.as_ptr() 处消费该保证，核对 .cpu_local_tss 位于本核存储首部，并对照 syscall.S 使用的 sp0/sp1 偏移。提交选定内核的链接布局证据。启用该入口后运行 cargo dv focus -p ostd -- --verify-only-module cpu::local::static_cpu_local。
 - 前置：LOC_ID（确认 · 验收前置）
 
 **PT_LOCAL_FLUSH** — tlb_flush_addr_range 覆盖的本核页
 
 - 实施 PR：#977；复用 / 协调：—；模块：arch/x86/mm
-- 要做什么：在 #977 的 tlb_flush_addr 与 tlb_flush_addr_range 上连接指令效果。由 KernelStack::flush_tlb 的实际栈范围建立非空时起点页对齐且落在同一规范区间。
+- 要做什么：接续 #977 的 tlb_flush_addr 和 tlb_flush_addr_range，在 TlbFlushOp::perform_on_current 的原匹配中覆盖 Address 和 Range 两个分支。证明范围为空时无指令，非空且起点按页对齐时逐页覆盖，末页允许只覆盖部分字节。 在 KernelStack::flush_tlb 恢复时，用栈的范围兑现规范地址与起点对齐前置，消费本核完成证据后再更新 coherent 标记。
 - 验收 / 限定：空区间不触发指令，非空区间覆盖每个相交页，包括未对齐的末端。只有本核完成该范围后，栈调用者才可标记本核 coherent。指令语义归 TB_HW_OPS。 启用对应调用处后运行 cargo dv focus -p ostd -- --verify-only-module arch::mm。
 - 前置：无
 
 **PT_FLUSH_NONGLOBAL** — tlb_flush_all_excluding_global 的本核效果
 
 - 实施 PR：#977；复用 / 协调：—；模块：arch/x86/mm
-- 要做什么：在 #977 的 tlb_flush_all_excluding_global 上说明非全局陈旧映射何时全部失效。在 TlbFlushOp::perform_on_current 恢复 All 分支，用 #935 的 all_user 验证该类请求。
+- 要做什么：与 Address、Range 一起接回 TlbFlushOp::perform_on_current。对 All 分支复用 #977 的 tlb_flush_all_excluding_global，用 #935 的 all_user 请求模型说明本核非全局项的覆盖。 OpsStack::flush_all 在同一公共模块中消费本次分派；协调 #677 和 #935 上的队列证明，记录清理已执行请求的条件。
 - 验收 / 限定：给出一次调用对本核非全局项的覆盖，区分地址级全局项请求；目标核集合和远端确认由 TLB_SHOOT 验收。 启用对应调用处后运行 cargo dv focus -p ostd -- --verify-only-module arch::mm。
 - 前置：无
 
@@ -596,7 +654,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **BZ_RANGE** — setup / protected-mode 区间、对齐与算术边界
 
 - 实施 PR：#931；复用 / 协调：—；模块：libs/linux-bzimage
-- 要做什么：#931 在 to_flat_binary 上证明 ret@ == flat_binary_spec：按 program header 顺序扩容/复制，file_size <= mem_size 与地址上界作为 requires。新追加区间填零；重叠段的 memory-only 尾部保留旧字节，并非整段重新清零。make_bzimage 的尾部对齐与全链输入前置尚未覆盖。
+- 要做什么：#931 已证明 to_flat_binary 按段扩容和复制的结果。沿 make_bzimage 从读取的 setup ELF 建立原函数的输入条件，再用返回序列证明 resize 向 4096 对齐时保留整个前缀并将新增尾部置零。段重叠时按既有逐段覆盖语义核对。
 - 验收 / 限定：#931 已合入 46d3b1e7e，flat_binary_prefix 用 fold_left 按段构造结果。输入谓词和结果规格仍私有。在实际 make_bzimage 调用处建立输入条件，并证明末端对齐和输出区间。parser/get_data 的来源随 BZ_ELF 验收。
 - 前置：BZ_ELF（确认 · 验收前置）
 
@@ -617,14 +675,14 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **BZ_OUT** — make_bzimage 写出对齐后的 setup
 
 - 实施 PR：—；复用 / 协调：#956；模块：libs/linux-bzimage
-- 要做什么：核对 make_bzimage 从 to_flat_binary 接收的内容、以零补齐到 SECTION_ALIGNMENT 后的长度与字节，以及 File::create、write_all 的效果。该写入是 Legacy32 的最终文件，也是 Efi64 覆写文件头前的内容。
+- 要做什么：将公共写入与同一 make_bzimage 中的模式分支放在一份 builder 调用证明里。消费 BZ_RANGE 的填零结果，核对 File::create、write_all 和 unwrap 的实际顺序。公共写入成功后 Legacy32 结束，Efi64 在这个文件状态上继续检查重定位并覆写。
 - 验收 / 限定：在两种模式共用的写入点建立输入与写出字节的对应，区分成功、创建失败和部分写入，给出可据以检查的文件状态。运行 cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu，附真实 setup 的输出记录。
 - 前置：BZ_RANGE（确认 · 验收前置）
 
 **BZ_RELOC** — EFI64 构建时检查 setup ELF 重定位
 
 - 实施 PR：#956；复用 / 协调：#958、#978；模块：libs/linux-bzimage
-- 要做什么：#956 的 assert_elf64_reloc_supported 已把 .rela 的可读性与 elf64_reloc_supported 列为 requires。后者要求 Rela64 条目类型都为 R_X86_64_RELATIVE（8）。用实际 Efi64 调用建立这些前置和解析安全性，再消费 no_unwind 合同。 从 make_bzimage 的 Efi64 分支取得同一份 setup_elf 字节，核对链接脚本生成的节、文件边界和 Rela64 的 24 字节条目及 8 字节对齐。用不受支持的条目或缺节样本核对失败行为。
+- 要做什么：接续 #956，在 make_bzimage 的 Efi64 分支用实际 setup ELF 建立解析安全、.rela 可读和全部 Rela64 条目类型为 8 的前提。把此调用与随后的 PE 覆写放入同一份 builder 证明，覆盖公共写入成功、重定位检查通过或在覆写前遇到不支持条目的执行顺序。 核对链接脚本和 Efi64 产物中的 .rela 文件边界、24 字节 Rela64 布局与 8 字节对齐，保留缺节和不支持条目的运行样本。
 - 验收 / 限定：在宿主运行 cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu，附 make_bzimage 使用的 EFI setup ELF、.rela 的实际布局和类型。另用缺节或不受支持的样本核对运行时拒绝时已写出的 setup。Legacy32 跳过此检查。
 - 前置：无
 
@@ -673,15 +731,15 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **BZ_EFI_ALLOC** — EFI 的 alloc_at 将固件页交给 load_segment
 
 - 实施 PR：—；复用 / 协调：#948；模块：libs/linux-bzimage
-- 要做什么：在 alloc_at → alloc_pages → allocate_pages 调用链核对 AllocateType::Address、4096 字节向上取整、请求地址与大小检查。以固件成功返回的页范围证明切片从请求地址开始，且可独占写入 size 字节。
+- 要做什么：接续 #948 的 alloc_at 长度合同，在 setup/src/x86/amd64_efi/alloc.rs 原位验证 alloc_at 与 alloc_pages。沿 load_segment 的真实调用，用目标地址、字节数、按页取整、固件分配结果及原始指针转切片的权限证明可写区间。 用 loader.rs 现有 split_at_mut、文件前缀复制与零尾部快照核对实际物理段。记录零地址、size 上限、区间溢出、固件错误及返回地址不符时现有断言和 expect 的条件。
 - 验收 / 限定：用 load_segment 的一次 PT_LOAD 消费这段资源，列出零地址、越界、固件失败和地址不符的断言或 panic 条件。附 x86_64 setup 验证结果，单列固件页分配与原始指针转换的可信合同。
 - 前置：无
 
 **BZ_EFI_E820** — efi_phase_runtime 将固件内存图写入 E820
 
-- 实施 PR：—；复用 / 协调：—；模块：libs/linux-bzimage
-- 要做什么：首个函数 PR 可验证 parse_memory_type 的分类，在 efi_phase_runtime 调用处证明 UNACCEPTED 分支收到 None，未知类型保留为 Reserved。后续 PR 在表构建循环核对同类型相邻描述符合并、不能再追加时停止及 e820_entries 赋值。对 UNACCEPTED 内存记录逐页接受成功的前置。
-- 验收 / 限定：以 ostd/src/arch/x86/boot/linux_boot/mod.rs::parse_memory_regions 读取 e820_table[..e820_entries] 为消费者，提交 x86_64 setup 验证结果及空表、相邻可合并、128 项满表三类样本。明确页数换算的上界和截断后保留的描述符前缀。
+- 实施 PR：—；复用 / 协调：#948；模块：libs/linux-bzimage
+- 要做什么：在 setup/src/x86/amd64_efi/efi.rs 原位验证 parse_memory_type 和 efi_phase_runtime 的整段 E820 循环。以 exit_boot_services 返回的描述符遍历顺序为输入，核对类型分类、UNACCEPTED 逐页接受为 RAM、与上一项物理首尾相接且类型相同时合并、追加和最终 e820_entries。 写出页数乘法、物理端点及合并长度的可表示前提。满 128 项后仍可合并最后一项，遇到需新增的一项才停止；逐页接受发生在容量判断之前。固件内存图、accept_page 的实际效果和最后的跳转分别登记在调用边界。
+- 验收 / 限定：在交给 call_aster_entrypoint 的 BootParams 上证明计数不超过 128，表前缀等于原循环已经纳入的描述符按顺序分类、合并的结果。覆盖空表、同类型相接、满表仍可合并以及满表需追加。内核原 parse_memory_regions 按 e820_entries 读取，主线尚未接入该 boot 模块。在 #948 的 x86_64 setup 配置验证。
 - 前置：无
 
 **BZ_EFI_HANDOFF** — EFI 在 call_aster_entrypoint 交接内核与 BootParams
@@ -694,7 +752,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **BZ_EFI_OUT** — make_bzimage 在 Efi64 输出上覆盖 PE 头
 
 - 实施 PR：—；复用 / 协调：#956；模块：libs/linux-bzimage
-- 要做什么：在公共 setup 已写完的位置，用实际 setup ELF 建立 .rela 检查与 make_pe_coff_header 的输入前置。证明 seek(0) 后只覆盖 368 字节，位于 0x1f1 的 Linux boot header 和其后内容保留。
+- 要做什么：沿 make_bzimage 的现有 Efi64 分支消费 #956 的重定位检查和 #916 的 PE 头合同，追踪 seek(0)、write_all 与失败顺序。公共写入、模式特有检查、覆写结果可随同一份调用证明提交，节点分别记录可复用的结论。
 - 验收 / 限定：用固定 Efi64 产物比较覆写前后的文件，核对 .rela 拒绝、seek 与 write_all 失败时已写出的范围。运行 cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu。
 - 前置：BZ_PE（确认 · 验收前置）、BZ_OUT（确认 · 验收前置）、BZ_RELOC（确认 · 验收前置）
 
@@ -751,17 +809,17 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 - 验收 / 限定：以 VM_REPR 合同恢复内容相等、成功返回和精确复制量断言，并明确恢复哪些运行期 ktest；测试须调用实际 Pod/VM I/O API。测试通过只验收这些例子，成功/部分故障全链由 F_BYTES 验收；原始转换/Vec 外部规约逐条记录。
 - 前置：VM_REPR（确认 · 验收前置）
 
-**VM_CONTENT** — read_val 返回值与字节内容的关系
+**VM_CONTENT** — 非可失败 VM 标量写入、读回与缓冲区字节
 
 - 实施 PR：—；复用 / 协调：#951、#978、#980；模块：mm/io
-- 要做什么：在 ostd/src/mm/io.rs 的非可失败 VmReader::read_val 证明返回值的 Pod 字节等于读取前已知内存视图的前缀。以含已知字节的同一 reader/owner 在调用处检验，并复用短缓冲返回 Err(InvalidArgs)、游标和 owner 保持的合同。mm::test::io 中从 from_kernel_space 重新构造 reader 的写后读示例还需证明两次内存视图的关系。 再给写入方和可失败读取分别建立字节与游标关系。#978 要求在调用处排除可控 panic；涉及 write_vals 的调用按 #980 在 align > 1 时证明二次幂和加 align−1 有界。
+- 要做什么：从 mm/test.rs::read_write_u32_infallible 已注释的字节和读回断言出发，在 mm/io.rs 的 write_val、read_val 及其复用的拷贝路径添加合同。证明同一缓冲区写入的字节可以由重新构造的 reader 读取，并在调用处交接两个 owner 的相应视图。 覆盖长度不足时的 InvalidArgs、成功时的精确推进与未写字节保持。可失败读取与部分故障在 F_BYTES 继续验收。涉及 write_vals 的调用按 #980 核对对齐及加法界，按 #978 在调用处排除可控 panic。
 - 验收 / 限定：交付 read_val/write_val、reader/writer 拷贝的值与底层字节关系，供 F_BYTES 和 Pod 调用者证明内容相等；覆盖边界、失败状态和游标推进。以实际调用实例建立前置，Pod 表示与底层内存操作按 VM_REPR 的边界记录。
 - 前置：VM_REPR（确认 · 验收前置）
 
 **TLB_REQ** — TLB 请求与逻辑提交
 
 - 实施 PR：#570、#677、#935；复用 / 协调：—；模块：mm/tlb
-- 要做什么：#677：OpsStack 不变式、push / merge / clear、请求覆盖与逻辑提交；OpsStack::new、硬件刷新、dispatch、sync 仍可信，CPU locality 与 frame 保留未建模。#570：tracked update / flush 规格，须与 #677 的模型协调（main 仍有对应公理，不能称已被取代）。 #935 的 issue_tlb_flush 和 issue_tlb_flush_with 暴露 pending 与 remaining_slots。证明正常入队等于旧集合与请求的并且剩余槽数减一；槽耗尽或请求升级时等于 all_user 且剩余为零。push_from、clear_without_flush 的容量与集合效果可在同文件独立验证。接入 #570 的 tracked 映射更新。
+- 要做什么：#677 覆盖 OpsStack 的 push/merge/clear、请求覆盖与逻辑提交。结合 #570 的 tracked 更新复核主线公理，区分队列构造、硬件刷新、dispatch 和 sync 的可信部分。 #935 已暴露 pending 和 remaining_slots。把 issue_tlb_flush/issue_tlb_flush_with 的入队与实际消费的 push_from、clear_without_flush 归在同一轮队列证明，覆盖剩余槽耗尽以及升级为 all_user 的路径。在现有 PR 上核对重合部分，远端处理和 frame 保留分别由 TLB_SHOOT、TLB_FREE 验收。
 - 验收 / 限定：交付请求集合覆盖、队列 push/merge/clear 和 tracked 映射更新合同，供 TLB_SHOOT/TLB_FREE 使用；验证零请求、Range 全范围和队列所有请求，协调 #935、#677、#570 与 main 的模型。逻辑提交不代表远端完成；OpsStack::new 的可信构造与硬件操作分开登记。
 - 前置：无
 
@@ -818,14 +876,14 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **PCI_TYPES** — PCI 数据类型 · getter · 位操作（#895）
 
 - 实施 PR：#895；复用 / 协调：#706；模块：bus/pci
-- 要做什么：#895 的 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit 可复用。#706 主线使用 location 编码，但 PciDeviceId 声明和导出已注释。恢复设备 ID 与枚举或设备构造的调用，核对 getter 和位操作的真实消费者。
+- 要做什么：主线 #895 已接入 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit。把仍注释的 PciDeviceId 及其构造函数与 PCI_CFG 的读路径一起接回，使每个设备标识字段都能对应到其实际读取。其余 getter、位操作在枚举或设备构造实际消费时核对。
 - 验收 / 限定：交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。按 #706 主线核对同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。
 - 前置：无
 
 **PCI_CFG** — 配置空间读写（地址 · 宽度 · 对齐 · 失败）
 
 - 实施 PR：#706；复用 / 协调：—；模块：bus/pci、arch/x86/pci
-- 要做什么：配置空间访问的地址、宽度、对齐与失败行为；畸形 / 截断输入、未发现设备的合同。 主线 read32/write32 将 offset & 0xFFFC 与位置编码合并后写 0xCF8，再访问 0xCFC。现有后置只保证 Ok。证明两次访问属于同一笔事务、偏移合法、读值与写入效果对应选定设备。通用 8/16 位读改写及 location 包装仍在注释中。
+- 要做什么：x86 的 arch::pci::read32/write32 已对 0xCF8/0xCFC 发起访问，当前 read32 只保证成功。首先沿 device_info.rs 原位启用 PciDeviceLocation::read32/read16/read8 和消费者 PciDeviceId::new，恢复用到的 cfg_space.rs 偏移枚举。对同一次读取返回的字建立子字段合同。 后续沿命令寄存器读改写验证 write8/write16/write32 的选位、未选位保持及原有错误行为。声称对应实际设备状态前，需在调用处建立同一笔 CF8/CFC 事务的互斥条件，并说明设备读写效果。
 - 验收 / 限定：交付给 BAR/capability/枚举的 read8/16/32、write8/16/32 地址、宽度、对齐与配置状态合同；核对 CF8/CFC 成对互斥和子宽度读改写。保留原返回/错误行为，#706 的恒 Ok 规格不足以说明设备状态；硬件值与访问效果属 TB_HW_OPS。
 - 前置：IO_PIO（确认 · 验收前置）、PCI_ENC（确认 · 验收前置）
 
@@ -1032,6 +1090,13 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 - 验收 / 限定：交付实际创建、首次执行、调度/等待/唤醒和退出的资源证据，覆盖分配失败、无 scheduler 时的 FIFO fallback、CPU 选择与远端通知。客户调度策略/回调进展属 TB_CLIENT_HOOKS；内置 FIFO 和软件通知包装在本项范围内，不能由注入接口的可信边界豁免。
 - 前置：TASK_RUNTIME（确认 · 验收前置）、TASK_SW（确认 · 验收前置）、TASK_STACK_ALLOC（确认 · 验收前置）、PREEMPT_PIN（确认 · 验收前置）、SMP_IPI（确认 · 验收前置）、SYNC_GUARD（确认 · 验收前置）、TRAP_DATA（确认 · 验收前置）
 
+**KTEST_DISCOVERY** — 从测试项登记到 OSDK 收集与过滤
+
+- 实施 PR：—；复用 / 协调：#918；模块：libs/ostd-test
+- 要做什么：沿 #[ktest] 生成的 KtestItem::new、KtestIter::new/next 和 KtestItem::info，以同一份 .ktest_array 为基准验证测试项的身份、次序和元数据。在原位处理 get 越界、成功后下标递增与 clone 保留字段。
+- 验收 / 限定：给定 TB_KTEST_LINK 的固定表，从下标 0 开始时按表序逐项返回，到末尾保持下标并返回 None。核对 OSDK 的 KtestTree::from_iter 和按模块名、函数名过滤的调用。宏生成和链接布局分别注明来源，运行测试的 panic 分类归 KTEST_RESULT。运行 cargo dv verify -p ostd-test。
+- 前置：无
+
 **KTEST_RESULT** — 内核测试结果分类
 
 - 实施 PR：—；复用 / 协调：#942、#958；模块：libs/ostd-test
@@ -1041,10 +1106,10 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **COMMON_AUDIT** — 公共 API 与残留占位清单验收
 
-- 实施 PR：—；复用 / 协调：#937、#940；模块：cpu/set、user/user、timer/mod、util/ops、console/console、logger/logger、panic/panic
-- 要做什么：逐模块盘点未被工作项覆盖的 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util、ostd-pod/ostd-test、辅助库入口；每个未启用函数/占位/可信体必须有归属，不以 LOC 颜色推断完整性。
+- 实施 PR：#985；复用 / 协调：#937、#940；模块：cpu/set、user/user、timer/mod、util/ops、console/console、logger/logger、panic/panic
+- 要做什么：逐模块盘点 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util 和辅助库，把未启用入口、占位与可信体落实到工作项。CpuSet::iter 的顺序与完整性由PR #985 跟踪。 登记、取项及名称过滤由 KTEST_DISCOVERY 交付，测试的 panic 分类由 KTEST_RESULT 交付。
 - 验收 / 限定：交付固定 main 上的 API/模块开关清单，引用本计划工作项或逐条可信边界；对剩余缺口形成可执行子任务并关闭，不能仅做清单就宣布 x86 完成。console/logger 的格式化与内核回调可保留明确外部条件，其他公共执行代码不隐含排除。
-- 前置：KTEST_RESULT（确认 · 验收前置）
+- 前置：KTEST_RESULT（确认 · 验收前置）、KTEST_DISCOVERY（确认 · 验收前置）
 
 **MM_BOOT_FRAMES** — 把扣除 early 分配的可用页交给全局 frame 分配器
 
@@ -1098,7 +1163,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **HEAP_SLAB** — 用一页 frame 建立并回收 slab 小槽
 
 - 实施 PR：#505；复用 / 协调：—；模块：mm/heap
-- 要做什么：单独恢复 Slab::new，证明完整槽都在同一页内、满足链指针对齐并互不重叠，初始化后 nr_allocated 为零；核对实际 SLOT_SIZE 的来源。 在 SlabMeta::alloc 和 Slab::dealloc 验证空链与错页拒绝、正常时空闲链与已分配数只变一项。on_drop 检查仍借出的槽。#505 的 alloc 计数合同和 #923 的 push/pop 可复用。
+- 要做什么：沿 Slab::new 的逐槽 push、SlabMeta::alloc 的 pop 和 Slab::dealloc 的归还验证同一页上的借还路径。由实际 SLOT_SIZE 建立槽完全落在页内及链指针对齐的条件，联系 capacity、空闲链和 nr_allocated。 核对创建失败、满页申请和错页归还的原有结果，以及 on_drop 对未归还槽的检查。#923 提供空闲链和独占槽合同，与 #505 的 slab 计数覆盖协调。
 - 验收 / 限定：在 asterinas/asterinas 的 osdk/deps/heap-allocator/src/slab_cache.rs::SlabCache::{alloc,dealloc} @885e0f5c4 消费 capacity 和 nr_allocated，核对调用处能建立归属及释放条件。 接入执行入口后运行 cargo dv focus -p ostd -- --verify-only-module mm::heap::slab。
 - 前置：SA_HEAP（确认 · 验收前置）、MM_FRAME（确认 · 验收前置）
 
@@ -1350,6 +1415,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | TASK_COMPOSE | SYNC_GUARD | 确认 · 验收前置 | 默认 FIFO 通过 disable_irq().lock() 保护 run queue 的权限和恢复合同 | ostd/src/task/scheduler/fifo_scheduler.rs::enqueue,local_rq_with,mut_local_rq_with @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | TASK_COMPOSE | TRAP_DATA（跨路线） | 确认 · 验收前置 | TaskBuilder::build 用 UserContext::tls_pointer 初始化 TaskContext TLS 字段 | ostd/src/task/mod.rs::TaskBuilder::build; arch/x86/cpu/context.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | COMMON_AUDIT | KTEST_RESULT | 确认 · 验收前置 | 公共辅助库仍需核对主线测试运行入口的结果分类、panic 捕获和消息匹配；已关闭的 #942 仅供参考。 | ostd/libs/ostd-test/src/lib.rs::KtestItem::run @fece47de1 |
+| COMMON_AUDIT | KTEST_DISCOVERY | 确认 · 验收前置 | 公共辅助库验收使用 ostd-test 原登记与枚举路径的测试项身份、次序和表尾合同。 | ostd/libs/ostd-test/src/lib.rs::KtestItem::{new,info},KtestIter::next @3a9bc536f；osdk/deps/test-kernel/src/lib.rs::KtestTree::from_iter 调用 @885e0f5c4 |
 | MM_BOOT_FRAMES | LOC_EARLY_GLOBAL | 确认 · 验收前置 | 全局 early allocator 已分配的两个区间及一次性取走权限 | ostd/src/mm/frame/allocator.rs::init,EarlyFrameAllocator::allocated_regions @7cd0bcdcd |
 | MM_BOOT_ROOT | PT_X86（跨路线） | 确认 · 验收前置 | 首次 from_current_pt 读到当前核的启动根物理地址及对齐条件 | ostd/src/mm/page_table/boot_pt.rs::from_current_pt,root_address @7cd0bcdcd |
 | MM_BOOT_ACTIVATE | MM_BOOT_ROOT | 确认 · 验收前置 | dismiss 取得同一启动页表及其固件页和自建页的记录；切换后本核不再取得该借用 | ostd/src/mm/page_table/boot_pt.rs::with_borrow,dismiss @7cd0bcdcd |
@@ -1377,6 +1443,7 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 <!-- BEGIN GENERATED:trusted -->
 | 编号 | 提供者 | 计划内代码消费的输入 | 消费者 | 记录方式 |
 |---|---|---|---|---|
+| TB_KTEST_LINK | #[ktest] 登记与内核链接器 | __ktest_array 到 __ktest_array_end 指定有序、对齐、可读且保持不变的 KtestItem 表；区间长度是条目大小的整数倍，可构造有效的静态切片。 | KTEST_DISCOVERY | 对照 ostd-macros 的登记和 OSDK 的链接区间核对条目来源。给定该切片后，构造、索引、clone 和 info 的软件效果在 ostd-test 内证明。 |
 | TB_BOOT_INPUT | arch/x86/boot（未纳入计划） | 固件内存区域（EARLY_INFO.memory_regions）、ACPI RSDP 来源、初始 CS == KERNEL_CS、GS.base 初值与 CPU 数量、AP 汇编启动输入与初始页表 / CPU 状态。 | IO_WIN、ACPI_TABLES、GDT、CPU_ENABLE、LOC_ID、SMP_AP、LOC_EARLY_GLOBAL、MM_BOOT、BOOT_COMMON、TSS_LOCAL、EARLY_INFO_INIT、HPET、MM_BOOT_FRAMES、MM_BOOT_ROOT、LOC_DYNAMIC_ADDR | 每个消费者写明对固件和初始 CPU 状态的要求。#959 的寄存器 owner 仍需由 BSP/AP 启动代码取得并绑定到执行核。 #981 依赖 ACPI parser 的外部模型及实际表的可读映射。#984 依赖选定链接产物的 .cpu_local_tss 位置和四级页表规范地址假设。 |
 | TB_IDT_LINK | 内核链接产物、trap.S 与选定 x86 平台 | trap_handler_table 的 256 个地址已重定位、规范、终身只读并对应同号入口。向量 3、4 支持用户态软件触发。21、29、30 的 stub 要求投递时 CPU 不压入错误码。各加载核具备 CPL0 和可共享的内核代码选择子。 | IDT_TABLE、IDT_LOAD、TRAP_DISP | 按最终 ELF、平台启用的异常及其栈布局建立 vectors_ready、valid_vectors 和 idt_load_context。ostd/src/arch/x86/trap/{idt.rs,trap.S}、verified_libs/vstd_extra/src/external/x86_idt.rs @c9a85a789。 |
 | TB_IOMMU | arch/x86/iommu（未纳入计划） | IrqRemapping::init 分配的 IRT 项与 remapping index，以及 DMA 设备地址映射/解除的硬件条件。 | PCI_ENC、PCI_MSIX、IRQLINE、IOAPIC_ENTRY、SA_DMA、DMA_MAP | #919 的 remapping 地址编码不等于 IOMMU / remapping 已验证。 |
@@ -1397,6 +1464,9 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 下列记录保留历史判断，当前关系以最新版本决定为准。
 
 <!-- BEGIN GENERATED:changes -->
+- **r16 · 2026-11-27**：三条路线按新增执行路径及其调用者组织后续 PR，保留逐项合同验收。以原 Rust 实现为基线补规约和证明，记录必要的执行差异及可信边界。
+  - 新增 KTEST_DISCOVERY：用同一项验收串起 KtestItem 登记、按表序枚举与 OSDK 过滤，并登记固定链接表的可信输入。
+  - 新增依赖 KTEST_DISCOVERY → COMMON_AUDIT：将原属公共辅助库盘点的测试项发现流程落实为可独立核对的执行交付。
 - **r15 · 2026-11-27**：暂缓消除 bzImage 正向地址转换的 assume。依据 #915 的评审，BZ_TRUST 按正常构建的 setup ELF 登记地址边界和调用者，保留现有 From 接口。
 - **r14 · 2026-11-27**：将后续工作拆为可单独提交与验收的函数和文件，按主线及开放 PR 更新三条路线的调用合同。
   - 拆分 SERIAL_QEMU_CMOS → SERIAL_QEMU_CMOS + COM1_SEND + QEMU_EXIT + ACC_SCOPE：原 ID 保留串口预留与初始化。发送由控制台消费，QEMU 出口由 panic::abort 消费。CMOS 的 FADT 字段和敏感端口保留在总验收清单，待出现 RTC 调用者再建节点。

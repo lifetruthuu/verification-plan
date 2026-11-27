@@ -280,6 +280,7 @@ window.PLAN_EDGES = [
   { "to": "TASK_COMPOSE", "from": "TRAP_DATA", "gate": "accept", "need": "TaskBuilder::build 用 UserContext::tls_pointer 初始化 TaskContext TLS 字段", "ev": "ostd/src/task/mod.rs::TaskBuilder::build; arch/x86/cpu/context.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },
 
   { "to": "COMMON_AUDIT", "from": "KTEST_RESULT", "gate": "accept", "need": "公共辅助库仍需核对主线测试运行入口的结果分类、panic 捕获和消息匹配；已关闭的 #942 仅供参考。", "ev": "ostd/libs/ostd-test/src/lib.rs::KtestItem::run @fece47de1" },
+  { "to": "COMMON_AUDIT", "from": "KTEST_DISCOVERY", "gate": "accept", "need": "公共辅助库验收使用 ostd-test 原登记与枚举路径的测试项身份、次序和表尾合同。", "ev": "ostd/libs/ostd-test/src/lib.rs::KtestItem::{new,info},KtestIter::next @3a9bc536f；osdk/deps/test-kernel/src/lib.rs::KtestTree::from_iter 调用 @885e0f5c4" },
 
   /* ===== consumers in: x86 平台 ===== */
   { "to": "ACC_SCOPE", "from": "LOC_ACC", "gate": "accept", "need": "当前范围的 LOC_ACC 交付与可信边界记录；这是最终覆盖验收，不是其他工作的开工或运行顺序", "ev": "ostd/src/lib.rs; ostd/libs/linux-bzimage/builder/src/lib.rs; setup/src/main.rs（本计划范围清单） @8e681282d19b29bdc1b6e715930fe9224a0c88dc" },

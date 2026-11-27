@@ -156,6 +156,9 @@ commands.show = async ([id]) => {
   const n = model.byId[id];
   console.log(`${id} — ${n.title}\n  路线：${model.lanes.find((l) => l.key === n.lane).name} · 状态：${STATE[model.state[id]]}${n.rollup ? " · 汇总验收" : n.milestone ? " · 里程碑" : ""}`);
   console.log(`  实施 PR：${prList(w, model, n.prs)}\n  复用 / 协调：${prList(w, model, n.reuse)}`);
+  for (const lane of plan.lanes) for (const item of lane.packages) {
+    if (item.ids.includes(id)) console.log(`  建议 PR：${item.title}（${item.ids.join("、")}）\n    ${item.scope}\n    ${item.command}`);
+  }
   console.log(n.done ? `  验收记录：${n.done.slice(0, 160)}${n.done.length > 160 ? "…" : ""}` : "  验收记录：无");
   console.log(`  前置（${model.pred[id].length}）：`);
   for (const e of model.pred[id]) console.log(`    ← ${nodeLine(model, e.a)}  [${e.kind === "doc" ? `确认·${GATE[e.gate]}` : e.tag}${e.cross ? " · 跨路线" : ""}]${e.kind === "doc" ? "" : `  缺：${e.missing}`}`);

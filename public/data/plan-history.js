@@ -2013,5 +2013,23 @@ window.PLAN_HISTORY = [
     "revision": 15,
     "date": "2026-11-27",
     "reason": "暂缓消除 bzImage 正向地址转换的 assume。依据 #915 的评审，BZ_TRUST 按正常构建的 setup ELF 登记地址边界和调用者，保留现有 From 接口。"
+  },
+  {
+    "revision": 16,
+    "date": "2026-11-27",
+    "reason": "三条路线按新增执行路径及其调用者组织后续 PR，保留逐项合同验收。以原 Rust 实现为基线补规约和证明，记录必要的执行差异及可信边界。",
+    "added": [
+      {
+        "id": "KTEST_DISCOVERY",
+        "why": "用同一项验收串起 KtestItem 登记、按表序枚举与 OSDK 过滤，并登记固定链接表的可信输入。"
+      }
+    ],
+    "edgesAdded": [
+      {
+        "a": "KTEST_DISCOVERY",
+        "b": "COMMON_AUDIT",
+        "why": "将原属公共辅助库盘点的测试项发现流程落实为可独立核对的执行交付。"
+      }
+    ]
   }
 ];

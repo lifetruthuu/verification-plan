@@ -9,14 +9,15 @@
  * Maintenance recipes: README.md. */
 window.PLAN_BASE = {
   schemaVersion: 1,
-  acceptanceRule: "每项交付 todo 指定的真实执行 API/合同、至少一个实际调用者的前置建立与结果使用证据、固定提交和适用验证命令结果；成功/失败/资源释放与剩余可信输入逐项记录。requires 可支持局部证明，最终验收须说明其来源。只写纯规格、保留未说明的注释/桩、PR 合并或 CI 通过均不自动结项。已完成项按其明确限定交付评定。",
+  prGuidance: "从一段尚未验证的原始执行流程选题，连同相关函数、分支和使用结果的调用者提交一份 PR。一个函数若独立承载完整算法或关键状态转移，也可单独交付。小型 getter、位运算及辅助引理随使用它们的路径提交。优先保留原 Rust 执行体，在原位置补规约与证明。",
+  acceptanceRule: "逐项写出相对固定基线新进入 Verus 的原始执行体、已有执行体上新增的合同，以及仍依赖的可信输入。在真实调用处核对前置的来源、返回值或资源的使用，并覆盖适用的失败、释放与可观察效果。优先在原 Rust 上添加规约、循环不变式和证明；如 Verus 确需改写 exec，在改动旁以 Origin Rust: 保存原文和具体原因，并在 PR 中说明行为等价的依据。记录目标配置、验证命令和结果，分别标明条件证明、已接入调用与运行证据。",
   repo: "https://github.com/asterinas/vostd",
   liveUrl: "https://asterinas.github.io/vostd/stats/snapshot.json",
   doc: {
     date: "2026-11-27",
-    sha: "7cd0bcdcddfca4091415daeebc8b4017f65a7700",
-    snapshotAt: "2026-11-26 22:39（北京时间）",
-    snapshotSha: "7cd0bcdcddfca4091415daeebc8b4017f65a7700",
+    sha: "3a9bc536f9e67072fc484c3802205c3e975a6e1a",
+    snapshotAt: "2026-11-27 11:54（北京时间）",
+    snapshotSha: "3a9bc536f9e67072fc484c3802205c3e975a6e1a",
   },
 
   /* The three views, in tab order (x86 is the default). `note` is shown under the tab. */
@@ -25,19 +26,132 @@ window.PLAN_BASE = {
       "key": "x86",
       "name": "x86 平台",
       "sub": "APIC · IRQ · 陷阱 · CPU-local · x86 页表 · 定时器 · 故障恢复 · 用户态",
-      "note": "COM1 已接入主线。可分别提交 UART 初始化写入、单字节发送或 HPET 寄存器范围的证明。#981 的 MMIO 与 ACPI 查找都需要引导入口提供已发布的 EarlyBootInfo，#984 的 GDT 加载需要本核 TSS。"
+      "note": "可以从控制台字符串写入 COM1 的整条输出路径开始。IOAPIC 的重定向项读写适合在给定设备窗口下单独验证。本核 TLB 操作接续 #977，与 #935、#677 协调公共调用点。",
+      "packages": [
+        {
+          "title": "控制台字符串写入 COM1",
+          "ids": [
+            "COM1_SEND"
+          ],
+          "baseline": "主线 3a9bc536f 的 ostd/src/arch/x86/serial.rs 已接入 #979 的轮询和状态截断，ostd/src/lib.rs 尚未启用 console.rs。#969 正修改底层 device/serial.rs 的写入前置。",
+          "scope": "把 console.rs::Stdout::write_str 的原字节循环接入验证，沿 arch/x86/serial.rs::{line_sts,send} 到 SerialPort::{line_status,send}，证明一次调用产生的写入序列。",
+          "accept": "空串无写入，普通 UTF-8 字节按序各写一次，8 和 0x7f 各展开为 [8,32,8]。每次写前对应状态读的第 5 位为 1，正常返回依赖设备最终就绪。",
+          "command": "cargo dv verify -p ostd",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/console.rs#L9"
+        },
+        {
+          "title": "IOAPIC 重定向项的读写、启用与屏蔽",
+          "ids": [
+            "IOAPIC_REG",
+            "IOAPIC_ENTRY"
+          ],
+          "baseline": "主线 3a9bc536f 的 ostd/src/arch/x86/kernel/irq/ioapic.rs 保留原始驱动，kernel::irq 尚未启用。局部证明可以从给定的独占窗口和有效 IRQ 开始，构造设备依赖 IO_ALLOC 的区间保留。",
+          "scope": "在原文件接入 IoApicAccess::{read,write,max_redirection_entry} 及其调用者 IoApic::{enable,disable}。跟踪一次选择寄存器和数据访问的顺序，以及同一表项低、高半部的写入。",
+          "accept": "在 0x10 + 2 × index + 1 可用 u8 表示的条件下核对普通 IRQ、重映射 IRQ、屏蔽三条路径。越界返回 InvalidArgs，启用时发现表项低八位非零返回 AccessDenied，二者均未写表项；保留读取能力字与真实设备效果的边界。",
+          "command": "cargo dv focus -p ostd -- --verify-only-module arch::kernel::irq::ioapic",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/arch/x86/kernel/irq/ioapic.rs#L73"
+        },
+        {
+          "title": "本核 TLB 请求的三种执行分支",
+          "ids": [
+            "PT_LOCAL_FLUSH",
+            "PT_FLUSH_NONGLOBAL"
+          ],
+          "baseline": "主线 3a9bc536f 的 ostd/src/mm/tlb.rs::TlbFlushOp::perform_on_current 是外部体。#977 @06327ccfd 已接回 x86 的三个刷新包装，#935 与 #677 在公共文件处理请求记账。",
+          "scope": "在协调后的分支上接回 perform_on_current 原有 match，让 Address、Range、All 分支消费对应的 x86 合同，用 OpsStack::flush_all 的逐项调用核对本核覆盖的请求。",
+          "accept": "单地址须为规范地址；非空范围由调用者建立页对齐起点和同一规范区间，每个相交页都得到覆盖，空范围无操作；All 覆盖本核非全局项。硬件失效语义列为输入，远端确认归 TLB_SHOOT。",
+          "command": "cargo dv verify -p ostd",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/mm/tlb.rs#L204"
+        }
+      ]
     },
     {
       "key": "bzimage",
       "name": "bzImage 启动链",
       "sub": "PE/COFF · payload 编解码 · ELF 段加载 · 启动交接 · 镜像检查",
-      "note": "Efi64 构建检查 setup ELF 重定位，EFI 启动时解码 payload 并向固件申请物理页。Legacy32 直接装载内核 ELF。两条路径都可以独立于内核 PCI 和 MMIO 初始化推进。"
+      "note": "宿主 builder 沿同一份 setup ELF 验证对齐写出和 EFI 专用的 PE 覆写。setup 侧可分别接续 #948 证明固件内存图转为 E820、按址分配物理页并装载一个段。Legacy32 使用自己的 E820 分配器与 32 位交接条件。",
+      "packages": [
+        {
+          "title": "从 setup ELF 到 Legacy32、Efi64 输出文件",
+          "ids": [
+            "BZ_RANGE",
+            "BZ_OUT",
+            "BZ_RELOC",
+            "BZ_EFI_OUT"
+          ],
+          "baseline": "主线 3a9bc536f 的 builder/src/lib.rs::make_bzimage 尚无调用证明。#931 已证 to_flat_binary 的逐段字节，#916 已证 PE 头为 368 字节；Efi64 检查接续分支 #956（652001d88）。",
+          "scope": "在 make_bzimage 原入口串起读取、to_flat_binary、4096 对齐填零和公共写入，并沿 Efi64 分支串起 .rela 检查、make_pe_coff_header、seek(0) 与覆写。以同次构建的 ELF 建立相应解析和范围前提。",
+          "accept": "正常返回时 Legacy32 文件等于对齐后的 setup；先由实际 ELF 建立 setup 足以容纳 PE 和 Linux boot header，再证明 Efi64 文件仅前 368 字节替换为 PE 头，0x1f1 起的 Linux boot header 保留。写明宿主文件 I/O 的成功前提、失败时可能已写入的前缀，并用实际产物核对。缺节或不支持的重定位在公共写入之后、覆写之前拒绝。",
+          "command": "cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/linux-bzimage/builder/src/lib.rs#L54"
+        },
+        {
+          "title": "将 EFI 内存图写入 BootParams 的 E820 表",
+          "ids": [
+            "BZ_EFI_E820"
+          ],
+          "baseline": "主线 3a9bc536f 的 setup/src/x86/amd64_efi/efi.rs 保留原分类函数与填表循环；接续分支 #948（c762f8e27）提供的 x86_64 setup 验证配置。",
+          "scope": "沿 parse_memory_type、efi_phase_runtime 的原循环及 e820_entries 写回覆盖类型分类、逐页接受、同类连续区间合并和满表停止。按固件给出的遍历顺序建立循环不变式，列出成功接受页面和区间运算的前提。",
+          "accept": "在 call_aster_entrypoint 接收的 BootParams 上证明前缀内容与计数。核对空表、表满仍可合并、满表后遇到需要新增表项的描述符才停止等情况；页接受的顺序依照原实现。",
+          "command": "PAYLOAD_FILE=/dev/null cargo dv verify -p linux-bzimage-setup --target x86_64-unknown-none",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/efi.rs#L288"
+        },
+        {
+          "title": "把 EFI 按址分配的物理页交给 ELF 装载器",
+          "ids": [
+            "BZ_EFI_ALLOC",
+            "BZ_LOAD"
+          ],
+          "baseline": "分支 #948（c762f8e27）的 alloc_at 为 external_body，后置只给出切片长度；load_segment 已有逐字节初始化快照。",
+          "scope": "在 setup/src/x86/amd64_efi/alloc.rs 的 alloc_pages、alloc_at 和 loader.rs::load_segment 调用处建立 AllocateType::Address、页数向上取整、请求地址与返回切片的对应，再沿原复制和清零操作定位实际写入。",
+          "accept": "在固件按址成功并授予独占页的前提下，证明段文件前缀和零尾部落在请求的物理区间。记录固件失败、地址不符和越界的原有失败条件，区分固件保证与 Rust 包装层已证性质。",
+          "command": "PAYLOAD_FILE=/dev/null cargo dv verify -p linux-bzimage-setup --target x86_64-unknown-none",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/alloc.rs#L6"
+        }
+      ]
     },
     {
       "key": "common",
       "name": "OSTD 公共模块",
       "sub": "PCI · MM · CPU-local · IRQ/抢占资源 · task · sync · heap · DMA",
-      "note": "静态 PIO 已在主线 PCI 调用处验收。下一步核对动态端口预占、MMIO 设备区间保留，以及 PCI 配置访问的成对读写。"
+      "note": "从测试项登记到测试树取项、从 PCI 配置字到设备 ID，均有原始消费者可用于验收。slab 小槽的借还接续在审的 slot 和空闲链证明。CpuSet 遍历由 #985 跟踪。",
+      "packages": [
+        {
+          "title": "从注册测试项到按模块和名称枚举",
+          "ids": [
+            "KTEST_DISCOVERY"
+          ],
+          "baseline": "可从主线开始。ostd/libs/ostd-test/src/lib.rs 的 KtestIter::new/default 已由 #918 验证，KtestItem::new/info 与 KtestIter::next 仍为普通 Rust。",
+          "scope": "从 ostd-macros 的 #[ktest] 生成的注册语句出发，验证 KtestItem::new、KtestIter::next 的索引和 clone，以及 KtestItem::info 返回的元数据。",
+          "accept": "给定链接器提供的有效、固定测试表，成功取项保留登记的模块名、函数名等元数据并推进一位，空表和表尾保持下标并返回 None。用 asterinas/asterinas 的 osdk/deps/test-kernel/src/lib.rs @885e0f5c4 核对建树与过滤调用。登记链接段和运行测试的 panic 分类各自标明边界。",
+          "command": "cargo dv verify -p ostd-test",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/ostd-test/src/lib.rs#L248"
+        },
+        {
+          "title": "读取 PCI 配置字并构造设备标识",
+          "ids": [
+            "PCI_CFG",
+            "PCI_TYPES"
+          ],
+          "baseline": "主线已启用 x86 arch::pci::read32，#706 的返回合同保证 Ok。device_info.rs 的子宽度读取和设备 ID 构造、cfg_space.rs 的偏移枚举仍在注释中。",
+          "scope": "原位接入 PciDeviceLocation::read32/read16/read8、PciDeviceId::new 以及构造所用的偏移枚举，以同一次 32 位读数核对截取位置。",
+          "accept": "证明每次调用的对齐偏移和选取的字节或半字。沿 PciDeviceId::new 的八次读取核对每个结果字段，分别保留各次读数，设备快照的一致性和 CF8/CFC 的实际硬件效果由后续事务证明承担。",
+          "command": "cargo dv focus -p ostd -- --verify-only-module bus::pci::device_info",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/bus/pci/device_info.rs#L33"
+        },
+        {
+          "title": "建立一页 slab 并追踪小槽借还",
+          "ids": [
+            "HEAP_SLAB",
+            "SA_HEAP"
+          ],
+          "baseline": "接续 #923 与 #505。主线 mm/mod.rs 的 heap 入口关闭，#923 覆盖 HeapSlot 和空闲链，#505 与 slab 分配计数有重合。",
+          "scope": "在对应 slot 和 frame 权限可用时，原位接入 mm/heap/slab.rs 的 Slab::new、SlabMeta::alloc 及 Slab::dealloc。实际槽尺寸需保证循环中最后一个槽完整落在页内，并满足链指针对齐。",
+          "accept": "由 SlabCache::alloc/dealloc 对 capacity 和 nr_allocated 的使用核对新页的空闲链、一次借出与归还后的计数和独占权限，验证满页与错页分支，记录释放时仍有借出槽的 panic 条件。调用处见 asterinas/asterinas 的 osdk/deps/heap-allocator/src/slab_cache.rs @885e0f5c4。",
+          "command": "cargo dv focus -p ostd -- --verify-only-module mm::heap::slab",
+          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/src/mm/heap/slab.rs#L86"
+        }
+      ]
     }
   ],
 
@@ -69,8 +183,8 @@ window.PLAN_BASE = {
     { id: "IO_WIN", lane: "x86", face: "boot/memory_region · arch/x86/io", title: "引导 MMIO 窗口 → 登记权限",
       mods: ["boot/memory_region", "arch/x86/io"],
       todo: [
-        "#981 的 construct_io_mem_allocator_builder 在给定引导见证与上下区输入边界时，返回按 expected_mmio_ranges 排列的两个对齐区间。其 has_registered_windows() 后置等价于 usize_ranges_match_registered(ret@)。",
-        "以 late_init_on_bsp 的构造调用为一项 PR，从实际引导图证明低区存在、两端点的加法/对齐界及高区为空的回退。将两项与登记清单逐一对应，供 io::init 建立 has_registered_windows()。",
+        "#981 的 construct_io_mem_allocator_builder 在给定引导见证和区间边界时返回两个对齐窗口，并给出 has_registered_windows() 与登记清单相符的条件。",
+        "接回 late_init_on_bsp 中的窗口构造和 io::init 的原调用关系。用本次发布的内存图证明低区存在、两端点的加法与对齐有界、高区为空时选择原回退值，并将窗口序列与引导登记清单对应。",
       ],
       accept: "在已启用的 BSP 调用处使用返回窗口，记录固件内存图与登记值的来源。主线 BSP 调用仍在注释中，设备区间排除另由 IO_ALLOC 交付。启用该入口后运行 cargo dv focus -p ostd -- --verify-only-module arch::io。",
       src: "§5 阶段 A" },
@@ -155,19 +269,19 @@ window.PLAN_BASE = {
       ],
       accept: "以 VM_REPR 合同恢复内容相等、成功返回和精确复制量断言，并明确恢复哪些运行期 ktest；测试须调用实际 Pod/VM I/O API。测试通过只验收这些例子，成功/部分故障全链由 F_BYTES 验收；原始转换/Vec 外部规约逐条记录。",
       src: "§4" },
-    { id: "VM_CONTENT", lane: "common", face: "mm/io", title: "read_val 返回值与字节内容的关系",
+    { id: "VM_CONTENT", lane: "common", face: "mm/io", title: "非可失败 VM 标量写入、读回与缓冲区字节",
       mods: ["mm/io"],
       todo: [
-        "在 ostd/src/mm/io.rs 的非可失败 VmReader::read_val 证明返回值的 Pod 字节等于读取前已知内存视图的前缀。以含已知字节的同一 reader/owner 在调用处检验，并复用短缓冲返回 Err(InvalidArgs)、游标和 owner 保持的合同。mm::test::io 中从 from_kernel_space 重新构造 reader 的写后读示例还需证明两次内存视图的关系。",
-        "再给写入方和可失败读取分别建立字节与游标关系。#978 要求在调用处排除可控 panic；涉及 write_vals 的调用按 #980 在 align > 1 时证明二次幂和加 align−1 有界。",
+        "从 mm/test.rs::read_write_u32_infallible 已注释的字节和读回断言出发，在 mm/io.rs 的 write_val、read_val 及其复用的拷贝路径添加合同。证明同一缓冲区写入的字节可以由重新构造的 reader 读取，并在调用处交接两个 owner 的相应视图。",
+        "覆盖长度不足时的 InvalidArgs、成功时的精确推进与未写字节保持。可失败读取与部分故障在 F_BYTES 继续验收。涉及 write_vals 的调用按 #980 核对对齐及加法界，按 #978 在调用处排除可控 panic。",
       ],
       accept: "交付 read_val/write_val、reader/writer 拷贝的值与底层字节关系，供 F_BYTES 和 Pod 调用者证明内容相等；覆盖边界、失败状态和游标推进。以实际调用实例建立前置，Pod 表示与底层内存操作按 VM_REPR 的边界记录。",
       src: "§4 · §5 阶段 C" },
     { id: "TLB_REQ", lane: "common", face: "mm/tlb", title: "TLB 请求与逻辑提交",
       mods: ["mm/tlb"],
       todo: [
-        "#677：OpsStack 不变式、push / merge / clear、请求覆盖与逻辑提交；OpsStack::new、硬件刷新、dispatch、sync 仍可信，CPU locality 与 frame 保留未建模。#570：tracked update / flush 规格，须与 #677 的模型协调（main 仍有对应公理，不能称已被取代）。",
-        "#935 的 issue_tlb_flush 和 issue_tlb_flush_with 暴露 pending 与 remaining_slots。证明正常入队等于旧集合与请求的并且剩余槽数减一；槽耗尽或请求升级时等于 all_user 且剩余为零。push_from、clear_without_flush 的容量与集合效果可在同文件独立验证。接入 #570 的 tracked 映射更新。",
+        "#677 覆盖 OpsStack 的 push/merge/clear、请求覆盖与逻辑提交。结合 #570 的 tracked 更新复核主线公理，区分队列构造、硬件刷新、dispatch 和 sync 的可信部分。",
+        "#935 已暴露 pending 和 remaining_slots。把 issue_tlb_flush/issue_tlb_flush_with 的入队与实际消费的 push_from、clear_without_flush 归在同一轮队列证明，覆盖剩余槽耗尽以及升级为 all_user 的路径。在现有 PR 上核对重合部分，远端处理和 frame 保留分别由 TLB_SHOOT、TLB_FREE 验收。",
       ],
       accept: "交付请求集合覆盖、队列 push/merge/clear 和 tracked 映射更新合同，供 TLB_SHOOT/TLB_FREE 使用；验证零请求、Range 全范围和队列所有请求，协调 #935、#677、#570 与 main 的模型。逻辑提交不代表远端完成；OpsStack::new 的可信构造与硬件操作分开登记。",
       src: "§5 阶段 C · §7" },
@@ -216,16 +330,17 @@ window.PLAN_BASE = {
     { id: "IOAPIC_REG", lane: "x86", face: "arch/x86/kernel/irq/ioapic.rs", title: "IOAPIC：寄存器访问",
       mods: ["arch/x86/kernel"],
       todo: [
-        "IoApicAccess::new 需要独占 [base,base+0x20)。#706 缺少可调用的 remove，先在给定独占窗口下验证寄存器选择与数据访问互斥，接入时补上保留结果及端点边界。MADT 地址由 ROUTE_MAP 核对。",
+        "在独占且存活的设备窗口内，沿 IoApicAccess::{read,write,max_redirection_entry} 到重定向项 enable/disable，核对选择寄存器与数据寄存器的成对访问。IOAPIC 构造另须消耗 IoMemAllocatorBuilder::remove 的区间保留。",
+        "按原代码处理能力字第 16..23 位加一转 u8 的结果，并在访问表项时建立寄存器地址对 u8 的可表示性。",
       ],
-      accept: "交付给 IOAPIC_ENTRY 的间接寄存器读写合同：选择/数据事务互斥、偏移有界、max_redirection_entry 的含义及映射存活。以给定合法窗口证明，固件地址到该窗口的对应由 ROUTE_MAP 组合；寄存器效果属 TB_HW_OPS。",
+      accept: "使同一实例的选择与数据访问可按顺序交给 IoApic::{enable,disable} 使用，两个 32 位寄存器落入窗口并在访问期间保持有效。固件基址与窗口归属在设备初始化时建立，设备读写效果依赖 TB_HW_OPS。",
       src: "§5 阶段 B" },
     { id: "IOAPIC_ENTRY", lane: "x86", face: "arch/x86/kernel/irq/ioapic.rs", title: "IOAPIC：重定向项 enable / disable",
       mods: ["arch/x86/kernel"],
       todo: [
-        "重定向项 enable / disable 的效果与失败合同。当前代码未启用且没有规格。",
+        "原位接入 IoApic::{enable,disable}，用 IoApicAccess 的读写合同证明普通 IRQ 与重映射 IRQ 的两次表项写入，以及禁用时写掩码和清高半部。核对 map_gsi_pin_to 和 disable_gsi 对索引及结果的使用。",
       ],
-      accept: "交付给 ROUTE_MAP 的 enable/disable 表项效果、向量/remapping 编码、屏蔽与句柄存活合同；核对索引边界及失败时权限保持。设备投递语义属 TB_HW_OPS，IRT 状态属 TB_IOMMU。",
+      accept: "越界索引返回 InvalidArgs；enable 发现原低八位非零返回 AccessDenied；两种失败均无表项写入。成功启动和禁用各自按原顺序写低、高半部；disable 对有效索引直接写掩码。给出 IRQ 存活、MMIO 独占及寄存器编号的边界，设备投递与 IRT 状态另据 TB_HW_OPS、TB_IOMMU 核对。",
       src: "§5 阶段 B" },
     { id: "PIT_CFG", lane: "x86", face: "arch/x86/timer/pit.rs", title: "PIT 配置（pit::init）",
       mods: ["arch/x86/timer"],
@@ -362,7 +477,8 @@ window.PLAN_BASE = {
     { id: "TMR_DEADLINE", lane: "x86", face: "arch/x86/timer/apic.rs", title: "APIC timer：deadline 模式",
       mods: ["arch/x86/timer", "timer/mod"],
       todo: [
-        "以 init_deadline_mode_config 为一项 PR，在已发布 Hz 下证明间隔计算并记录 CONFIG。随后在 timer_callback 单独证明本次 read_tsc() 与间隔相加可表示，并把结果交给 IA32_TSC_DEADLINE。#983 的时间戳读数无数值后置，时钟推进和溢出边界由平台/调用者建立。",
+        "在 arch/x86/timer/apic.rs 接回 deadline 配置、init_deadline_mode 和 timer_callback 的原调用关系。从已发布频率计算 tsc_interval，在首次发布 CONFIG 后核对选择子分支、LVT timer 写参和初次及后续 deadline 重装。",
+        "区分 CONFIG 已存在时保留的值与初次发布值。#983 的时间戳没有数值上界，逐次说明 tsc_interval 与读数相加可表示的来源；需要正间隔时，证明 Hz 至少为 TIMER_FREQ。",
       ],
       accept: "交付给 BSP/AP timer 调用者的 deadline 选择、频率到间隔转换、加法不溢出、回调重装与资源释放合同；保持原模式选择并建立非零频率来源。时钟推进和 MSR 效果属 TB_HW_OPS，不能从 CPUID 检测直接推得。",
       src: "§5 阶段 C" },
@@ -506,15 +622,15 @@ window.PLAN_BASE = {
     { id: "PCI_TYPES", lane: "common", face: "bus/pci", title: "PCI 数据类型 · getter · 位操作（#895）",
       mods: ["bus/pci"],
       todo: [
-        "#895 的 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit 可复用。#706 主线使用 location 编码，但 PciDeviceId 声明和导出已注释。恢复设备 ID 与枚举或设备构造的调用，核对 getter 和位操作的真实消费者。",
+        "主线 #895 已接入 PciDeviceLocation::zero、IoBar getter、vendor len 和 offset < 16 的 set_bit。把仍注释的 PciDeviceId 及其构造函数与 PCI_CFG 的读路径一起接回，使每个设备标识字段都能对应到其实际读取。其余 getter、位操作在枚举或设备构造实际消费时核对。",
       ],
       accept: "交付 location/设备 ID 字段、zero、IoBar getter、vendor 长度与位操作合同，供 PCI_ENUM/PCI_DEVICE 使用；all() 的完整枚举归 PCI_ENUM。按 #706 主线核对同名类型和模块开关；设备读写状态仍属 TB_HW_OPS。",
       src: "§4 · §7" },
     { id: "PCI_CFG", lane: "common", face: "bus/pci · arch/x86/pci", title: "配置空间读写（地址 · 宽度 · 对齐 · 失败）",
       mods: ["bus/pci", "arch/x86/pci"],
       todo: [
-        "配置空间访问的地址、宽度、对齐与失败行为；畸形 / 截断输入、未发现设备的合同。",
-        "主线 read32/write32 将 offset & 0xFFFC 与位置编码合并后写 0xCF8，再访问 0xCFC。现有后置只保证 Ok。证明两次访问属于同一笔事务、偏移合法、读值与写入效果对应选定设备。通用 8/16 位读改写及 location 包装仍在注释中。",
+        "x86 的 arch::pci::read32/write32 已对 0xCF8/0xCFC 发起访问，当前 read32 只保证成功。首先沿 device_info.rs 原位启用 PciDeviceLocation::read32/read16/read8 和消费者 PciDeviceId::new，恢复用到的 cfg_space.rs 偏移枚举。对同一次读取返回的字建立子字段合同。",
+        "后续沿命令寄存器读改写验证 write8/write16/write32 的选位、未选位保持及原有错误行为。声称对应实际设备状态前，需在调用处建立同一笔 CF8/CFC 事务的互斥条件，并说明设备读写效果。",
       ],
       accept: "交付给 BAR/capability/枚举的 read8/16/32、write8/16/32 地址、宽度、对齐与配置状态合同；核对 CF8/CFC 成对互斥和子宽度读改写。保留原返回/错误行为，#706 的恒 Ok 规格不足以说明设备状态；硬件值与访问效果属 TB_HW_OPS。",
       src: "§2" },
@@ -606,7 +722,7 @@ window.PLAN_BASE = {
     { id: "BZ_RANGE", lane: "bzimage", face: "libs/linux-bzimage", title: "setup / protected-mode 区间、对齐与算术边界",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "#931 在 to_flat_binary 上证明 ret@ == flat_binary_spec：按 program header 顺序扩容/复制，file_size <= mem_size 与地址上界作为 requires。新追加区间填零；重叠段的 memory-only 尾部保留旧字节，并非整段重新清零。make_bzimage 的尾部对齐与全链输入前置尚未覆盖。",
+        "#931 已证明 to_flat_binary 按段扩容和复制的结果。沿 make_bzimage 从读取的 setup ELF 建立原函数的输入条件，再用返回序列证明 resize 向 4096 对齐时保留整个前缀并将新增尾部置零。段重叠时按既有逐段覆盖语义核对。",
       ],
       accept: "#931 已合入 46d3b1e7e，flat_binary_prefix 用 fold_left 按段构造结果。输入谓词和结果规格仍私有。在实际 make_bzimage 调用处建立输入条件，并证明末端对齐和输出区间。parser/get_data 的来源随 BZ_ELF 验收。",
       src: "§2" },
@@ -623,15 +739,15 @@ window.PLAN_BASE = {
     { id: "BZ_OUT", lane: "bzimage", face: "linux-bzimage/builder · lib.rs", title: "make_bzimage 写出对齐后的 setup",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "核对 make_bzimage 从 to_flat_binary 接收的内容、以零补齐到 SECTION_ALIGNMENT 后的长度与字节，以及 File::create、write_all 的效果。该写入是 Legacy32 的最终文件，也是 Efi64 覆写文件头前的内容。",
+        "将公共写入与同一 make_bzimage 中的模式分支放在一份 builder 调用证明里。消费 BZ_RANGE 的填零结果，核对 File::create、write_all 和 unwrap 的实际顺序。公共写入成功后 Legacy32 结束，Efi64 在这个文件状态上继续检查重定位并覆写。",
       ],
       accept: "在两种模式共用的写入点建立输入与写出字节的对应，区分成功、创建失败和部分写入，给出可据以检查的文件状态。运行 cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu，附真实 setup 的输出记录。",
       src: "§2" },
     { id: "BZ_RELOC", lane: "bzimage", face: "linux-bzimage/builder · lib.rs", title: "EFI64 构建时检查 setup ELF 重定位",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "#956 的 assert_elf64_reloc_supported 已把 .rela 的可读性与 elf64_reloc_supported 列为 requires。后者要求 Rela64 条目类型都为 R_X86_64_RELATIVE（8）。用实际 Efi64 调用建立这些前置和解析安全性，再消费 no_unwind 合同。",
-        "从 make_bzimage 的 Efi64 分支取得同一份 setup_elf 字节，核对链接脚本生成的节、文件边界和 Rela64 的 24 字节条目及 8 字节对齐。用不受支持的条目或缺节样本核对失败行为。",
+        "接续 #956，在 make_bzimage 的 Efi64 分支用实际 setup ELF 建立解析安全、.rela 可读和全部 Rela64 条目类型为 8 的前提。把此调用与随后的 PE 覆写放入同一份 builder 证明，覆盖公共写入成功、重定位检查通过或在覆写前遇到不支持条目的执行顺序。",
+        "核对链接脚本和 Efi64 产物中的 .rela 文件边界、24 字节 Rela64 布局与 8 字节对齐，保留缺节和不支持条目的运行样本。",
       ],
       accept: "在宿主运行 cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu，附 make_bzimage 使用的 EFI setup ELF、.rela 的实际布局和类型。另用缺节或不受支持的样本核对运行时拒绝时已写出的 setup。Legacy32 跳过此检查。",
       src: "§4 · §6" },
@@ -828,8 +944,8 @@ window.PLAN_BASE = {
     { id: "SERIAL_QEMU_CMOS", lane: "x86", face: "arch/x86/serial.rs · device/serial.rs", title: "COM1 端口预留与 UART 初始化",
       mods: ["arch/x86/serial","arch/x86/device"],
       todo: [
-        "#966 的 SerialPort::new 返回连续七个地址；#979 将 CONSOLE_COM1_PORT 和 serial::init 接入 x86 模块，静态合同给出七个端口都在 [0x3F8,0x400) 内。现有 init 调用驱动入口，缺少 UART 初始化写序列的后置。",
-        "以 device/serial.rs::SerialPort::init 为一项 PR，给出八次写入的地址、值和顺序，在 serial::init 消费。对接 #969 时，在 COM1 固定基址建立偏移 0..=4 避开 PIC/PIT 写序列的前置。",
+        "主线 #966、#979 已验证七个寄存器的地址和静态 COM1 的构造，并接入 serial::init。",
+        "沿 reserve_io_port_range!、静态 COM1 和 serial::init 到设备驱动初始化核对端口独占，以及八次原始写入的地址、值、顺序。#969 正在修改同文件的写端口前置，对接时从 COM1 固定基址证明偏移 0..=4 避开 PIC/PIT 的写序列。",
       ],
       accept: "以 CONSOLE_COM1_PORT 核对八次端口写入。另附最终链接产物中的 .sensitive_io_ports 记录和 allocator::init 对该整段的排除证据，标明 BSP 调用点当前在注释中。UART 状态变化依赖器件合同。运行 cargo dv focus -p ostd -- --verify-only-module arch::device::serial。",
       src: "§5 阶段 B · ostd/src/arch/x86/{device/serial.rs,serial.rs} @7cd0bcdcd" },
@@ -882,6 +998,13 @@ window.PLAN_BASE = {
       ],
       accept: "交付实际创建、首次执行、调度/等待/唤醒和退出的资源证据，覆盖分配失败、无 scheduler 时的 FIFO fallback、CPU 选择与远端通知。客户调度策略/回调进展属 TB_CLIENT_HOOKS；内置 FIFO 和软件通知包装在本项范围内，不能由注入接口的可信边界豁免。",
       src: "§7 · r3 源码复核" },
+    { id: "KTEST_DISCOVERY", lane: "common", face: "libs/ostd-test · KtestItem / KtestIter", title: "从测试项登记到 OSDK 收集与过滤",
+      mods: ["libs/ostd-test"],
+      todo: [
+        "沿 #[ktest] 生成的 KtestItem::new、KtestIter::new/next 和 KtestItem::info，以同一份 .ktest_array 为基准验证测试项的身份、次序和元数据。在原位处理 get 越界、成功后下标递增与 clone 保留字段。",
+      ],
+      accept: "给定 TB_KTEST_LINK 的固定表，从下标 0 开始时按表序逐项返回，到末尾保持下标并返回 None。核对 OSDK 的 KtestTree::from_iter 和按模块名、函数名过滤的调用。宏生成和链接布局分别注明来源，运行测试的 panic 分类归 KTEST_RESULT。运行 cargo dv verify -p ostd-test。",
+      src: "§3 · §7" },
     { id: "KTEST_RESULT", lane: "common", face: "libs/ostd-test", title: "内核测试结果分类",
       mods: ["libs/ostd-test"],
       todo: ["#942 已关闭未合并。若公共测试验收需要分类合同，在主线 KtestItem::run 的实际返回分支核对正常返回、预期 panic、消息匹配及未知 payload；捕获与 downcast 的边界单列。"],
@@ -890,7 +1013,8 @@ window.PLAN_BASE = {
     { id: "COMMON_AUDIT", lane: "common", face: "cpu/set · user · timer · util · 辅助库", title: "公共 API 与残留占位清单验收",
       mods: ["cpu/set", "user/user", "timer/mod", "util/ops", "console/console", "logger/logger", "panic/panic"],
       todo: [
-        "逐模块盘点未被工作项覆盖的 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util、ostd-pod/ostd-test、辅助库入口；每个未启用函数/占位/可信体必须有归属，不以 LOC 颜色推断完整性。",
+        "逐模块盘点 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util 和辅助库，把未启用入口、占位与可信体落实到工作项。CpuSet::iter 的顺序与完整性由PR #985 跟踪。",
+        "登记、取项及名称过滤由 KTEST_DISCOVERY 交付，测试的 panic 分类由 KTEST_RESULT 交付。",
       ],
       accept: "交付固定 main 上的 API/模块开关清单，引用本计划工作项或逐条可信边界；对剩余缺口形成可执行子任务并关闭，不能仅做清单就宣布 x86 完成。console/logger 的格式化与内核回调可保留明确外部条件，其他公共执行代码不隐含排除。",
       src: "r3 源码复核" },
@@ -905,13 +1029,13 @@ window.PLAN_BASE = {
       accept: "完成条件：所有当前工作项交付均有固定提交/消费者证据；x86 make 验证与 builder 验证通过，ABI/ExTable 和选定 BSP/AP、用户态、TLB/PCI 运行场景有记录；占位/注释执行路径不得计为证明。硬件/架构 boot/IOMMU/TDX/用户回调等剩余边界逐项获明确记录。",
       src: "r3 源码复核" },
     /* 独立验收的函数与文件（r14） */
-    { id: "COM1_SEND", lane: "x86", face: "arch/x86/serial.rs::send", title: "COM1 单字节发送与退格序列",
-      mods: ["arch/x86/serial","arch/x86/device"],
+    { id: "COM1_SEND", lane: "x86", face: "console · arch/x86/serial", title: "从控制台字符串到 COM1 的轮询和字节写入",
+      mods: ["console/console", "arch/x86/serial", "arch/x86/device"],
       todo: [
-        "验证 send(u8) 每次写前已观察到 OUTPUT_EMPTY。普通输入写原字节一次，8 和 0x7F 都依次写 [8,32,8]。#979 已验证 line_sts 截断未知位，调用方尚无上述输出合同。",
-        "首个 PR 可只改 line_sts 的合同，在 send 的现有轮询处证明 OUTPUT_EMPTY 与本次状态端口读值的第 5 位相等。记录读入设备字节的见证；保留硬件进展作为单独条件。",
+        "主线 #979 已接入 line_sts 和 send，并证明状态位截断。原 console.rs 中 Stdout::write_str 的字节循环尚未进入验证。",
+        "在原位置接入 Stdout::write_str，沿 line_status、line_sts 和 send 把每次状态读取与随后的本次写入相连。在字符串循环中累计已处理输入前缀对应的端口写入序列。",
       ],
-      accept: "在 console.rs::Stdout::write_str 恢复调用后，用普通字节和退格各核对一次可观察的写入。轮询的正常返回依赖设备最终就绪，主线允许循环没有 decreases。运行 cargo dv focus -p ostd -- --verify-only-module arch::serial。",
+      accept: "在各次轮询最终观察到 OUTPUT_EMPTY 的前提下，核对原 write_str 的返回与本次调用产生的写入。每次写 DATA 前最后一次状态读的第 5 位为 1；按 UTF-8 字节顺序输出，8 和 0x7f 各展开为 [8,32,8]，其他字节各写一次，空串无写入。硬件就绪属于设备前提。接入 console 后运行 cargo dv verify -p ostd。",
       src: "ostd/src/{console.rs,arch/x86/serial.rs} @7cd0bcdcd" },
     { id: "QEMU_EXIT", lane: "x86", face: "arch/x86/qemu.rs::exit_qemu", title: "QEMU 调试出口的写值与非返回条件",
       mods: ["arch/x86/qemu"],
@@ -938,7 +1062,7 @@ window.PLAN_BASE = {
     { id: "TSS_LOCAL", lane: "x86", face: "cpu/local/static_cpu_local.rs · trap/gdt.rs", title: "建立 LOCAL_TSS 与当前 CPU 的地址对应",
       mods: ["arch/x86/trap","cpu/local"],
       todo: [
-        "以 StaticCpuLocal::as_ptr 在 gdt::init 的调用为一项 PR。#984 目前通过外部体取得非空和对齐；从执行核的基址、链接偏移和栈切换期间的 CPU 固定条件，建立该指针指向本核的长期有效 TSS。",
+        "接续 #984，把 StaticStorage 和 StaticCpuLocal 的取址、LOCAL_TSS.as_ptr() 与 gdt::init 构造每核 TSS 描述符放在同一条调用路径核对。现有外部体仅给出非空与对齐，仍需由当前 CPU 的存储和链接偏移说明地址归属、固定条件与描述符使用期间的寿命。",
       ],
       accept: "在 LOCAL_TSS.as_ptr() 处消费该保证，核对 .cpu_local_tss 位于本核存储首部，并对照 syscall.S 使用的 sp0/sp1 偏移。提交选定内核的链接布局证据。启用该入口后运行 cargo dv focus -p ostd -- --verify-only-module cpu::local::static_cpu_local。",
       src: "ostd/src/{arch/x86/trap/{gdt.rs,syscall.S},cpu/local/static_cpu_local.rs} @e89201cb6" },
@@ -952,16 +1076,18 @@ window.PLAN_BASE = {
     { id: "BZ_EFI_ALLOC", lane: "bzimage", face: "setup/x86/amd64_efi/alloc.rs", title: "EFI 的 alloc_at 将固件页交给 load_segment",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "在 alloc_at → alloc_pages → allocate_pages 调用链核对 AllocateType::Address、4096 字节向上取整、请求地址与大小检查。以固件成功返回的页范围证明切片从请求地址开始，且可独占写入 size 字节。",
+        "接续 #948 的 alloc_at 长度合同，在 setup/src/x86/amd64_efi/alloc.rs 原位验证 alloc_at 与 alloc_pages。沿 load_segment 的真实调用，用目标地址、字节数、按页取整、固件分配结果及原始指针转切片的权限证明可写区间。",
+        "用 loader.rs 现有 split_at_mut、文件前缀复制与零尾部快照核对实际物理段。记录零地址、size 上限、区间溢出、固件错误及返回地址不符时现有断言和 expect 的条件。",
       ],
       accept: "用 load_segment 的一次 PT_LOAD 消费这段资源，列出零地址、越界、固件失败和地址不符的断言或 panic 条件。附 x86_64 setup 验证结果，单列固件页分配与原始指针转换的可信合同。",
       src: "§6" },
     { id: "BZ_EFI_E820", lane: "bzimage", face: "setup/x86/amd64_efi/efi.rs", title: "efi_phase_runtime 将固件内存图写入 E820",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "首个函数 PR 可验证 parse_memory_type 的分类，在 efi_phase_runtime 调用处证明 UNACCEPTED 分支收到 None，未知类型保留为 Reserved。后续 PR 在表构建循环核对同类型相邻描述符合并、不能再追加时停止及 e820_entries 赋值。对 UNACCEPTED 内存记录逐页接受成功的前置。",
+        "在 setup/src/x86/amd64_efi/efi.rs 原位验证 parse_memory_type 和 efi_phase_runtime 的整段 E820 循环。以 exit_boot_services 返回的描述符遍历顺序为输入，核对类型分类、UNACCEPTED 逐页接受为 RAM、与上一项物理首尾相接且类型相同时合并、追加和最终 e820_entries。",
+        "写出页数乘法、物理端点及合并长度的可表示前提。满 128 项后仍可合并最后一项，遇到需新增的一项才停止；逐页接受发生在容量判断之前。固件内存图、accept_page 的实际效果和最后的跳转分别登记在调用边界。",
       ],
-      accept: "以 ostd/src/arch/x86/boot/linux_boot/mod.rs::parse_memory_regions 读取 e820_table[..e820_entries] 为消费者，提交 x86_64 setup 验证结果及空表、相邻可合并、128 项满表三类样本。明确页数换算的上界和截断后保留的描述符前缀。",
+      accept: "在交给 call_aster_entrypoint 的 BootParams 上证明计数不超过 128，表前缀等于原循环已经纳入的描述符按顺序分类、合并的结果。覆盖空表、同类型相接、满表仍可合并以及满表需追加。内核原 parse_memory_regions 按 e820_entries 读取，主线尚未接入该 boot 模块。在 #948 的 x86_64 setup 配置验证。",
       src: "§6" },
     { id: "BZ_EFI_HANDOFF", lane: "bzimage", face: "setup/x86/amd64_efi/{efi,mod}.rs", title: "EFI 在 call_aster_entrypoint 交接内核与 BootParams",
       mods: ["libs/linux-bzimage"],
@@ -973,7 +1099,7 @@ window.PLAN_BASE = {
     { id: "BZ_EFI_OUT", lane: "bzimage", face: "linux-bzimage/builder · lib.rs", title: "make_bzimage 在 Efi64 输出上覆盖 PE 头",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "在公共 setup 已写完的位置，用实际 setup ELF 建立 .rela 检查与 make_pe_coff_header 的输入前置。证明 seek(0) 后只覆盖 368 字节，位于 0x1f1 的 Linux boot header 和其后内容保留。",
+        "沿 make_bzimage 的现有 Efi64 分支消费 #956 的重定位检查和 #916 的 PE 头合同，追踪 seek(0)、write_all 与失败顺序。公共写入、模式特有检查、覆写结果可随同一份调用证明提交，节点分别记录可复用的结论。",
       ],
       accept: "用固定 Efi64 产物比较覆写前后的文件，核对 .rela 拒绝、seek 与 write_all 失败时已写出的范围。运行 cargo dv verify -p linux-bzimage-builder --target x86_64-unknown-linux-gnu。",
       src: "§6" },
@@ -1033,8 +1159,8 @@ window.PLAN_BASE = {
     { id: "HEAP_SLAB", lane: "common", face: "mm/heap/slab.rs", title: "用一页 frame 建立并回收 slab 小槽",
       mods: ["mm/heap"],
       todo: [
-        "单独恢复 Slab::new，证明完整槽都在同一页内、满足链指针对齐并互不重叠，初始化后 nr_allocated 为零；核对实际 SLOT_SIZE 的来源。",
-        "在 SlabMeta::alloc 和 Slab::dealloc 验证空链与错页拒绝、正常时空闲链与已分配数只变一项。on_drop 检查仍借出的槽。#505 的 alloc 计数合同和 #923 的 push/pop 可复用。",
+        "沿 Slab::new 的逐槽 push、SlabMeta::alloc 的 pop 和 Slab::dealloc 的归还验证同一页上的借还路径。由实际 SLOT_SIZE 建立槽完全落在页内及链指针对齐的条件，联系 capacity、空闲链和 nr_allocated。",
+        "核对创建失败、满页申请和错页归还的原有结果，以及 on_drop 对未归还槽的检查。#923 提供空闲链和独占槽合同，与 #505 的 slab 计数覆盖协调。",
       ],
       accept: "在 asterinas/asterinas 的 osdk/deps/heap-allocator/src/slab_cache.rs::SlabCache::{alloc,dealloc} @885e0f5c4 消费 capacity 和 nr_allocated，核对调用处能建立归属及释放条件。 接入执行入口后运行 cargo dv focus -p ostd -- --verify-only-module mm::heap::slab。",
       src: "§7 · VOSTD @7cd0bcdcd" },
@@ -1048,14 +1174,16 @@ window.PLAN_BASE = {
     { id: "PT_LOCAL_FLUSH", lane: "x86", face: "arch/x86/mm/mod.rs", title: "tlb_flush_addr_range 覆盖的本核页",
       mods: ["arch/x86/mm"],
       todo: [
-        "在 #977 的 tlb_flush_addr 与 tlb_flush_addr_range 上连接指令效果。由 KernelStack::flush_tlb 的实际栈范围建立非空时起点页对齐且落在同一规范区间。",
+        "接续 #977 的 tlb_flush_addr 和 tlb_flush_addr_range，在 TlbFlushOp::perform_on_current 的原匹配中覆盖 Address 和 Range 两个分支。证明范围为空时无指令，非空且起点按页对齐时逐页覆盖，末页允许只覆盖部分字节。",
+        "在 KernelStack::flush_tlb 恢复时，用栈的范围兑现规范地址与起点对齐前置，消费本核完成证据后再更新 coherent 标记。",
       ],
       accept: "空区间不触发指令，非空区间覆盖每个相交页，包括未对齐的末端。只有本核完成该范围后，栈调用者才可标记本核 coherent。指令语义归 TB_HW_OPS。 启用对应调用处后运行 cargo dv focus -p ostd -- --verify-only-module arch::mm。",
       src: "§3 · §5" },
     { id: "PT_FLUSH_NONGLOBAL", lane: "x86", face: "arch/x86/mm/mod.rs", title: "tlb_flush_all_excluding_global 的本核效果",
       mods: ["arch/x86/mm"],
       todo: [
-        "在 #977 的 tlb_flush_all_excluding_global 上说明非全局陈旧映射何时全部失效。在 TlbFlushOp::perform_on_current 恢复 All 分支，用 #935 的 all_user 验证该类请求。",
+        "与 Address、Range 一起接回 TlbFlushOp::perform_on_current。对 All 分支复用 #977 的 tlb_flush_all_excluding_global，用 #935 的 all_user 请求模型说明本核非全局项的覆盖。",
+        "OpsStack::flush_all 在同一公共模块中消费本次分派；协调 #677 和 #935 上的队列证明，记录清理已执行请求的条件。",
       ],
       accept: "给出一次调用对本核非全局项的覆盖，区分地址级全局项请求；目标核集合和远端确认由 TLB_SHOOT 验收。 启用对应调用处后运行 cargo dv focus -p ostd -- --verify-only-module arch::mm。",
       src: "§3 · §5" },
@@ -1074,6 +1202,13 @@ window.PLAN_BASE = {
   /* Inputs the plan consumes from code it does not verify (dashboard class “unplanned”
    * and external facts). Each consumer must state the input as a requires. */
   trusted: [
+    {
+      "id": "TB_KTEST_LINK",
+      "provider": "#[ktest] 登记与内核链接器",
+      "input": "__ktest_array 到 __ktest_array_end 指定有序、对齐、可读且保持不变的 KtestItem 表；区间长度是条目大小的整数倍，可构造有效的静态切片。",
+      "consumers": ["KTEST_DISCOVERY"],
+      "record": "对照 ostd-macros 的登记和 OSDK 的链接区间核对条目来源。给定该切片后，构造、索引、clone 和 info 的软件效果在 ostd-test 内证明。"
+    },
     {
       "id": "TB_BOOT_INPUT",
       "provider": "arch/x86/boot（未纳入计划）",
@@ -1308,8 +1443,8 @@ window.PLAN_BASE = {
   ],
   /* Offline fallback: dashboard snapshot at the document baseline (machine-filled). */
   baseline: {
-    date: "2026-11-26T22:39:43+08:00",
-    sha: "7cd0bcdcddfca4091415daeebc8b4017f65a7700",
+    date: "2026-11-27T11:54:15+08:00",
+    sha: "3a9bc536f9e67072fc484c3802205c3e975a6e1a",
     totals: {"total":18595,"verified_exec":6519,"trusted":741,"unverified":9039,"unplanned":2296,"verified_apis":349},
     apis: {"boot": 10, "bus": 5, "cpu": 21, "io": 11, "mm": 191, "src": 1, "sync": 87, "task": 9, "timer": 6, "trap": 2, "util": 4},
     cols: ["group", "child", "total", "verified_exec", "trusted", "unverified", "unplanned", "spec", "proof"],
@@ -1321,7 +1456,7 @@ window.PLAN_BASE = {
       ["arch","loongarch/iommu",19,0,0,0,19,0,0],
       ["arch","loongarch/irq",32,0,0,32,0,0,0],
       ["arch","loongarch/kernel",84,0,0,84,0,0,0],
-      ["arch","loongarch/mm",183,140,11,32,0,321,257],
+      ["arch","loongarch/mm",183,140,11,32,0,327,260],
       ["arch","loongarch/mod",26,0,0,26,0,0,0],
       ["arch","loongarch/pci",107,0,0,107,0,0,0],
       ["arch","loongarch/qemu",28,0,0,28,0,0,0],
@@ -1334,7 +1469,7 @@ window.PLAN_BASE = {
       ["arch","riscv/device",8,0,0,8,0,0,0],
       ["arch","riscv/iommu",19,0,0,0,19,0,0],
       ["arch","riscv/irq",33,0,0,33,0,0,0],
-      ["arch","riscv/mm",127,96,5,26,0,149,217],
+      ["arch","riscv/mm",127,96,5,26,0,151,217],
       ["arch","riscv/mod",29,0,0,29,0,0,0],
       ["arch","riscv/pci",51,17,0,34,0,12,0],
       ["arch","riscv/qemu",13,0,0,13,0,0,0],
@@ -1350,7 +1485,7 @@ window.PLAN_BASE = {
       ["arch","x86/iommu",1072,0,0,0,1072,0,0],
       ["arch","x86/irq",56,0,0,56,0,0,0],
       ["arch","x86/kernel",934,532,0,402,0,303,224],
-      ["arch","x86/mm",156,132,24,0,0,455,382],
+      ["arch","x86/mm",156,132,24,0,0,456,382],
       ["arch","x86/mod",108,16,0,92,0,2,0],
       ["arch","x86/pci",26,26,0,0,0,9,0],
       ["arch","x86/qemu",15,0,0,15,0,0,0],
@@ -1385,10 +1520,10 @@ window.PLAN_BASE = {
       ["mm","frame",1425,771,60,594,0,1313,1309],
       ["mm","heap",211,0,0,211,0,0,0],
       ["mm","io",318,310,8,0,0,620,260],
-      ["mm","kspace",280,113,56,111,0,412,381],
+      ["mm","kspace",280,113,56,111,0,407,376],
       ["mm","mod",16,16,0,0,0,13,80],
       ["mm","page_prop",28,28,0,0,0,17,34],
-      ["mm","page_table",1811,837,275,699,0,2240,3239],
+      ["mm","page_table",1811,837,275,699,0,2240,3236],
       ["mm","test",586,252,0,334,0,24,276],
       ["mm","tlb",169,38,89,42,0,33,0],
       ["mm","vm_space",174,147,27,0,0,331,587],

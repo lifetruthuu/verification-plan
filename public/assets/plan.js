@@ -297,6 +297,16 @@
   }
   let ready_ = [], closeChipPop = null;
   document.addEventListener("click", () => closeChipPop?.());
+  function proposedPr(item) {
+    return h("details", { class: "fold" },
+      h("summary", null, item.title),
+      h("p", null, item.baseline),
+      h("p", null, item.scope),
+      h("p", null, item.accept),
+      h("p", null, h("code", { class: "cmd" }, item.command)),
+      h("div", { class: "chips" }, item.ids.map(id => nodeChip(NODE[id]))),
+      h("p", null, h("a", { href: item.source, target: "_blank", rel: "noopener" }, "查看原始执行入口")));
+  }
   function lanePrList() {
     const rows = [];
     const openPrs = [...M.prMap.values()].filter((p) => p.kind === "open").sort((a, b) => b.n - a.n);
@@ -351,12 +361,14 @@
       h("div", { class: "sum-top" },
         h("div", { class: "status-tiles" }, STATE_ORDER.map(tile)),
         h("div", { class: "readybox" },
-          h("h2", null, "可认领的工作", h("span", { class: "hint" },
+          h("h2", null, "前置就绪的验收项", h("span", { class: "hint" },
             ready_.length ? `${ready_.length} 项 · 前置已就绪、未关联开放 PR${ready_.some((n) => n.star) ? " · ★ 文档点名的下一步" : ""}` : "本路线暂无")),
           ready_.length
             ? h("div", { class: "chips" }, ready_.map((n) => nodeChip(n, [n.star ? h("span", { class: "starmark", title: n.star }, "★") : null, M.waits(n.id).length ? h("span", { class: "inftag", title: "有推断 / 待确认的前置，不算阻塞" }, "待确认") : null])))
             : h("p", { class: "hint" }, c.active ? `可查看「PR 进行中」的 ${c.active} 项。` : c.waiting || c.blocked ? "其余工作都在等前置，见各工作项详情。" : "本路线工作已验收。"),
           h("div", { class: "extsum" }, ext))),
+      h("section", { class: "pr-packages" }, h("h2", null, "建议提交的验证 PR"),
+        h("p", { class: "hint" }, P.prGuidance), l.packages.map(proposedPr)),
       lanePrList(),
       h("div", { class: "sum-legend" },
         h("span", { class: "lgt" }, "卡片"),

@@ -2,7 +2,7 @@
 
 一个静态网站，展示 [VOSTD](https://github.com/asterinas/vostd) 中 x86、bzImage 和 OSTD 公共模块的验证工作项、依赖关系、关联 PR 与验收状态。
 
-每条路线的总览可展开关联的开放 PR，查看覆盖范围，再点进实施或复用该 PR 的工作项。
+打开一条路线，在“建议提交的验证 PR”中选择执行路径，查看源码入口、已有工作、拟新增的证明和验证命令。点任务下的验收项可查看相关 PR、依赖和验收证据。
 
 网站：https://lifetruthuu.github.io/verification-plan/
 

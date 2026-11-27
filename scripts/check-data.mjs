@@ -19,6 +19,18 @@ function validateTraceability(plan, catalog, m) {
     assert.ok(typeof n.accept === "string" && n.accept.trim(), `${n.id}: say when it is complete and what stays trusted (accept)`);
   }
   assert.ok(plan.acceptanceRule, "shared acceptance criteria must be explicit");
+  assert.ok(plan.prGuidance?.trim(), "PR scope guidance is required");
+  for (const lane of plan.lanes) {
+    assert.ok(lane.packages.length, `${lane.key}: expected proposed PRs`);
+    for (const item of lane.packages) {
+      for (const key of ["title", "baseline", "scope", "accept", "command", "source"])
+        assert.ok(item[key]?.trim(), `${lane.key}: proposed PR needs ${key}`);
+      assert.match(item.source, /^https:\/\/github\.com\/asterinas\/vostd\/blob\/[0-9a-f]{9,40}\//);
+      assert.ok(item.ids.length && new Set(item.ids).size === item.ids.length, `${item.title}: expected distinct work items`);
+      for (const id of item.ids) assert.ok(active.has(id), `${item.title}: unknown work item ${id}`);
+      assert.ok(item.ids.some(id => m.byId[id].lane === lane.key), `${item.title}: expected a work item in ${lane.key}`);
+    }
+  }
   for (const e of m.edges) {
     assert.ok(e.need || e.missing, `${e.a} -> ${e.b}: name the interface needed or the evidence missing`);
     if (e.kind === "doc") assert.match(e.ev, SHA, `${e.a} -> ${e.b}: confirmed dependency needs evidence at a fixed commit (…@<sha>)`);
