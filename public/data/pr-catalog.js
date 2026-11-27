@@ -74,10 +74,13 @@ window.PLAN_PR_CATALOG = [
     "scope": "IRQ owner 与 guard 构造；资源创建、恢复与 #900 的状态关系待接线",
     "implements": ["IRQ_MODEL", "IRQ_GUARD"],
     "reuses": [],
-    "note": "分支保留 LocalIrqGuardOwner 和嵌套协议，更新移除了 specs/task/mod.rs 的旧占位。公开入口、owner 来源和 Drop 仍待接通。",
-    "reviewedHead": "d801813981323fef4012af8a43da68c13e93f672",
-    "reviewedAt": "2026-11-24",
-    "evidence": ["ostd/specs/task/{mod.rs,irq.rs}，ostd/src/trap/irq.rs @d80181398"]
+    "note": "同步主线后 IRQ 交付文件与前次相同。私有 new 消费 owner 建立嵌套，公开 disable_local 的 owner 来源、实际 Drop 和 #900 的跨模型关系仍缺。",
+    "reviewedHead": "27efd7c490c6d6fb101b23e09f30dd48a637700b",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/specs/task/{mod.rs,irq.rs}，ostd/src/trap/irq.rs @d80181398",
+      "ostd/{specs/task/irq.rs,src/trap/irq.rs,src/arch/x86/irq.rs} @27efd7c49"
+    ]
   },
   {
     "n": 900,
@@ -107,13 +110,14 @@ window.PLAN_PR_CATALOG = [
     "scope": "x86 用户上下文数据、异常分类与字段保持",
     "implements": ["TRAP_DATA"],
     "reuses": ["IDT_TABLE", "TRAP_EXC"],
-    "note": "UserContextApi 用 when_used_as_spec 将寄存器指针及 trap 字段 getter 接到规格。TLS 硬件效果与异常分派仍待接通。 本轮同步后，分支交付文件与 r12 已查版本相同。",
-    "reviewedHead": "3fd0fe2d571bf7c70ffd50c3d49b4d833242dbe7",
-    "reviewedAt": "2026-11-26",
+    "note": "主线同步保留 x86 UserContext 数据访问和独立字段保持。activate_tls_pointer 的 FSBASE 写入及用户执行仍缺状态合同。",
+    "reviewedHead": "d41697db1dbb660c3c0dd86bbaa08362d42d11a9",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/arch/x86/{mod.rs,cpu/context/mod.rs::UserContext::take_exception,trap/mod.rs}，ostd/src/user.rs::UserContextApi @1f8a35856",
       "ostd/src/user.rs，ostd/src/arch/x86/cpu/context/mod.rs @75d5d9558",
-      "ostd/src/user.rs，ostd/src/arch/x86/cpu/context/mod.rs @3fd0fe2d5"
+      "ostd/src/user.rs，ostd/src/arch/x86/cpu/context/mod.rs @3fd0fe2d5",
+      "ostd/src/{user.rs,arch/x86/cpu/context/mod.rs} @d41697db1"
     ]
   },
   {
@@ -171,9 +175,10 @@ window.PLAN_PR_CATALOG = [
     "scope": "heap slot/slot_list；与 #505 重叠，不能替代 early_alloc 或全局分配器",
     "implements": ["SA_HEAP"],
     "reuses": [],
-    "note": "head 1f20b6eda2 → 38f3177997：两个 slot 文件迁到 verus_spec，字段私有化评论已处理，Send / Sync 仍为 verifier::external。证明空表、LIFO、独占内存转移与 slot getter；不能替代 early_alloc、slab 或全局分配器。",
-    "reviewedHead": "38f3177997b09129271cbdebbce9c6243c551542",
-    "reviewedAt": "2026-11-16"
+    "note": "SlabSlotList::push/pop 给出地址序列和 no_duplicates，pop 交还末项的 HeapSlot 权限。存活链接在内部由原始内存权限维持；Send/Sync 由 unsafe impl 承担，slab 和全局堆需另验。",
+    "reviewedHead": "cfb7d80541fb040212c5065765b32addd7e0ebbc",
+    "reviewedAt": "2026-11-27",
+    "evidence": ["ostd/src/mm/heap/{slot.rs,slot_list.rs} @cfb7d8054"]
   },
   {
     "n": 916,
@@ -221,13 +226,14 @@ window.PLAN_PR_CATALOG = [
     "scope": "DMA stream slice 的 sync 与设备地址计算",
     "implements": ["SA_DMA"],
     "reuses": ["DMA_MAP"],
-    "note": "复核 DmaStreamSlice::sync/daddr 与内层 stream 的调用条件；设备实际缓存同步和完成仍需硬件证据。",
-    "reviewedHead": "a41d9e00096774b64fc57cdfb9c42927fe233fbc",
-    "reviewedAt": "2026-11-26",
+    "note": "设备地址上界来自当前 stream 的恒等映射。slice::daddr 以基址加偏移，slice::sync 将区间交给 stream，设备一致性与完成条件仍待实证。",
+    "reviewedHead": "2ab9e1ce0a0e2382dcedcdf60ff5e22586f7edaf",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/mm/dma/{dma_stream.rs::DmaStreamSlice::sync,DmaStreamSlice::daddr,mod.rs} @f2ed581e0",
       "ostd/src/mm/dma/{dma_stream.rs,mod.rs} @6c589ebbd",
-      "ostd/src/mm/dma/{dma_stream.rs,mod.rs} @a41d9e000"
+      "ostd/src/mm/dma/{dma_stream.rs,mod.rs} @a41d9e000",
+      "ostd/src/mm/dma/{dma_stream.rs,mod.rs} @2ab9e1ce0"
     ]
   },
   {
@@ -241,12 +247,13 @@ window.PLAN_PR_CATALOG = [
   },
   {
     "n": 505,
-    "scope": "heap/slab 历史分支；当前冲突，注意 #923 已覆盖的 slot 范围",
-    "implements": ["HEAP_GLOBAL"],
+    "scope": "SlabMeta 的容量、分配计数与 AllocDispatch 的布局处理",
+    "implements": ["HEAP_GLOBAL", "HEAP_SLAB"],
     "reuses": ["SA_HEAP"],
-    "note": "heap 四文件与 external 类型；Slab::new / dealloc、large allocation、全局 allocator 接线仍注释；与 #923 重叠但未被完全替代；冲突在 external module 接线。",
+    "note": "SlabMeta::alloc 在成功时计数加一，空链失败保持计数。Slab::new/dealloc 和大块 HeapSlot 路径仍在注释里，#[global_allocator] 入口未接通。与 #923 核对 slot 权限合同。",
     "reviewedHead": "cb2be5a80af1fa3286752092ec51f6eb9af29d91",
-    "reviewedAt": "2026-11-16"
+    "reviewedAt": "2026-11-27",
+    "evidence": ["ostd/src/mm/heap/{mod,slab,slot}.rs @cb2be5a80"]
   },
   {
     "n": 487,
@@ -454,12 +461,13 @@ window.PLAN_PR_CATALOG = [
     "scope": "TLB 每核状态、陈旧条目和 FlushSet 请求记账",
     "implements": ["TLB_REQ"],
     "reuses": ["TLB_SHOOT", "TLB_FREE"],
-    "note": "以 Set 表示刷新集合，ops_full 和 escalates_to_all 描述全刷请求及超阈值范围的升级条件。逻辑队列与本核指令、跨核完成仍需分别接通。",
-    "reviewedHead": "17dbb8a8cb01ada6e4b0acf8054662b14aa7cee1",
-    "reviewedAt": "2026-11-26",
+    "note": "remaining_slots 给出待入队容量。issue 在槽耗尽或操作自身升级时得到 all_user，否则与旧集合取并且容量减一。push_from 合并时也可能升级为非全局全刷，仍缺每核执行、确认及帧保留。",
+    "reviewedHead": "606ef10e5e8c73fe29281d89ac83d6ab248f947f",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/specs/mm/tlb.rs::FlushSet；ostd/src/mm/tlb.rs::issue_tlb_flush_with,OpsStack::push_from @76d55a69d3",
-      "ostd/src/mm/tlb.rs::TlbFlushOp::escalates_to_all，ostd/specs/mm/tlb.rs @17dbb8a8c"
+      "ostd/src/mm/tlb.rs::TlbFlushOp::escalates_to_all，ostd/specs/mm/tlb.rs @17dbb8a8c",
+      "ostd/src/mm/tlb.rs::TlbFlusher::issue_tlb_flush,OpsStack::push_from，ostd/specs/mm/tlb.rs @606ef10e5"
     ]
   },
   {
@@ -533,22 +541,24 @@ window.PLAN_PR_CATALOG = [
     "scope": "与 #887 协调共享 UserContextApi 和 TrapFrame 声明",
     "implements": [],
     "reuses": ["TRAP_DATA"],
-    "note": "共享 user.rs 的声明与 #887 有交集。当前 head 调整另一平台的默认寄存器、上下文初始化与异常分类写法，trap_number/trap_error_code 仍注释。集成时核对 x86 trait 入口及字段保持。",
-    "reviewedHead": "2980e2cee7bf4abdee9e715248c9d8356d478fd3",
-    "reviewedAt": "2026-11-19"
+    "note": "共享 user.rs 与前次一致。分支移动外部异常类型的规格并调整平台 trap/上下文表示。与 #887 合并时仍需核对共享 trait 的 trap-number/error-code 入口。",
+    "reviewedHead": "895e242d4f5f9fe7b5e6e81140782141e7ca4667",
+    "reviewedAt": "2026-11-27",
+    "evidence": ["ostd/src/{user.rs,trap/mod.rs}，verified_libs/vstd_extra/src/external/riscv.rs @895e242d4"]
   },
   {
     "n": 948,
-    "scope": "builder 编码、EFI 魔数与解码、目标字长下的 ELF 段初始化",
+    "scope": "builder 的三种编码、EFI decode_payload 与两个 setup 共用的 ELF 段初始化",
     "implements": ["BZ_ENCODE", "BZ_DECODE", "BZ_LOAD"],
-    "reuses": ["BZ_SETUP", "BZ_IMG", "BZ_PE"],
-    "note": "EFI 的 decode_payload 返回 Result，read_to_end 的错误向上传递；仅 Ok 保证 decoded_payload 的字节关系。efi_phase_boot 用 unwrap，实际嵌入输入和读取成功须由引导证明。段分配和物理内存对应仍待验收。",
-    "reviewedHead": "105a3768c72c48bec25a6e8cc0573dec2cb8c8a2",
-    "reviewedAt": "2026-11-26",
+    "reuses": ["BZ_SETUP", "BZ_IMG", "BZ_PE", "BZ_LEGACY_ALLOC", "BZ_EFI_ALLOC", "BZ_EFI_HANDOFF"],
+    "note": "按审阅恢复 Vec 返回值及 decoder 内的 unwrap。有效压缩流的读取成功来自 alloc-only 切片解码器的两条 libflate 公理。load_elf 现要求每个 PT_LOAD 满足分配前置。两个 alloc_at 的外部合同均仅给出长度，物理地址、独占使用与入口交接另验。",
+    "reviewedHead": "c762f8e27d0bb25af35fc3dd4d55cd4b61d49abc",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/libs/linux-bzimage/{builder/src/encoder.rs,setup/src/{loader.rs,x86/amd64_efi/{alloc,decoder,efi}.rs,x86/legacy_i386/alloc.rs}}，verified_libs/vstd_extra/src/external/libflate.rs @f06ae789d",
       "ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/amd64_efi/alloc.rs,x86/legacy_i386/alloc.rs} @124914ae2",
-      "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/{efi,decoder}.rs @105a3768c"
+      "ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/{efi,decoder}.rs @105a3768c",
+      "ostd/libs/linux-bzimage/setup/src/{loader.rs,x86/legacy_i386/alloc.rs,x86/amd64_efi/{alloc,decoder,efi}.rs}，verified_libs/vstd_extra/src/external/{libflate,no_std_io2}.rs @c762f8e27"
     ]
   },
   {
@@ -556,7 +566,7 @@ window.PLAN_PR_CATALOG = [
     "scope": "已合入 0195b8176 的条件 panic 合同与 Segment::slice 引用计数证明",
     "implements": [],
     "reuses": ["MM_FRAME", "MM_PT", "MM_KVA", "VM_CONTENT"],
-    "note": "allowed_to_panic_if 表达调用者何时需允许 panic。Segment::slice 在克隆引用后恢复计数不变式。frame、页表、虚拟区间和 VM I/O 的真实调用处仍须建立对齐、范围或饱和条件。",
+    "note": "该版引入 allowed_to_panic_if 并证明 Segment::slice 克隆引用后的计数保持。#978 随后删除该 panic 接口，当前调用者直接建立排除条件。",
     "reviewedHead": "f20b8ff79ea80b9929fc6e12ec85d510ceb55a43",
     "reviewedAt": "2026-11-19",
     "evidence": [
@@ -595,13 +605,14 @@ window.PLAN_PR_CATALOG = [
     "scope": "x86 context_switch 的可信 FFI 权限与返回栈对齐",
     "implements": ["TASK_CTX"],
     "reuses": ["TASK_SW"],
-    "note": "与上次复核的 arch/x86/task/mod.rs 相同。FFI 的栈与寄存器合同仍待 switch_to_task 建立前置。 本轮同步后，分支交付文件与 r12 已查版本相同。",
-    "reviewedHead": "985ba190502d7ec68310ac3c92c753820aadf6a4",
-    "reviewedAt": "2026-11-26",
+    "note": "同步主线后 FFI 定义相同。cur 返回权限与栈对齐来自可信包装，须由 switch_to_task 建立独占、有效延续和栈寿命。",
+    "reviewedHead": "b86b7eab0457543ee2d8b8ea93b4ca9bd90186ba",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/arch/x86/task/{mod.rs::context_switch,switch.S}，ostd/src/task/processor.rs::switch_to_task @10bf577c1",
       "ostd/src/arch/x86/task/mod.rs @504dbdded",
-      "ostd/src/arch/x86/task/mod.rs @985ba1905"
+      "ostd/src/arch/x86/task/mod.rs @985ba1905",
+      "ostd/src/arch/x86/task/mod.rs @b86b7eab0"
     ]
   },
   {
@@ -609,27 +620,29 @@ window.PLAN_PR_CATALOG = [
     "scope": "256 项 IDT 的门属性、静态发布和本次 lidt 的描述符见证",
     "implements": ["IDT_TABLE", "IDT_LOAD"],
     "reuses": ["TRAP_DISP"],
-    "note": "IDT 外部规格沿用 external::x86::idt；本轮去除构表入口的旧注释，合并带入 smart_ptr 的主线变更。实际入口、选择子与每核加载仍待验证。",
-    "reviewedHead": "c1e430fcd5557b42b2f052a81238253da578ab69",
-    "reviewedAt": "2026-11-26",
+    "note": "init 和 published_idt 显式要求 Once 未观察到 poison，VirtAddr::new 要求规范地址。实际 trap 初始化仍须建立这些条件、向量有效性和每核加载，Once 包装的发布关系属可信边界。",
+    "reviewedHead": "b00942221571aade60572a7a5bfbee7cb3821dd5",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/arch/x86/{mod.rs,trap/{idt.rs::init,published_idt,trap.S,mod.rs}}，verified_libs/vstd_extra/src/external/{x86_idt,smart_ptr}.rs @4fdc660b8",
       "ostd/src/arch/x86/trap/idt.rs::init，verified_libs/vstd_extra/src/external/x86/idt.rs @02eae00e6",
-      "ostd/src/arch/x86/trap/idt.rs::init @c1e430fcd"
+      "ostd/src/arch/x86/trap/idt.rs::init @c1e430fcd",
+      "ostd/src/arch/x86/trap/idt.rs，verified_libs/vstd_extra/src/external/x86/idt.rs @b00942221"
     ]
   },
   {
     "n": 956,
     "scope": "宿主 builder 校验 Efi64 的 setup ELF .rela 节及其相对重定位类型",
     "implements": ["BZ_RELOC"],
-    "reuses": ["BZ_ELF", "BZ_OUT"],
-    "note": "Efi64 的 .rela 检查仍在覆盖 PE 头前执行，正常返回要求重定位类型为 8；panic 规约移到 vstd_extra/src/panic.rs。实际节和失败文件状态待核对。 本轮同步后，分支交付文件与 r12 已查版本相同。",
-    "reviewedHead": "20d189ccbbd851af29f31dbbb883447111c3b495",
-    "reviewedAt": "2026-11-26",
+    "reuses": ["BZ_ELF", "BZ_OUT", "BZ_EFI_OUT"],
+    "note": "随 #978 移除 allowed_to_panic_if。调用者须建立解析安全且成功、节可读及全部条目受支持。Rela64 布局和可读 Rela 节的类型关系已写入 xmas-elf 规约。实际 make_bzimage 仍须由当前 setup ELF 建立这些条件，并记录运行时拒绝后留下的文件内容。",
+    "reviewedHead": "e1649d5316dcc2de74e085f4027be71091c12c5b",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/libs/linux-bzimage/{builder/src/lib.rs::make_bzimage,assert_elf64_reloc_supported,setup/src/x86/linker.ld}，verified_libs/vstd_extra/src/external/xmas_elf.rs @a592aaef6",
       "ostd/libs/linux-bzimage/builder/src/lib.rs::assert_elf64_reloc_supported @394e534a1",
-      "ostd/libs/linux-bzimage/builder/src/lib.rs::assert_elf64_reloc_supported @20d189ccb"
+      "ostd/libs/linux-bzimage/builder/src/lib.rs::assert_elf64_reloc_supported @20d189ccb",
+      "ostd/libs/linux-bzimage/builder/src/lib.rs::{make_bzimage,assert_elf64_reloc_supported}、verified_libs/vstd_extra/src/external/xmas_elf.rs @e1649d531"
     ]
   },
   {
@@ -690,8 +703,8 @@ window.PLAN_PR_CATALOG = [
     "n": 966,
     "scope": "16550 串口的七个寄存器地址和字节端口访问边界",
     "implements": ["SERIAL_QEMU_CMOS"],
-    "reuses": [],
-    "note": "合入 2aa424ec0。new 返回七个连续地址及全部 u8 访问合法的合同；init、send、recv、line_status 保留验证标注，最终版本已移除其单独的后置条件。待接入 COM1 并核对独占与轮询。",
+    "reuses": ["COM1_SEND"],
+    "note": "合入 2aa424ec0。new 的七个连续地址和 u8 访问合法性已由 #979 在 COM1 静态量消费。驱动函数缺少初始化写入、发送数据及设备进展的后置。",
     "reviewedHead": "9b299b02f676e12ecc4a43b3bff0ee9d793e3b44",
     "reviewedAt": "2026-11-24",
     "evidence": [
@@ -714,12 +727,13 @@ window.PLAN_PR_CATALOG = [
     "scope": "PIT 与 8259 PIC 的端口、命令及软件写入顺序",
     "implements": ["PIT_CFG", "PIC"],
     "reuses": ["IO_PIO", "IO_PIO_ALLOC", "SERIAL_QEMU_CMOS"],
-    "note": "PortWriteSequence 的创建和推进受 IO 层约束。对 0x20..=0x21、0x40..=0x43、0xA0..=0xA1 的写入须提供序列。PIT/PIC 入口消费指定前缀并保留后缀；UART 构造新增偏移 0..=4 避开这些端口的条件。实际初始化方、器件状态和 IRQ0 仍需接通。",
-    "reviewedHead": "43cc4d8d5f3073511655743b2111a277dbc5d1c1",
-    "reviewedAt": "2026-11-26",
+    "note": "PIT 的三项与 PIC 的十项写入由调用者提供序列，驱动消费前缀并保留后缀。相对上次核对，分支交付文件内容相同；尚须在平台入口建立协议和设备效果。",
+    "reviewedHead": "abf9d4c2bafb0f2f91632a5374d32266fe8bd89d",
+    "reviewedAt": "2026-11-27",
     "evidence": [
       "ostd/src/arch/x86/{timer/pit.rs::init,kernel/irq/pic.rs::set_mask}，ostd/src/io/io_port/mod.rs::IoPort::write @f2bdb88a6",
-      "ostd/src/io/io_port/mod.rs::needs_write_sequence,PortWriteSequence，ostd/src/arch/x86/{device/serial.rs,timer/pit.rs,kernel/irq/pic.rs} @43cc4d8d5"
+      "ostd/src/io/io_port/mod.rs::needs_write_sequence,PortWriteSequence，ostd/src/arch/x86/{device/serial.rs,timer/pit.rs,kernel/irq/pic.rs} @43cc4d8d5",
+      "ostd/src/{io/io_port/mod.rs,arch/x86/timer/pit.rs,arch/x86/kernel/irq/pic.rs} @abf9d4c2b"
     ]
   },
   {
@@ -748,22 +762,28 @@ window.PLAN_PR_CATALOG = [
   {
     "n": 977,
     "scope": "x86 本核 TLB 刷新与 CR3 写入的调用条件",
-    "implements": ["PT_X86"],
-    "reuses": ["TLB_SHOOT", "MM_BOOT"],
-    "note": "恢复单地址、按 PAGE_SIZE 步进的范围、排除全局项的刷新和 activate_page_table。非空范围须位于同一规范地址区，根地址须可编码并按页对齐，缓存模式限三种。外部指令规约未建模失效或根页切换结果，全局刷新与读回仍待完成。",
-    "reviewedHead": "126316d81688a741abf1a596d7ed0a26eff748fc",
-    "reviewedAt": "2026-11-26",
-    "evidence": ["ostd/src/arch/x86/mm/mod.rs，verified_libs/vstd_extra/src/external/{x86,iter}.rs @126316d81"]
+    "implements": ["PT_X86", "PT_LOCAL_FLUSH", "PT_FLUSH_NONGLOBAL"],
+    "reuses": ["TLB_SHOOT", "MM_BOOT_ACTIVATE"],
+    "note": "非空范围要求同一规范地址区且起点页对齐；Range<usize> 的 step_by 模型约束迭代。地址构造保持数值，成功构造 PhysFrame 保持首地址。三个刷新包装和 CR3 写入尚缺硬件状态后置，含全局项刷新与根页读回仍为外部体。",
+    "reviewedHead": "06327ccfdfe3b6a5c917a4914bc49e5f22115b30",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/src/arch/x86/mm/mod.rs，verified_libs/vstd_extra/src/external/{x86,iter}.rs @126316d81",
+      "ostd/src/arch/x86/mm/mod.rs，verified_libs/vstd_extra/src/external/{iter,x86}.rs @06327ccfd"
+    ]
   },
   {
     "n": 976,
     "scope": "区分页表叶编码和 frame 元数据的物理范围",
     "implements": ["MM_PT"],
     "reuses": ["MM_KVA"],
-    "note": "非跟踪叶映射使用体系结构 LEAF_PADDR_END（x86 为 2^52），跟踪映射还须有效元数据。游标、拆大页和 KVirtArea 的非跟踪映射消费这一区分。",
-    "reviewedHead": "a69759b8decfb447ed001e98c36f0b36ad740261",
-    "reviewedAt": "2026-11-26",
-    "evidence": ["ostd/specs/arch/x86/mod.rs，ostd/src/mm/{kspace/kvirt_area.rs,page_table/cursor/mod.rs} @a69759b8d"]
+    "note": "item_wf 对所有叶要求合法层级、按层对齐且整页落在 ARCH_MAX_PADDR 内（x86 排他上界 2^52）。跟踪叶另需有效 frame 元数据，非跟踪叶可超出其覆盖。须由映射调用者建立相应界限。",
+    "reviewedHead": "b138a9c0e1e212e28750ad0506c87af765c02072",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/specs/arch/x86/mod.rs，ostd/src/mm/{kspace/kvirt_area.rs,page_table/cursor/mod.rs} @a69759b8d",
+      "ostd/specs/{arch/x86/mod.rs,mm/page_table/cursor/cursor_fn_specs.rs}，ostd/src/mm/page_table/cursor/mod.rs @b138a9c0e"
+    ]
   },
   {
     "n": 974,
@@ -786,5 +806,78 @@ window.PLAN_PR_CATALOG = [
     "reviewedHead": "19eaccca2c0d1ff265defce63ab8d07187418611",
     "reviewedAt": "2026-11-26",
     "evidence": ["ostd/src/arch/x86/{timer/pit.rs,kernel/irq/pic.rs} @19eaccca2"]
+  },
+  {
+    "n": 979,
+    "scope": "COM1 静态寄存器范围、初始化调用及状态位截断",
+    "implements": ["SERIAL_QEMU_CMOS", "COM1_SEND"],
+    "reuses": ["IO_PIO"],
+    "note": "已合入 7cd0bcdcd。审阅后对齐 bitflags 接口，保留无 decreases 的发送轮询。七个地址和 LineSts 的已知位有合同；八次初始化写、发送序列、端口独占与轮询终止仍待验收。",
+    "reviewedHead": "ff72fbaa57879aac59165aadefe4ca72405cbce5",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/src/arch/x86/{mod.rs,serial.rs::CONSOLE_COM1_PORT,line_sts,send}，verified_libs/bitflags/src/lib.rs @ff72fbaa5",
+      "ostd/src/{arch/x86/device/serial.rs,io/io_port/allocator.rs,console.rs} @7cd0bcdcd"
+    ]
+  },
+  {
+    "n": 981,
+    "scope": "引导 MMIO 窗口构造和 ACPI 表查找",
+    "implements": ["IO_WIN", "ACPI_TABLES"],
+    "reuses": ["EARLY_INFO_INIT"],
+    "note": "分支在 EarlyBootInfoInit、端点界及固件前置下给出两个对齐窗口和各启动变体的 ACPI 结果。登记匹配、发布点签发见证、映射可读性以及 MADT/HPET 调用者仍待证明。BIOS 搜索失败保留 None，分支停用此分支的 warn 日志。",
+    "reviewedHead": "d3e35705243714a02db50c7785ec479948edd64f",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/src/{boot/mod.rs,arch/x86/io.rs,arch/x86/kernel/acpi/mod.rs}，verified_libs/vstd_extra/src/external/{acpi,iter,ptr}.rs @d3e357052",
+      "ostd/src/arch/x86/{boot/linux_boot/mod.rs,kernel/irq/mod.rs,timer/hpet.rs} @7cd0bcdcd"
+    ]
+  },
+  {
+    "n": 984,
+    "scope": "每核 GDT 表布局、选择子索引与 TSS 指针参数",
+    "implements": ["GDT", "TSS_LOCAL"],
+    "reuses": ["LOC_ID"],
+    "note": "分支验证本核初始 CS 前置下的索引、描述符表界限和指令参数。StaticStorage::as_ptr 的外部体给出非空与对齐；CPU 归属、目标 TSS 寿命、链接首部和实际加载后置仍缺，trap::init 尚未启用。",
+    "reviewedHead": "e89201cb675d61c0ff2b0cfe05439ac01e8cf7ce",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/src/{arch/x86/trap/gdt.rs,cpu/local/static_cpu_local.rs}，ostd/specs/arch/x86/mod.rs，verified_libs/vstd_extra/src/external/x86.rs @e89201cb6"
+    ]
+  },
+  {
+    "n": 983,
+    "scope": "恢复 TSC 频率/计数器读取和有特性前置的 RDRAND",
+    "implements": ["TSC_VALUE"],
+    "reuses": ["TMR_DEADLINE", "CAL_FREQ", "SMP_AP"],
+    "note": "tsc_freq 以 Acquire 读取初值为零的原子量，read_tsc 的外部指令可返回任意 u64；分支未恢复 init_tsc_freq 写入。read_random 依赖 CPUID.1:ECX[30]，最多尝试十次。仓内未见 x86 read_random 的真实调用者；采样单调、进展、频率非零及指令特性前置仍需具体消费者建立。",
+    "reviewedHead": "75ec8b0531059331caf5090ab3ab6254aa5ef4af",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/src/arch/x86/{mod.rs,kernel/tsc.rs}，ostd/specs/context.rs，verified_libs/vstd_extra/src/external/x86.rs @75ec8b053",
+      "ostd/src/arch/x86/{timer/apic.rs::timer_callback,boot/smp.rs::spin_wait_cycles} @7cd0bcdcd"
+    ]
+  },
+  {
+    "n": 978,
+    "scope": "移除 may_panic，将可达 panic 的条件交给调用者排除",
+    "implements": [],
+    "reuses": ["MM_KVA", "MM_FRAME", "MM_PT", "VM_CONTENT", "BZ_LOAD", "BZ_RELOC", "IDT_LOAD"],
+    "note": "KVirtArea 映射要求排除包含分配失败的完整条件，Segment 和 VM I/O 的调用方须建立范围、对齐或计数前提。#955、#948、#956 已适配。",
+    "reviewedHead": "da9eb9ccfed93019e4ff08dee2dd4baed2fb33d1",
+    "reviewedAt": "2026-11-27",
+    "evidence": [
+      "ostd/src/mm/{kspace/kvirt_area.rs,frame/segment.rs,io.rs}，docs/coding-guidelines/proof-engineering.md @da9eb9ccf"
+    ]
+  },
+  {
+    "n": 980,
+    "scope": "放宽 UniqueFrame、VM 写入与游标构造的公开前置",
+    "implements": ["MM_FRAME", "MM_PT"],
+    "reuses": ["VM_CONTENT"],
+    "note": "UniqueFrame::from_unused 允许交入已占用或无效地址，Err 保持区域所有者。write_vals 仅在 align > 1 时要求二次幂和两次加 align−1 有界。Cursor、PageTable 和 VmSpace 的游标入口移除 va.end > 0。",
+    "reviewedHead": "ccf88d6601d88ea32c2c1bf751791392ac23145e",
+    "reviewedAt": "2026-11-27",
+    "evidence": ["ostd/src/mm/{frame/unique.rs,io.rs,page_table/cursor/mod.rs,vm_space.rs} @ccf88d660"]
   }
 ];

@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-26T21:40:10.890Z",
+  "generatedAt": "2026-11-27T03:04:29.135Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "失败"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -929,7 +929,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-26T16:06:26Z",
+      "updatedAt": "2026-11-27T01:48:01Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1080,7 +1080,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -1188,7 +1188,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1206,7 +1206,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1249,11 +1249,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 976,
       "kind": "open",
       "draft": false,
-      "head": "2e06880c5ad060b7befbd135af68ff117c23f884",
+      "head": "b138a9c0e1e212e28750ad0506c87af765c02072",
       "title": "fix: allow untracked mappings beyond frame metadata coverage in the page table model",
       "body": "Fix #975 \n\nThis PR separates the physical address range encodable by a leaf PTE from the range covered by frame metadata. Tracked mappings still require a valid metadata slot. Untracked mappings can extend beyond `MAX_PADDR` as long as they satisfy the page-alignment and architecture-specific PTE bounds.",
       "url": "https://github.com/asterinas/vostd/pull/976",
-      "updatedAt": "2026-11-26T10:46:12Z",
+      "updatedAt": "2026-11-27T02:56:51Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1280,29 +1280,115 @@ window.PLAN_PR_SNAPSHOT = {
       "review": "无汇总结论",
       "gate": "CLEAN",
       "ci": "成功"
-    }
-  ],
-  "candidates": [
-    {
-      "n": 984,
-      "title": "prove: verify x86 trap GDT layout and selector indices",
-      "url": "https://github.com/asterinas/vostd/pull/984",
-      "head": "e89201cb675d61c0ff2b0cfe05439ac01e8cf7ce",
-      "updatedAt": "2026-11-26T18:28:29Z"
     },
     {
-      "n": 983,
-      "title": "prove: verify x86 TSC and RDRAND hardware accessors",
-      "url": "https://github.com/asterinas/vostd/pull/983",
-      "head": "75ec8b0531059331caf5090ab3ab6254aa5ef4af",
-      "updatedAt": "2026-11-26T17:22:31Z"
+      "n": 978,
+      "kind": "merged",
+      "draft": false,
+      "head": "da9eb9ccfed93019e4ff08dee2dd4baed2fb33d1",
+      "title": "retire `may_panic`",
+      "body": "Get back to the `requires !panic_condition` design.",
+      "url": "https://github.com/asterinas/vostd/pull/978",
+      "updatedAt": "2026-11-26T06:39:25Z",
+      "mergedAt": "2026-11-26T06:39:19Z",
+      "closedAt": "2026-11-26T06:39:19Z",
+      "mergeCommit": "2640b73326ef9840073b42d23acc0b3057919208",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
+    },
+    {
+      "n": 979,
+      "kind": "merged",
+      "draft": false,
+      "head": "ff72fbaa57879aac59165aadefe4ca72405cbce5",
+      "title": "prove: verify x86 COM1 console initialization",
+      "body": "",
+      "url": "https://github.com/asterinas/vostd/pull/979",
+      "updatedAt": "2026-11-26T14:39:45Z",
+      "mergedAt": "2026-11-26T14:39:44Z",
+      "closedAt": "2026-11-26T14:39:44Z",
+      "mergeCommit": "7cd0bcdcddfca4091415daeebc8b4017f65a7700",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
+    },
+    {
+      "n": 980,
+      "kind": "merged",
+      "draft": false,
+      "head": "ccf88d6601d88ea32c2c1bf751791392ac23145e",
+      "title": "fix: relax several public API preconditions",
+      "body": "",
+      "url": "https://github.com/asterinas/vostd/pull/980",
+      "updatedAt": "2026-11-26T08:05:28Z",
+      "mergedAt": "2026-11-26T08:05:09Z",
+      "closedAt": "2026-11-26T08:05:09Z",
+      "mergeCommit": "cbb955df0e9e5f6fe4c1d0e9877cf47990882b79",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
     },
     {
       "n": 981,
-      "title": "prove: verify x86 MMIO window construction and ACPI table lookup",
-      "url": "https://github.com/asterinas/vostd/pull/981",
+      "kind": "open",
+      "draft": false,
       "head": "d3e35705243714a02db50c7785ec479948edd64f",
-      "updatedAt": "2026-11-26T16:51:55Z"
+      "title": "prove: verify x86 MMIO window construction and ACPI table lookup",
+      "body": "## Summary\n\nVerify x86 early-boot MMIO window construction and ACPI table discovery in `arch::x86::{io, kernel::acpi}`, including:\n\n- Low/high MMIO window discovery, alignment, and `IoMemAllocatorBuilder` construction (`construct_io_mem_allocator_builder`).\n- Linear-mapped ACPI physical region mapping and unmapping (`AcpiMemoryHandler`).\n- Firmware ACPI table lookup across all `BootloaderAcpiArg` paths (`get_acpi_tables`).\n\nIntroduce a tracked `EarlyBootInfoInit` witness in `ostd::boot` and external specs in `vstd_extra::external::{acpi, iter, ptr}`.\n\n## Executable Code Changes\n\n- Wrap `EARLY_INFO.get()` in a 1-line `boot::get_early_info()` helper.\n- Rebuild the `Filter` chain (with intermediate bindings) instead of cloning a closure-backed iterator in `construct_io_mem_allocator_builder`.\n- Replace `usize as *mut T` with `core::ptr::with_exposed_provenance_mut` in `AcpiMemoryHandler::map_physical_region`.\n- Comment out `log::warn!` in `get_acpi_tables`, matching existing verified-module convention.\n\n## Trusted Boundaries\n\n- External specs for `acpi`, `Iterator::max_by`, and `core::ptr::with_exposed_provenance_mut` in `vstd_extra::external::{acpi, iter, ptr}`.\n- One 1-line `#[verifier::external_body]` (`boot::get_early_info`), `#[verifier::assume_compatibility_with_trait_spec]` on `AcpiMemoryHandler::map_physical_region`, and the model axiom for `AcpiMemoryHandler`.\n- No `assume()`, `admit()`, or `allowed_to_panic_if(true)` is introduced.\n\n## Out of Scope\n\n- Boot-time `EARLY_INFO` initialization and minting of `EarlyBootInfoInit`.\n- Firmware ACPI table validity and internal verification of the `acpi` / `log` crates.\n- Remaining unverified items in `ostd::boot` and downstream unverified callers.\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nVerify `construct_io_mem_allocator_builder` in `ostd::arch::x86::io` (32/32 Verified, +30 Verified LoC, 0 Trusted, 0 Unverified) and `AcpiMemoryHandler` / `get_acpi_tables` in `ostd::arch::x86::kernel::acpi` (39/39 Verified, +39 Verified LoC, 0 Trusted, 0 Unverified), backed by an unforgeable `EarlyBootInfoInit` witness in `ostd::boot` and centralized external specifications in `vstd_extra::external::{acpi, iter, ptr}`.\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `EarlyBootInfoInit` (tracked, `ostd::boot`) | Unforgeable linear witness in private submodule `early_info_witness` (private `ghost info: EarlyBootInfo`, closed `View`, no verified constructor) representing monotone write-once initialization of `EARLY_INFO`. |\n| `get_early_info` (`ostd::boot`) | 1-line `#[verifier::external_body]` wrapper over `EARLY_INFO.get()` taking `Tracked<&EarlyBootInfoInit>`; ensures `ret matches Some(info) && *info == init@`, `opens_invariants none`, `no_unwind`. |\n| `is_mmio_candidate_region` / `max_by_base` / `tolm_region` / `tohm_region` / `expected_mmio_ranges` (`ostd::arch::x86::io`) | Functional `Seq::filter` + `Seq::fold_left` model of TOLM/TOHM candidate selection, last-maximal `base()` tie-breaking, and aligned `[low_mmio, high_mmio]` windows (`Seq<Range<usize>>`). |\n| `valid_bootloader_acpi_tables` / `expected_acpi_tables` (`ostd::arch::x86::kernel::acpi`) | Per-variant (`Rsdp`, `Rsdt`, `Xsdt`, `NotProvided`) firmware lookup preconditions and exact modeled `Option<AcpiTables<AcpiMemoryHandler>>` return value, preserving the fallible BIOS `Err(_) => None` path. |\n| `vstd_extra::external::acpi` | External type/trait proxies (`ExSdtHeader`, `ExAcpiError`, `ExRsdp`, `ExAcpiHandler` with `unmap_physical_region`, `ExPhysicalMapping`, `ExAcpiTables`), field-projection traits (`PhysicalMappingSpec`, `AcpiTablesSpec`), `#[verifier::when_used_as_spec]` on `PhysicalMapping::physical_start`, length-checked `PhysicalMapping::new` (`size_of::<T>() <= region_length <= mapped_length`), model-validity predicate `obeys_acpi_handler_model::<H>()`, and `returns`-based `assume_specification` for `AcpiTables::{from_rsdp, from_rsdt}` and `Rsdp::search_for_on_bios`. |\n| `vstd_extra::external::iter` | `ExIteratorMaxBy` for `Iterator::max_by` (requiring `forall\\|x, y\\| compare.requires((x, y))`), opaque `comparator_agrees_with_preorder`, and `axiom_iterator_max_by_postcondition` characterizing consumption, emptiness, membership, and last-maximal optimality. |\n| `vstd_extra::external::ptr` | `assume_specification` for `core::ptr::with_exposed_provenance_mut::<T>` ensuring `ret.addr() == addr`, `opens_invariants none`, `no_unwind` without forging provenance. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `construct_io_mem_allocator_builder` | `ostd::arch::x86::io` | Under `EarlyBootInfoInit` and exact TOLM/TOHM alignment bounds (`<= 0xF000_0000` for TOLM; `<= 0x7FFF_0000_0000` when TOHM exists), proves panic/overflow freedom, `ret@ == expected_mmio_ranges(...)`, `ret.has_registered_windows() == usize_ranges_match_registered(ret@)`, return window ordering `ret@[0].start < ret@[0].end == 0x1_0000_0000 <= ret@[1].start < ret@[1].end == 0x8000_0000_0000`, and `0x1000_0000` / `0x1_0000_0000` alignment. |\n| `AcpiMemoryHandler::map_physical_region` | `ostd::arch::x86::kernel::acpi` | Under `physical_address + LINEAR_MAPPING_BASE_VADDR < usize::MAX` and `size >= size_of::<T>()`, proves non-overflow `paddr_to_vaddr`, non-null `NonNull::new`, and all five `PhysicalMapping` fields (`physical_start`, `virtual_start_spec`, `region_length_spec`, `mapped_length_spec`, `handler_spec`). |\n| `AcpiMemoryHandler::unmap_physical_region` | `ostd::arch::x86::kernel::acpi` | Verified directly against `ExAcpiHandler::unmap_physical_region` without `assume_compatibility_with_trait_spec`. |\n| `get_acpi_tables` | `ostd::arch::x86::kernel::acpi` | Under `EarlyBootInfoInit` and `valid_bootloader_acpi_tables(boot_info@.acpi_arg)`, proves `returns expected_acpi_tables(...)`, `tables.handler_spec() == (AcpiMemoryHandler {})`, and `revision_spec()` (`0` for `Rsdt`, `1` for `Xsdt`). |\n| `BootloaderAcpiArg` / `EarlyBootInfo` / `get_early_info` | `ostd::boot` | Marked `#[verus_verify]` with cross-architecture compatibility (`x86_64`, `riscv64`, `loongarch64`); `get_early_info` bridges `EARLY_INFO.get()` via `Tracked<&EarlyBootInfoInit>`. |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, executable edits are minimal and annotated with adjacent `Origin Rust:` comments (or `/* ... */` for disabled logging):\n\n- **`boot::get_early_info()` (`ostd/src/boot/mod.rs`)**: Verus cannot reference `spin::Once` static `EARLY_INFO` directly in specifications or track its write-once initialization state; a 1-line `#[verifier::external_body]` wrapper preserves `EARLY_INFO` unchanged across all architectures.\n- **Iterator pipeline bindings and filter reconstruction (`ostd/src/arch/x86/io.rs`)**: Verus does not recognize `Clone` on closure-backed `Filter` iterators and requires intermediate iterator bindings to relate prophetic iterator models across `filter`/`max_by`; constructing the identical filter twice preserves evaluation order and values.\n- **`core::ptr::with_exposed_provenance_mut` (`ostd/src/arch/x86/kernel/acpi/mod.rs`)**: Verus rejects `usize as *mut T` (``error: Verus does not currently support this cast: `usize` to `*mut T/#0` `` at `ostd/src/arch/x86/kernel/acpi/mod.rs:112:44`, and likewise rejects `usize as *mut u8`); `vstd::raw_ptr::with_exposed_provenance` requires a tracked `IsExposed` token unavailable for linear-mapped physical addresses; `core::ptr::with_exposed_provenance_mut::<T>` has identical runtime semantics (`addr as *mut T`).\n- **Disabled `log::warn!` (`ostd/src/arch/x86/kernel/acpi/mod.rs`)**: `use log::warn;` and `warn!(\"ACPI info not found!\");` are wrapped in `/* ... */` in place, following existing repository convention (`ostd/src/io/io_mem/allocator.rs`, `ostd/src/io/io_port/allocator.rs`) instead of adding an `external_body` helper.\n- **`usize_ranges_match_registered` re-export (`ostd/src/io/io_mem/mod.rs`)**: Spec-only `pub(crate)` re-export in a separate verification-import group (zero runtime change) so callers of `construct_io_mem_allocator_builder` can discharge `crate::io::init`'s `has_registered_windows()` precondition.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `assume()`, `admit()`, or `allowed_to_panic_if(true)`.\n  - Third-party and `core` specifications are centralized in `vstd_extra::external::{acpi, iter, ptr}` and audited against `acpi 5.2.0`, `spin 0.9.8`, and Rust 1.100.0 `core`. Both `core` specs (`Iterator::max_by`, `core::ptr::with_exposed_provenance_mut`) carry `TODO` notes to upstream to Verus `vstd`.\n  - `axiom_iterator_max_by_postcondition` follows the `axiom_iterator_max_postcondition` precedent in `vstd_extra::external::iter` (currently instantiated only for `Filter<Filter<core::slice::Iter<'_, MemoryRegion>, _>, _>`, where Rust 1.100's `Filter::{fold, try_fold}` agree with `next`).\n  - The sole in-crate `#[verifier::external_body]` boundary is the 1-line helper `boot::get_early_info()`.\n  - `AcpiMemoryHandler::map_physical_region` retains `#[verifier::assume_compatibility_with_trait_spec]` because declaring `map_physical_region` in `ExAcpiHandler` hits a Verus `recursive_types.rs` trait-impl SCC cycle through `PhysicalMapping::<Self, T>::new`.\n  - `axiom_acpi_memory_handler_obeys_model` admits `obeys_acpi_handler_model::<AcpiMemoryHandler>()` solely for the reviewed zero-sized pure `AcpiMemoryHandler` struct (which `vstd_extra` cannot reference directly).\n- **Deferred / out of scope**:\n  - Boot-time initialization of `EARLY_INFO` and minting of `EarlyBootInfoInit` (no current verified caller).\n  - Hardware-level validity of firmware ACPI tables (`valid_acpi_rsdp`, `valid_acpi_rsdt`, `valid_bios_rsdp_search`).\n  - Downstream unverified callers (`late_init_on_bsp` in `ostd/src/arch/x86/mod.rs`, `acpi::{dmar, remapping}` integration).\n\n</details>\n",
+      "url": "https://github.com/asterinas/vostd/pull/981",
+      "updatedAt": "2026-11-26T16:51:55Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
+    },
+    {
+      "n": 983,
+      "kind": "open",
+      "draft": false,
+      "head": "75ec8b0531059331caf5090ab3ab6254aa5ef4af",
+      "title": "prove: verify x86 TSC and RDRAND hardware accessors",
+      "body": "## Summary\n\nVerify x86 TSC and RDRAND hardware accessors in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc`:\n\n- `tsc_freq`: unwind-free frequency read from the verified `TSC_FREQ` (`AtomicU64`).\n- `read_tsc`: invariant-preserving, unwind-free timestamp counter read via `_rdtsc`.\n- `read_random`: hardware RNG read via `_rdrand64_step` under `cpu_feature_model().supports_rdrand`.\n\nAlso extend `CpuFeatureModel` / `cpuid_consistent` in `ostd::specs::context` with `supports_rdrand` (`CPUID.01H:ECX[bit 30]`).\n\n## Executable Code Changes\n\nNone — only uncommented existing `AtomicU64` / `Ordering` imports, `kernel::tsc::TSC_FREQ`, and `arch::x86::{tsc_freq, read_tsc, read_random}` in place without altering their bodies, types, or visibility.\n\n## Trusted Boundaries\n\nAudited against Rust 1.100.0 `core_arch` and the Intel SDM:\n\n- `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`): `assume_specification` (`opens_invariants none`, `no_unwind`), with a `TODO` to upstream to Verus `vstd`.\n- `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`): `assume_specification` guarded by `cpu_feature_model().supports_rdrand` (placed in `ostd` due to the `cpu_feature_model()` dependency).\n- No `#[verifier::external_body]`, `assume()`, or `admit()` is introduced.\n\n## Out of Scope\n\n- Runtime `RDRAND` CPUID guard in `read_random()` (tracks Asterinas v0.16.0; runtime checks belong to a future upstream sync).\n- `no_unwind` / `opens_invariants none` on `read_random()` and `opens_invariants none` on `tsc_freq()` (blocked by vendored `vstd::std_specs::{iter, atomic}`).\n- Remaining unverified items in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc` (e.g., `init_tsc_freq`).\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nVerify `tsc_freq`, `read_tsc`, and `read_random` in `ostd::arch::x86` (`Exec`: `16 -> 33`, **+17 Verified Exec LoC**, **0 Trusted Exec LoC**) and enable `TSC_FREQ` in `ostd::arch::x86::kernel::tsc` (`Exec`: `25 -> 25`, **0 Trusted Exec LoC**), backed by `CpuFeatureModel::supports_rdrand` and 2 new `assume_specification` entries (`_rdrand64_step` in `ostd/specs/context.rs` and `_rdtsc` in `verified_libs/vstd_extra/src/external/x86.rs`).\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `CpuFeatureModel::supports_rdrand` (`ostd::specs::context`) | Models `CPUID.01H:ECX[bit 30]` (`max_basic_leaf >= 1 && features.ecx & (1u32 << 30) != 0`) across `CpuFeatureModel`, `from_cpuid`, and `cpuid_consistent` leaf 1 so callers can discharge `supports_rdrand` via `__cpuid(0)` + `__cpuid_count(1, 0)`. |\n| `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`) | `assume_specification` requiring `cpu_feature_model().supports_rdrand`, ensuring `flag == 0 || flag == 1` and `flag == 0 ==> *final(val) == 0u64`, with `opens_invariants none` and `no_unwind when cpu_feature_model().supports_rdrand`. |\n| `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`) | `assume_specification` returning an unconstrained `u64` with `opens_invariants none` and `no_unwind`, marked with `TODO` to upstream to Verus `vstd`. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `TSC_FREQ` | `ostd::arch::x86::kernel::tsc` | Marked `#[verus_verify]` (`AtomicU64::new(0)`), reusing `vstd::std_specs::atomic`. |\n| `tsc_freq` | `ostd::arch::x86` | `#[verus_spec(no_unwind)]`; loads `kernel::tsc::TSC_FREQ` with `Ordering::Acquire`. |\n| `read_tsc` | `ostd::arch::x86` | `#[verus_spec(opens_invariants none no_unwind)]`; delegates to `core::arch::x86_64::_rdtsc`. |\n| `read_random` | `ostd::arch::x86` | `#[verus_spec(requires cpu_feature_model().supports_rdrand)]` with loop invariant `cpu_feature_model().supports_rdrand` across `for _ in 0..RETRY_LIMIT` (10 retries). |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, no executable code was rewritten:\n\n- **`ostd/src/arch/x86/kernel/tsc.rs`**: Only uncommented `AtomicU64` in `use core::sync::atomic` and `pub(in crate::arch) static TSC_FREQ: AtomicU64 = AtomicU64::new(0);` with `#[verus_verify]`.\n- **`ostd/src/arch/x86/mod.rs`**: Only uncommented `use core::sync::atomic::Ordering;` and `tsc_freq`, `read_tsc`, `read_random`.\n  - Preserved `for _ in 0..RETRY_LIMIT` verbatim rather than rewriting to `while` or adding `external_body`, accepting the omission of `no_unwind` / `opens_invariants none` until `vstd::std_specs::iter` provides them.\n  - Preserved v0.16.0 `read_random()` without injecting a runtime CPUID check, capturing the hardware requirement in `requires cpu_feature_model().supports_rdrand` instead.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `#[verifier::external_body]`, `assume()`, or `admit()`.\n  - `vstd_extra::external::x86` (`core::arch::x86_64::_rdtsc`): `RDTSC` is a baseline x86-64 instruction (`core_arch/src/x86/rdtsc.rs` carries no `#[target_feature]`), executes without unwinding, and returns `u64`. Carries a `TODO` note to upstream to Verus `vstd`.\n  - `ostd::specs::context` (`core::arch::x86_64::_rdrand64_step`): `core_arch/src/x86_64/rdrand.rs` requires `#[target_feature(enable = \"rdrand\")]`, which is absent on `x86_64-unknown-none`. Requiring `cpu_feature_model().supports_rdrand` prevents `#UD`/UB on CPUs without `RDRAND`; postconditions match Rust 1.100.0 `core_arch` and Intel SDM Vol. 2B. Placed in `ostd/specs/context.rs` alongside `__cpuid` / `__cpuid_count` because it depends on `cpu_feature_model()`.\n- **Deferred / out of scope**:\n  - Upstream Asterinas v0.19+ runtime `RDRAND` feature guard in `read_random()`.\n  - Adding `no_unwind` / `opens_invariants none` to `vstd::std_specs::iter` (`Range` / `VerusForLoopWrapper`) and `opens_invariants none` to `vstd::std_specs::atomic::AtomicU64::load`.\n  - Verifying `kernel::tsc::init_tsc_freq` and the remaining unverified functions in `ostd/src/arch/x86/mod.rs`.\n\n</details>\n",
+      "url": "https://github.com/asterinas/vostd/pull/983",
+      "updatedAt": "2026-11-26T17:22:31Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
+    },
+    {
+      "n": 984,
+      "kind": "open",
+      "draft": false,
+      "head": "e89201cb675d61c0ff2b0cfe05439ac01e8cf7ce",
+      "title": "prove: verify x86 trap GDT layout and selector indices",
+      "body": "## Summary\n\nVerify x86-64 GDT and TSS initialization in `ostd/src/arch/x86/trap/gdt.rs`, including:\n\n- All GDT descriptor/selector constants and the `LOCAL_TSS` static initializer.\n- Panic-free `gdt::init()` under the boot `CS == KERNEL_CS` precondition (TSS descriptor match, all selector index checks, `gdtr.limit`, canonical `VirtAddr::new`, and `lgdt` / `load_tss` / `Star::write_raw` preconditions).\n\nAlso minimally enables `ostd::cpu::local` (`StaticCpuLocal`) across `x86` / `riscv` / `loongarch` and adds external/layout specs in `vstd_extra` and `ostd::specs::arch::x86`.\n\n## Executable Code Changes\n\n- Zero executable edits in `ostd/src/arch/x86/trap/gdt.rs`.\n- Move `!Send` from `CpuLocal<T, StaticStorage<T>>` to `StaticStorage<T>` to satisfy `rustc 1.100.0` `E0366` (`StaticCpuLocal<T>` stays `!Send`).\n- Minimally uncomment `cpu::local`, `arch::*::cpu::local`, and `arch::x86::trap::gdt` across `x86` / `riscv` / `loongarch`.\n\n## Trusted Boundaries\n\n- External specs for `x86_64 0.15.5` in `vstd_extra::external::x86`, plus 3 upstreamable `core`/`alloc` specs marked `TODO` (`Box::leak` and two layout axioms).\n- Two x86-64 platform specs in `ostd::specs::arch::x86` (canonical slice pointer under 4-level paging; boot-invariant `CS::get_reg`, following `ostd/specs/context.rs`).\n- Two in-crate trusted items: `#[verus_verify(external_body)]` on `StaticStorage::as_ptr` and `#[verifier::assume_unsupported_attributes]` on `LOCAL_TSS` (to preserve `#[link_section]`; rejected under `--no-cheating`).\n- No `assume()`, `admit()`, `rlimit`, or `allowed_to_panic_if(true)` is introduced.\n\n## Out of Scope\n\n- Unverified callers of `gdt::init()` and remaining `arch::x86::trap::{idt, syscall}`.\n- Remaining `ostd::cpu::local` (`DynamicStorage`, `CpuLocalCell`, `AnyStorage` impls, `get_base`).\n- `no_unwind` on `gdt::init()` (blocked by `vstd` `Box::new` / `PartialEq::eq` and `debug_assert!` in `StaticStorage::as_ptr`).\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nVerify `ostd/src/arch/x86/trap/gdt.rs` (**+47 Verified Exec LoC**, 4 Spec, 14 Proof, 38 Unaccounted; `cargo dv count` reports 0 Trusted, while `LOCAL_TSS` carries `#[verifier::assume_unsupported_attributes]`) with zero executable edits in `gdt.rs`, backed by minimal `ostd::cpu::local` (`StaticCpuLocal` / `StaticStorage` / `AnyStorage`) enablement, OSTD x86-64 specs in `ostd::specs::arch::x86`, and centralized external/layout specs in `vstd_extra::external::{x86, smart_ptr}` and `vstd_extra::layout`.\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `vstd_extra::external::x86` | `#[cfg(target_arch = \"x86_64\")]` `x86_64 0.15.5` type/trait proxies (`ExVirtAddr`, `ExPrivilegeLevel`, `ExSegmentSelector`, `ExDescriptor`, `ExDescriptorTablePointer`, `ExTaskStateSegment`, `ExCS`, `ExStar`, `ExSegment`), compiler-checked `global layout TaskStateSegment is size == 0x68, align == 4` + broadcast `lemma_tss_layout`, spec models (`X86_CANONICAL_{LOWER_END,UPPER_START}`, `is_canonical_vaddr`, `virt_addr_as_u64`, `privilege_level_bits`, `segment_selector_{new,index}_spec`), `assume_specification`s (`VirtAddr::new`, `SegmentSelector::{new, index, eq}`, `TaskStateSegment::new`, `Descriptor::tss_segment_unchecked`, `lgdt`, `load_tss`, `Star::write_raw`), and broadcast `lemma_segment_selector_new`. |\n| `vstd_extra::external::smart_ptr` | `assume_specification` for `alloc::boxed::Box::<T, A>::leak` ensuring `&*r == &*b`, `opens_invariants none`, `no_unwind` (marked `TODO` to upstream to `vstd`). |\n| `vstd_extra::layout` | Generic `axiom_size_of_val_sized<V: Sized>` (`spec_size_of_val(val) == size_of::<V>()`) and `axiom_layout_of_array<T, const N: usize>` (`size_of::<[T; N]>() == N * size_of::<T>()`, `align_of::<[T; N]>() == align_of::<T>()`) (marked `TODO` to upstream to `vstd::layout`). |\n| `ostd::specs::arch::x86` | `axiom_slice_as_ptr_canonical<T>` (4-level paging 48-bit canonical address for non-empty, non-ZST `&[T]`), `current_cs_reg()`, and `assume_specification[ <CS as Segment>::get_reg ]` returning `current_cs_reg()`. |\n| `ostd::cpu::local` | `AnyStorage<T>` and `CpuLocal<T, S>` wrapped in a single `verus!` block without unverified trait contracts; `StaticStorage::as_ptr` (`external_body`) and `CpuLocal::as_ptr` require `vstd::layout::align_of::<T>() <= PAGE_SIZE` and ensure non-null + `align_of::<T>()` alignment. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `KCODE64`, `KDATA`, `KCODE32`, `UCODE64`, `UDATA` | `ostd::arch::x86::trap::gdt` | Verified `#[verus_verify]` descriptor constants. |\n| `KERNEL_CS`, `KERNEL_SS`, `USER_CS`, `USER_SS` | `ostd::arch::x86::trap::gdt` | Verified `exec const` items via `#[verus_spec(ensures CONST == SegmentSelector::new(...))]` (plain `#[verus_verify]` and `returns` fail Verus mode-checking because `SegmentSelector::new` is `exec`). |\n| `LOCAL_TSS` | `ostd::arch::x86::trap::gdt` | Verified static initializer (`TaskStateSegment::new()` + `CpuLocal::__new_static(tss)`) with `#[verifier::assume_unsupported_attributes]` preserving `#[link_section = \".cpu_local_tss\"]`. |\n| `gdt::init()` | `ostd::arch::x86::trap::gdt` | Under `requires current_cs_reg() == SegmentSelector::new(1, PrivilegeLevel::Ring0)`, proves `align_of::<TaskStateSegment>() <= PAGE_SIZE`, unreachable `_` arm in TSS match, `CS::get_reg() == KERNEL_CS`, all 10 GDT selector index `assert_eq!` checks in bounds (`< 8`), `gdtr.limit == 63` (`limit % 8 == 7`), canonical `VirtAddr::new`, and parameter preconditions for `lgdt`, `load_tss`, and `Star::write_raw`. |\n| `CpuLocal::__new_static`, `CpuLocal::as_ptr` | `ostd::cpu::local::static_cpu_local` | Verified static constructor and pointer wrapper over `StaticStorage::as_ptr` preserving non-null and `align_of::<T>()` alignment under `vstd::layout::align_of::<T>() <= PAGE_SIZE`. |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, executable edits are minimal and preserve original Rust provenance:\n\n- **Zero executable edits in `ostd/src/arch/x86/trap/gdt.rs`**: Preserves original `Box::new`, `Box::leak`, `core::mem::size_of_val`, assertions, and `#[link_section = \".cpu_local_tss\"]`.\n- **Moved `!Send` impl for `rustc 1.100.0` `E0366` (`ostd/src/cpu/local/{mod,static_cpu_local}.rs`)**: Enabling `ostd::cpu::local` triggers `error[E0366]: !Send impls cannot be specialized` on `impl<T: 'static> !Send for CpuLocal<T, StaticStorage<T>> {}`. Replacing it with `impl<T: 'static> !Send for StaticStorage<T> {}` keeps `StaticCpuLocal<T>: !Send` via auto-trait propagation, with the original kept in `Origin Rust:` at `ostd/src/cpu/local/mod.rs`.\n- **Minimal cross-architecture module enablement (`ostd/src/cpu/mod.rs`, `ostd/src/arch/{x86,riscv,loongarch}/...`)**: Exposes only the `cpu::local` and `arch::x86::trap::gdt` items required across `x86_64`, `riscv64`, and `loongarch64`.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `assume()`, `admit()`, `rlimit`, or `allowed_to_panic_if(true)`.\n  - **`vstd_extra::external::x86`**: Audited against `x86_64 0.15.5` (`src/addr.rs`, `src/structures/{gdt,tss}.rs`, `src/registers/{segmentation,model_specific}.rs`, `src/instructions/tables.rs`). `VirtAddr::new` and `Descriptor::tss_segment_unchecked` use conditional `no_unwind when ...`; `tss_segment_unchecked` documents that live-memory dereference of `(*tss).iomap_base` and `'static` lifetime remain unmodeled unsafe caller obligations; `lgdt`, `load_tss`, and `Star::write_raw` encode Intel SDM canonical-base / descriptor-limit / GDT-selector / `SYSCALL`-`SYSRET` layout obligations; `<SegmentSelector as PartialEq>::eq` omits `opens_invariants` / `no_unwind` because Verus forbids declaring them on trait method impls.\n  - **Upstreamable `core`/`alloc` specs** (all carry `TODO` to upstream to `vstd` and remove locally): `Box::<T, A>::leak` (`vstd_extra::external::smart_ptr`), `axiom_size_of_val_sized<V: Sized>` and `axiom_layout_of_array<T, const N: usize>` (`vstd_extra::layout`).\n  - **OSTD x86-64 platform specs (`ostd/specs/arch/x86/mod.rs`)**: `axiom_slice_as_ptr_canonical<T>` (requires `s@.len() > 0 && size_of::<T>() > 0` under 4-level paging) and `current_cs_reg()` / `<CS as Segment>::get_reg` (depends on OSTD's boot-invariant `current_cs_reg()` model, therefore placed in `ostd/specs` rather than `vstd_extra`, mirroring `ostd/specs/context.rs`).\n  - **In-crate trusted items**: `StaticStorage::as_ptr` (`#[verus_verify(external_body)]`, guarded by `vstd::layout::align_of::<T>() <= PAGE_SIZE` matching AP `PAGE_SIZE`-aligned per-CPU storage) and `#[verifier::assume_unsupported_attributes]` on `LOCAL_TSS` (required because Verus rejects `#[link_section]` and unverified `LOCAL_TSS` cannot be referenced from verified `gdt::init()`; rejected under `--no-cheating`).\n- **Deferred / out of scope**:\n  - Verified boot callers of `gdt::init()` (`trap::init_on_cpu`, `arch::x86::init_on_bsp`) and remaining `trap::{idt, syscall}` modules.\n  - Remaining `ostd::cpu::local` (`DynamicStorage`, `CpuLocalCell`, `AnyStorage` trait impls) and arch `cpu::local::get_base()`.\n  - `no_unwind` on `gdt::init()` (blocked by `vstd` `Box::new` / `PartialEq::eq` and `debug_assert!` in `StaticStorage::as_ptr`).\n\n</details>\n",
+      "url": "https://github.com/asterinas/vostd/pull/984",
+      "updatedAt": "2026-11-26T18:28:29Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "mergeCommit": null,
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "CLEAN",
+      "ci": "成功"
     }
-  ]
+  ],
+  "candidates": []
 };

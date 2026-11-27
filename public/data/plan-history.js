@@ -1583,5 +1583,430 @@ window.PLAN_HISTORY = [
       }
     ],
     "prs": "主线从 2aa424ec0 到 fece47de1，合入 #952、#972、#973、#974；#977、#976 分别跟踪本核刷新接口和非跟踪叶映射。#969 的预期序列现由调用者提供，#970 和 #942 均已关闭。#948 的 EFI 解码改为可失败接口，#959 收紧 XSAVE 见证，其他活动分支按固定 head 复核。"
+  },
+  {
+    "revision": 14,
+    "date": "2026-11-27",
+    "reason": "将后续工作拆为可单独提交与验收的函数和文件，按主线及开放 PR 更新三条路线的调用合同。",
+    "splits": [
+      {
+        "from": "SERIAL_QEMU_CMOS",
+        "to": ["SERIAL_QEMU_CMOS", "COM1_SEND", "QEMU_EXIT", "ACC_SCOPE"],
+        "why": "原 ID 保留串口预留与初始化。发送由控制台消费，QEMU 出口由 panic::abort 消费。CMOS 的 FADT 字段和敏感端口保留在总验收清单，待出现 RTC 调用者再建节点。"
+      },
+      {
+        "from": "HPET",
+        "to": ["HPET", "HPET_REGS"],
+        "why": "比较器数量和偏移可在给定设备窗口下验证；固件提供的实际窗口、IRQ 和 Once 发布由 init 集成。"
+      },
+      {
+        "from": "GDT",
+        "to": ["GDT", "TSS_LOCAL"],
+        "why": "CPU-local 指针的归属与链接位置可以从 gdt::init 的硬件加载合同中单独验收。"
+      },
+      {
+        "from": "BZ_OUT",
+        "to": ["BZ_OUT", "BZ_EFI_OUT"],
+        "why": "make_bzimage 先写出两种模式共用的文件，只有 Efi64 才检查 .rela 并覆写 PE 头。选定 Legacy32 的产物可以直接核对第一份文件。"
+      },
+      {
+        "from": "BZ_SETUP",
+        "to": ["BZ_SETUP", "BZ_LEGACY_ALLOC", "BZ_EFI_ALLOC", "BZ_EFI_E820", "BZ_EFI_HANDOFF"],
+        "why": "两个启动入口使用不同的分配器和 BootParams 来源。分配文件与 EFI E820 表各有真实消费者，Legacy32 与 EFI 分别用本模式的产物核对入口。"
+      },
+      {
+        "from": "MM_BOOT",
+        "to": ["MM_BOOT", "MM_BOOT_FRAMES", "MM_BOOT_ROOT", "MM_BOOT_ACTIVATE"],
+        "why": "allocator::init 交接可分配物理页，boot_all_aps 读取启动根页，内核缺页读取已发布页表，ap_early_entry 逐核切换。四处可分别验证。"
+      },
+      {
+        "from": "LOC_DYNAMIC",
+        "to": ["LOC_DYNAMIC", "LOC_DYNAMIC_ADDR", "LOC_DYNAMIC_DROP"],
+        "why": "AnyStorage 指针供逐核构造、远端读取和析构共用；OSDK 分配与依次尝试不同 chunk 回收各有独立调用者。"
+      },
+      {
+        "from": "SYNC_WAIT",
+        "to": ["SYNC_WAIT", "SYNC_WAKER", "SYNC_QUEUE"],
+        "why": "Waker 交付单个任务的唤醒通知。队列计数和唤醒由解锁路径消费，wait_until 的条件复查由取锁路径消费。"
+      },
+      {
+        "from": "HEAP_GLOBAL",
+        "to": ["HEAP_GLOBAL", "HEAP_SLAB", "HEAP_LARGE"],
+        "why": "AllocDispatch 消费用户分配器的布局合同；OSDK 的 slab cache 消费页内小槽，超出大小类别的分配直接消费 HeapSlot 的 Segment 往返。"
+      },
+      {
+        "from": "PT_X86",
+        "to": ["PT_X86", "PT_LOCAL_FLUSH", "PT_FLUSH_NONGLOBAL", "PT_FLUSH_GLOBAL"],
+        "why": "栈仅消费地址范围失效，All 请求消费非全局刷新，引导激活另需含全局项的刷新和 CR3 根页读写。"
+      }
+    ],
+    "added": [
+      {
+        "id": "EARLY_INFO_INIT",
+        "why": "#981 同时给 MMIO 和 ACPI 入口增加见证参数，缺少从真实 EARLY_INFO 发布点取得该见证的证明。"
+      }
+    ],
+    "edgesAdded": [
+      {
+        "a": "PT_LOCAL_FLUSH",
+        "b": "TLB_SHOOT",
+        "why": "Address/Range 请求在目标核执行时须证明指定页已失效，再交付完成确认。"
+      },
+      {
+        "a": "PT_LOCAL_FLUSH",
+        "b": "TASK_STACK_ALLOC",
+        "why": "flush_tlb 明确调用 tlb_flush_addr_range(&self.kvirt_area.range())；刷新后标记当前 CPU coherent"
+      },
+      {
+        "a": "BZ_PE",
+        "b": "BZ_EFI_OUT",
+        "why": "Efi64 写回检查只消费 PE 头长度 368 <= 0x1f1，保证 Linux boot header 未被覆盖。"
+      },
+      {
+        "a": "PT_LOCAL_FLUSH",
+        "b": "DMA_MAP",
+        "why": "protect_flush_tlb 的现存注释实现逐次调用 tlb_flush_addr(range.start)，只确认本地失效接口"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "COM1_SEND",
+        "why": "line_sts 与 SerialPort::send 分别消费状态端口的字节读和数据端口的字节写。"
+      },
+      {
+        "a": "COM1_SEND",
+        "b": "ACC_SCOPE",
+        "why": "核对控制台逐字节调用、退格写入序列和硬件轮询条件。"
+      },
+      {
+        "a": "QEMU_EXIT",
+        "b": "ACC_SCOPE",
+        "why": "记录启用 ISA debug exit 的选定平台如何报告 panic 退出，以及未配置设备时的行为。"
+      },
+      {
+        "a": "HPET_REGS",
+        "b": "HPET",
+        "why": "Hpet::new 在实际映射中消费比较器数量、各寄存器所需长度与对齐，返回持有这些寄存器的实例。"
+      },
+      {
+        "a": "MM_BOOT",
+        "b": "HPET",
+        "why": "paddr_to_vaddr 所得地址必须覆盖完整寄存器区，并在 HPET_INSTANCE 持有引用期间保持有效。"
+      },
+      {
+        "a": "EARLY_INFO_INIT",
+        "b": "IO_WIN",
+        "why": "窗口构造读取与引导入口发布的 memory_regions 相同的序列，#981 要求借用 EarlyBootInfoInit。"
+      },
+      {
+        "a": "EARLY_INFO_INIT",
+        "b": "ACPI_TABLES",
+        "why": "get_acpi_tables 按同一已发布 EarlyBootInfo 的 acpi_arg 选择固件路径，需要 EarlyBootInfoInit。"
+      },
+      {
+        "a": "LOC_ID",
+        "b": "TSS_LOCAL",
+        "why": "从当前核 GS 基址定位本核永久存储，并在取得和使用 TSS 指针期间维持 CPU 身份。"
+      },
+      {
+        "a": "TSS_LOCAL",
+        "b": "GDT",
+        "why": "构造 TSS 描述符及 load_tss 需要当前核的、存活到使用结束的 TSS。"
+      },
+      {
+        "a": "BZ_OUT",
+        "b": "BZ_EFI_OUT",
+        "why": "Efi64 在完整写出且已对齐的 setup 上执行重定位检查并覆盖文件前缀。"
+      },
+      {
+        "a": "BZ_RELOC",
+        "b": "BZ_EFI_OUT",
+        "why": "重定位检查正常返回后才能执行 PE 覆写；拒绝时要用检查前已写出的 setup 界定文件内容。"
+      },
+      {
+        "a": "BZ_EFI_OUT",
+        "b": "ACC_SCOPE",
+        "why": "汇总 Efi64 的 PE 覆写、保留的 Linux boot header 及输出文件状态。"
+      },
+      {
+        "a": "BZ_LEGACY_ALLOC",
+        "b": "BZ_SETUP",
+        "why": "从 init 保留的 setup、BootParams 等区间及每段取得的独占 RAM 区间，建立 Legacy32 装载前置与跳转时的物理归属。"
+      },
+      {
+        "a": "BZ_EFI_ALLOC",
+        "b": "BZ_EFI_HANDOFF",
+        "why": "EFI 的 load_segment 消费按指定物理地址分配的切片；入口交接须保有各段内容及互不覆盖的分配记录。"
+      },
+      {
+        "a": "BZ_DECODE",
+        "b": "BZ_EFI_HANDOFF",
+        "why": "efi_phase_boot 需要从实际嵌入的 payload 得到本次内核 ELF，再交给 load_elf。"
+      },
+      {
+        "a": "BZ_LOAD",
+        "b": "BZ_EFI_HANDOFF",
+        "why": "EFI 入口需要 load_elf 的逐段初始化快照与相应物理页，确定最终可执行的入口字节。"
+      },
+      {
+        "a": "BZ_EFI_E820",
+        "b": "BZ_EFI_HANDOFF",
+        "why": "在转交 BootParams 给内核前，使用 efi_phase_runtime 写入的有效 E820 前缀和实际项数。"
+      },
+      {
+        "a": "BZ_EFI_HANDOFF",
+        "b": "ACC_SCOPE",
+        "why": "汇总 EFI 的解码、实际物理页、E820 和固定入口交接证据。"
+      },
+      {
+        "a": "LOC_EARLY_GLOBAL",
+        "b": "MM_BOOT_FRAMES",
+        "why": "全局 early allocator 已分配的两个区间及一次性取走权限"
+      },
+      {
+        "a": "MM_BOOT_FRAMES",
+        "b": "MM_BOOT",
+        "why": "构造内核根及其子表时，页表节点取得来自全局可用页、与 early 分配分离的 frame"
+      },
+      {
+        "a": "PT_X86",
+        "b": "MM_BOOT_ROOT",
+        "why": "首次 from_current_pt 读到当前核的启动根物理地址及对齐条件"
+      },
+      {
+        "a": "MM_BOOT_ROOT",
+        "b": "MM_BOOT_ACTIVATE",
+        "why": "dismiss 取得同一启动页表及其固件页和自建页的记录；切换后本核不再取得该借用"
+      },
+      {
+        "a": "MM_BOOT",
+        "b": "MM_BOOT_ACTIVATE",
+        "why": "KERNEL_PAGE_TABLE.get 取得已发布可激活的同一根页"
+      },
+      {
+        "a": "PT_X86",
+        "b": "MM_BOOT_ACTIVATE",
+        "why": "first_activate_unchecked 的根页安装结果须对应当前核"
+      },
+      {
+        "a": "PT_FLUSH_GLOBAL",
+        "b": "MM_BOOT_ACTIVATE",
+        "why": "切根后 tlb_flush_all_including_global 完成本核含全局项的失效"
+      },
+      {
+        "a": "MM_BOOT_ROOT",
+        "b": "SMP_AP",
+        "why": "boot_all_aps 在启动借用期间取得 root_address 作为 bringup_all_aps 的页表实参"
+      },
+      {
+        "a": "MM_BOOT_ACTIVATE",
+        "b": "SMP_AP",
+        "why": "ap_early_entry 在本核激活内核页表并退出启动页表后才报告 online"
+      },
+      {
+        "a": "LOC_ID",
+        "b": "LOC_DYNAMIC_ADDR",
+        "why": "get_ptr_on_current 消费 guard.current_cpu 对当前核的绑定，目标索引消费 CpuId::as_usize 的范围"
+      },
+      {
+        "a": "LOC_DYNAMIC_ADDR",
+        "b": "LOC_DYNAMIC",
+        "why": "__new_dynamic 消费每个 CPU 的槽地址、对齐及可写范围"
+      },
+      {
+        "a": "LOC_DYNAMIC",
+        "b": "LOC_DYNAMIC_DROP",
+        "why": "try_dealloc 消费 alloc 交出的来源 chunk、占用位和逐核初始化所有权"
+      },
+      {
+        "a": "LOC_DYNAMIC_ADDR",
+        "b": "LOC_DYNAMIC_DROP",
+        "why": "drop_in_place 需要 get_mut_ptr_on_target 指向该核已初始化的同一槽"
+      },
+      {
+        "a": "LOC_DYNAMIC_DROP",
+        "b": "ACC_SCOPE",
+        "why": "收录动态槽从分配到逐核析构及 chunk 回收的验收记录"
+      },
+      {
+        "a": "TASK_RUNTIME",
+        "b": "SYNC_WAKER",
+        "why": "new_pair 要取得当前任务，do_wait/wake_up 消费 park_current 与 unpark_target 的任务状态合同"
+      },
+      {
+        "a": "SYNC_WAKER",
+        "b": "SYNC_QUEUE",
+        "why": "wake_one/wake_all 按 wake_up 对已通知或关闭状态的返回值决定是否继续弹出或计数"
+      },
+      {
+        "a": "SYNC_WAKER",
+        "b": "SYNC_WAIT",
+        "why": "条件循环等待同一 Waker 的通知，取消时在 close 后再检查条件"
+      },
+      {
+        "a": "SYNC_QUEUE",
+        "b": "SYNC_WAIT",
+        "why": "wait_until 把关联 Waker 入队后重查条件，消费 enqueue 的登记合同"
+      },
+      {
+        "a": "SYNC_QUEUE",
+        "b": "SYNC_API",
+        "why": "Mutex 解锁唤醒一个等待者，RwMutex 的解锁路径消费 wake_one/wake_all"
+      },
+      {
+        "a": "SA_HEAP",
+        "b": "HEAP_SLAB",
+        "why": "Slab::new/dealloc 使用 push 转移槽权限，SlabMeta::alloc 使用 pop 取得唯一空闲槽并保留其余链"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "HEAP_SLAB",
+        "why": "Slab::new 消费独占页及元数据权限，SlabMeta::on_drop 依赖其寿命"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "HEAP_LARGE",
+        "why": "大槽保存连续 Segment 的原始区间，回收时以同一元数据类型恢复所有权"
+      },
+      {
+        "a": "HEAP_SLAB",
+        "b": "ACC_SCOPE",
+        "why": "收录 slab 小槽初始化、借出、归还与释放的证据"
+      },
+      {
+        "a": "HEAP_LARGE",
+        "b": "ACC_SCOPE",
+        "why": "收录大块分配和原始 Segment 往返的证据"
+      },
+      {
+        "a": "PT_FLUSH_NONGLOBAL",
+        "b": "TLB_SHOOT",
+        "why": "All 请求升级后需要目标核刷新全部非全局项。"
+      }
+    ],
+    "edgesChanged": [
+      {
+        "a": "MM_BOOT",
+        "b": "SMP_AP",
+        "why": "AP 切到内核表后仍可通过线性映射访问已分配的启动栈"
+      },
+      {
+        "a": "BZ_OUT",
+        "b": "BZ_IMG",
+        "why": "按所选模式对照同一份已写出的对齐 setup。Legacy32 可直接比对整文件，Efi64 对照 PE 覆写区之外的字节。"
+      },
+      {
+        "a": "MM_PT",
+        "b": "MM_BOOT",
+        "why": "new_kernel_page_table 与 cursor.map 对线性、元数据及内核镜像映射的合同"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "MM_BOOT",
+        "why": "meta_pages.into_raw 交出连续元数据页，其引用和重复映射约束贯穿内核页表的存活期"
+      },
+      {
+        "a": "SYNC_WAIT",
+        "b": "SYNC_API",
+        "why": "阻塞锁从 wait_until 取得闭包成功返回的锁 guard"
+      },
+      {
+        "a": "ACPI_TABLES",
+        "b": "HPET",
+        "why": "init 调用 get_acpi_tables，再经 HpetInfo::new 取得固件报告的 HPET 基址。"
+      },
+      {
+        "a": "IO_PIO",
+        "b": "SERIAL_QEMU_CMOS",
+        "why": "静态 COM1 的七个 u8 地址和八次初始化写使用类型化的 PIO 合同；#969 合入时另建立偏移 0..=4 的限制。"
+      },
+      {
+        "a": "SA_HEAP",
+        "b": "HEAP_GLOBAL",
+        "why": "AllocDispatch 消费 HeapSlot 的指针、大小、SlotInfo 与构造合同，dealloc 按原 layout 重建槽"
+      },
+      {
+        "a": "BZ_LOAD",
+        "b": "BZ_SETUP",
+        "why": "main_legacy32 读取原始 payload，按对应的 ELF 段初始化快照核对实际装载字节。"
+      },
+      {
+        "a": "SERIAL_QEMU_CMOS",
+        "b": "ACC_SCOPE",
+        "why": "核对 COM1 端口永久保留和 UART 的初始化写入合同。"
+      },
+      {
+        "a": "BZ_SETUP",
+        "b": "ACC_SCOPE",
+        "why": "汇总 Legacy32 的 32 位指针、BootParams 和固定入口交接证据。"
+      }
+    ],
+    "edgesRemoved": [
+      {
+        "a": "PT_X86",
+        "b": "TLB_SHOOT",
+        "why": "栈仅消费地址范围失效，All 请求消费非全局刷新，引导激活另需含全局项的刷新和 CR3 根页读写。"
+      },
+      {
+        "a": "LOC_ID",
+        "b": "GDT",
+        "why": "CPU-local 指针的归属与链接位置可以从 gdt::init 的硬件加载合同中单独验收。"
+      },
+      {
+        "a": "PT_X86",
+        "b": "TASK_STACK_ALLOC",
+        "why": "栈仅消费地址范围失效，All 请求消费非全局刷新，引导激活另需含全局项的刷新和 CR3 根页读写。"
+      },
+      {
+        "a": "BZ_PE",
+        "b": "BZ_OUT",
+        "why": "make_bzimage 先写出两种模式共用的文件，只有 Efi64 才检查 .rela 并覆写 PE 头。选定 Legacy32 的产物可以直接核对第一份文件。"
+      },
+      {
+        "a": "PT_X86",
+        "b": "MM_BOOT",
+        "why": "allocator::init 交接可分配物理页，boot_all_aps 读取启动根页，内核缺页读取已发布页表，ap_early_entry 逐核切换。四处可分别验证。"
+      },
+      {
+        "a": "LOC_EARLY_GLOBAL",
+        "b": "MM_BOOT",
+        "why": "allocator::init 交接可分配物理页，boot_all_aps 读取启动根页，内核缺页读取已发布页表，ap_early_entry 逐核切换。四处可分别验证。"
+      },
+      {
+        "a": "TASK_RUNTIME",
+        "b": "SYNC_WAIT",
+        "why": "Waker 交付单个任务的唤醒通知。队列计数和唤醒由解锁路径消费，wait_until 的条件复查由取锁路径消费。"
+      },
+      {
+        "a": "ACPI_TABLES",
+        "b": "SERIAL_QEMU_CMOS",
+        "why": "原 ID 保留串口预留与初始化。发送由控制台消费，QEMU 出口由 panic::abort 消费。CMOS 的 FADT 字段和敏感端口保留在总验收清单，待出现 RTC 调用者再建节点。"
+      },
+      {
+        "a": "MM_FRAME",
+        "b": "HEAP_GLOBAL",
+        "why": "AllocDispatch 消费用户分配器的布局合同；OSDK 的 slab cache 消费页内小槽，超出大小类别的分配直接消费 HeapSlot 的 Segment 往返。"
+      },
+      {
+        "a": "PT_X86",
+        "b": "DMA_MAP",
+        "why": "栈仅消费地址范围失效，All 请求消费非全局刷新，引导激活另需含全局项的刷新和 CR3 根页读写。"
+      },
+      {
+        "a": "LOC_DYNAMIC",
+        "b": "ACC_SCOPE",
+        "why": "AnyStorage 指针供逐核构造、远端读取和析构共用；OSDK 分配与依次尝试不同 chunk 回收各有独立调用者。"
+      },
+      {
+        "a": "BZ_DECODE",
+        "b": "ACC_SCOPE",
+        "why": "按本轮复核的消费者重接依赖。"
+      },
+      {
+        "a": "BZ_RELOC",
+        "b": "ACC_SCOPE",
+        "why": "按本轮复核的消费者重接依赖。"
+      }
+    ],
+    "prs": "主线 fece47de1 至 7cd0bcdcd 合入 #978、#980、#982 和 #979。纳入 #981 的 MMIO 与 ACPI、#983 的 TSC 与随机数、#984 的 GDT；复核 #883 的 DMA 地址、#923 的堆槽、#935 的队列容量、#976 的叶范围、#977 的本核刷新以及 #948、#955、#956 的调用前置。"
   }
 ];
