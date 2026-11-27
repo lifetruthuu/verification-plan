@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T06:07:14.668Z",
+  "generatedAt": "2026-11-27T06:10:42.622Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -1397,7 +1397,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Prove ordered and complete CpuSet iteration",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/985",
-      "updatedAt": "2026-11-27T05:03:29Z",
+      "updatedAt": "2026-11-27T06:10:15Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
