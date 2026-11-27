@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T08:44:32.075Z",
+  "generatedAt": "2026-11-27T21:25:21.737Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "失败"
     },
     {
@@ -295,18 +295,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 883,
       "kind": "open",
       "draft": false,
-      "head": "2ab9e1ce0a0e2382dcedcdf60ff5e22586f7edaf",
+      "head": "0e51dc9739544aae8fb75467e460c9ea26c335e6",
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-27T03:54:00Z",
+      "updatedAt": "2026-11-27T09:23:48Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -743,38 +743,38 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 934,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
-      "head": "1ec2ed79bc8b21b5415d4988293515938d6d97a6",
+      "head": "7d9aa64852800a66e80238d7e878f3e5d6155722",
       "title": "prove: verify seven frame ktests",
       "body": "## Summary\n\nBring seven frame-management test functions into Verus verification. Cover allocation, cloning, release, borrowing, raw-pointer round trips, single-frame segment conversion, and linked-list push/pop operations.\n\nVerification covers successful allocation paths. Metadata-content assertions are retained for the migrated tests, while unsupported tests remain commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Frame allocation and reference management | `frame_allocation`, `frame_clone`, `frame_drop` |\n| Borrowing and raw-pointer permissions | `frame_ref_preserves_refcnt`, `frame_impls_non_null_ptr` |\n| Frame-to-segment conversion and iteration | `frame_to_segment` |\n| Linked-list insertion, traversal, and removal | `linked_list_push_pop` |\n\nThe frame tests check metadata values, reference counts, sizes, and addresses where supported. The raw-pointer test preserves the original `into_raw` → `from_raw` → `raw_as_ref` order, obtaining a borrowed pointer and reading permission from the restored frame before calling `raw_as_ref`.\n\nThe segment test proves that conversion preserves the frame's address, produces a page-sized segment, and yields the original metadata value during iteration.\n\nThe linked-list test retains all assertions on its successful allocation path, including cursor traversal in the order `2 → 1 → 3`, the terminal cursor state, pop results, and list sizes.\n\n## 2. Metadata representations\n\nAdd separate concrete representations for typed and untyped metadata carrying a `u32` value. Share their structure and representation implementations through `define_u32_frame_meta!`, while keeping their enum variants and typed/untyped trait behavior distinct.\n\nThe tests reuse these concrete types through `MockFrameMeta` and `MockUFrameMeta` aliases. The metadata model does not depend on the test module, and the original `Untyped` variant remains unchanged.\n\nExtend `MetaSlotSmall` to represent the linked-list test metadata. Use compact model layouts to retain the existing 64-byte size and 8-byte alignment checks for `MetaSlot`.\n\n## 3. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `Frame::borrow` | Specify that borrowing preserves the metadata-slot permission, supporting reference-count checks through the borrowed handle. |\n| `UniqueFrame::try_from_shared` | Expose the successful conversion's permissions, reference-count transition, and preservation of unrelated slots. |\n| Linked-list queries and cursor movement | Borrow owner permissions rather than consuming them, so callers can continue using the list or cursor. |\n| Linked-list insertion and removal | Specify metadata-value ordering and preservation of unrelated region entries. |\n| `CursorMut::current_meta` | Relate the returned metadata to the current element and preserve the list/region invariants after the mutable borrow ends. |\n| Frame-to-segment conversion | Add a proved bridge exposing the converted segment's invariant, address, size, and singleton iteration sequence without opening its internal representation. |\n| Segment iteration | Expose the finite iteration metric and add the test's metadata/permission invariant. |",
       "url": "https://github.com/asterinas/vostd/pull/934",
-      "updatedAt": "2026-11-27T08:35:39Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
-      "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
-      "review": "需修改",
-      "gate": "BLOCKED",
-      "ci": "进行中"
+      "updatedAt": "2026-11-27T09:29:59Z",
+      "mergedAt": "2026-11-27T09:29:58Z",
+      "closedAt": "2026-11-27T09:29:58Z",
+      "mergeCommit": "51b4459029c8f9dfa6e86fff26d13c49bfc29b51",
+      "reviewDecision": null,
+      "ciState": "SUCCESS",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
+      "ci": "成功"
     },
     {
       "n": 935,
       "kind": "open",
       "draft": false,
-      "head": "cb140e2307ba5908205d905ba5c51effcd0484c5",
+      "head": "d9109cfeeb7e5de8d865be07ef059b82f90e3c37",
       "title": "Add initial specs for TLB",
       "body": "As the title shows.",
       "url": "https://github.com/asterinas/vostd/pull/935",
-      "updatedAt": "2026-11-27T06:51:16Z",
+      "updatedAt": "2026-11-27T19:24:43Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -846,7 +846,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -925,19 +925,19 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "a9e184cc9cc3283e8465687771b0816d5865c842",
+      "head": "99b2cd813368e6d243b6c977d8216d972855af87",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-27T08:39:16Z",
+      "updatedAt": "2026-11-27T16:22:00Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
-      "ciState": "PENDING",
+      "ciState": "SUCCESS",
       "review": "需修改",
       "gate": "BLOCKED",
-      "ci": "进行中"
+      "ci": "成功"
     },
     {
       "n": 951,
@@ -1008,7 +1008,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -1080,7 +1080,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -1278,7 +1278,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -1355,16 +1355,16 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 983,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
-      "head": "75ec8b0531059331caf5090ab3ab6254aa5ef4af",
+      "head": "de30849f312e03db1f5b25c1a18b45c9edd4b31c",
       "title": "prove: verify x86 TSC and RDRAND hardware accessors",
       "body": "## Summary\n\nVerify x86 TSC and RDRAND hardware accessors in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc`:\n\n- `tsc_freq`: unwind-free frequency read from the verified `TSC_FREQ` (`AtomicU64`).\n- `read_tsc`: invariant-preserving, unwind-free timestamp counter read via `_rdtsc`.\n- `read_random`: hardware RNG read via `_rdrand64_step` under `cpu_feature_model().supports_rdrand`.\n\nAlso extend `CpuFeatureModel` / `cpuid_consistent` in `ostd::specs::context` with `supports_rdrand` (`CPUID.01H:ECX[bit 30]`).\n\n## Executable Code Changes\n\nNone — only uncommented existing `AtomicU64` / `Ordering` imports, `kernel::tsc::TSC_FREQ`, and `arch::x86::{tsc_freq, read_tsc, read_random}` in place without altering their bodies, types, or visibility.\n\n## Trusted Boundaries\n\nAudited against Rust 1.100.0 `core_arch` and the Intel SDM:\n\n- `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`): `assume_specification` (`opens_invariants none`, `no_unwind`), with a `TODO` to upstream to Verus `vstd`.\n- `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`): `assume_specification` guarded by `cpu_feature_model().supports_rdrand` (placed in `ostd` due to the `cpu_feature_model()` dependency).\n- No `#[verifier::external_body]`, `assume()`, or `admit()` is introduced.\n\n## Out of Scope\n\n- Runtime `RDRAND` CPUID guard in `read_random()` (tracks Asterinas v0.16.0; runtime checks belong to a future upstream sync).\n- `no_unwind` / `opens_invariants none` on `read_random()` and `opens_invariants none` on `tsc_freq()` (blocked by vendored `vstd::std_specs::{iter, atomic}`).\n- Remaining unverified items in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc` (e.g., `init_tsc_freq`).\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nVerify `tsc_freq`, `read_tsc`, and `read_random` in `ostd::arch::x86` (`Exec`: `16 -> 33`, **+17 Verified Exec LoC**, **0 Trusted Exec LoC**) and enable `TSC_FREQ` in `ostd::arch::x86::kernel::tsc` (`Exec`: `25 -> 25`, **0 Trusted Exec LoC**), backed by `CpuFeatureModel::supports_rdrand` and 2 new `assume_specification` entries (`_rdrand64_step` in `ostd/specs/context.rs` and `_rdtsc` in `verified_libs/vstd_extra/src/external/x86.rs`).\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `CpuFeatureModel::supports_rdrand` (`ostd::specs::context`) | Models `CPUID.01H:ECX[bit 30]` (`max_basic_leaf >= 1 && features.ecx & (1u32 << 30) != 0`) across `CpuFeatureModel`, `from_cpuid`, and `cpuid_consistent` leaf 1 so callers can discharge `supports_rdrand` via `__cpuid(0)` + `__cpuid_count(1, 0)`. |\n| `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`) | `assume_specification` requiring `cpu_feature_model().supports_rdrand`, ensuring `flag == 0 || flag == 1` and `flag == 0 ==> *final(val) == 0u64`, with `opens_invariants none` and `no_unwind when cpu_feature_model().supports_rdrand`. |\n| `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`) | `assume_specification` returning an unconstrained `u64` with `opens_invariants none` and `no_unwind`, marked with `TODO` to upstream to Verus `vstd`. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `TSC_FREQ` | `ostd::arch::x86::kernel::tsc` | Marked `#[verus_verify]` (`AtomicU64::new(0)`), reusing `vstd::std_specs::atomic`. |\n| `tsc_freq` | `ostd::arch::x86` | `#[verus_spec(no_unwind)]`; loads `kernel::tsc::TSC_FREQ` with `Ordering::Acquire`. |\n| `read_tsc` | `ostd::arch::x86` | `#[verus_spec(opens_invariants none no_unwind)]`; delegates to `core::arch::x86_64::_rdtsc`. |\n| `read_random` | `ostd::arch::x86` | `#[verus_spec(requires cpu_feature_model().supports_rdrand)]` with loop invariant `cpu_feature_model().supports_rdrand` across `for _ in 0..RETRY_LIMIT` (10 retries). |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, no executable code was rewritten:\n\n- **`ostd/src/arch/x86/kernel/tsc.rs`**: Only uncommented `AtomicU64` in `use core::sync::atomic` and `pub(in crate::arch) static TSC_FREQ: AtomicU64 = AtomicU64::new(0);` with `#[verus_verify]`.\n- **`ostd/src/arch/x86/mod.rs`**: Only uncommented `use core::sync::atomic::Ordering;` and `tsc_freq`, `read_tsc`, `read_random`.\n  - Preserved `for _ in 0..RETRY_LIMIT` verbatim rather than rewriting to `while` or adding `external_body`, accepting the omission of `no_unwind` / `opens_invariants none` until `vstd::std_specs::iter` provides them.\n  - Preserved v0.16.0 `read_random()` without injecting a runtime CPUID check, capturing the hardware requirement in `requires cpu_feature_model().supports_rdrand` instead.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `#[verifier::external_body]`, `assume()`, or `admit()`.\n  - `vstd_extra::external::x86` (`core::arch::x86_64::_rdtsc`): `RDTSC` is a baseline x86-64 instruction (`core_arch/src/x86/rdtsc.rs` carries no `#[target_feature]`), executes without unwinding, and returns `u64`. Carries a `TODO` note to upstream to Verus `vstd`.\n  - `ostd::specs::context` (`core::arch::x86_64::_rdrand64_step`): `core_arch/src/x86_64/rdrand.rs` requires `#[target_feature(enable = \"rdrand\")]`, which is absent on `x86_64-unknown-none`. Requiring `cpu_feature_model().supports_rdrand` prevents `#UD`/UB on CPUs without `RDRAND`; postconditions match Rust 1.100.0 `core_arch` and Intel SDM Vol. 2B. Placed in `ostd/specs/context.rs` alongside `__cpuid` / `__cpuid_count` because it depends on `cpu_feature_model()`.\n- **Deferred / out of scope**:\n  - Upstream Asterinas v0.19+ runtime `RDRAND` feature guard in `read_random()`.\n  - Adding `no_unwind` / `opens_invariants none` to `vstd::std_specs::iter` (`Range` / `VerusForLoopWrapper`) and `opens_invariants none` to `vstd::std_specs::atomic::AtomicU64::load`.\n  - Verifying `kernel::tsc::init_tsc_freq` and the remaining unverified functions in `ostd/src/arch/x86/mod.rs`.\n\n</details>\n",
       "url": "https://github.com/asterinas/vostd/pull/983",
-      "updatedAt": "2026-11-26T17:22:31Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
+      "updatedAt": "2026-11-27T17:05:11Z",
+      "mergedAt": "2026-11-27T17:05:11Z",
+      "closedAt": "2026-11-27T17:05:11Z",
+      "mergeCommit": "1ee2aeeeb5a72e47442e50dbefeaf33b1f46b9d9",
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
@@ -1386,7 +1386,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -1408,5 +1408,20 @@ window.PLAN_PR_SNAPSHOT = {
       "ci": "成功"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 986,
+      "title": "prove: verify x86 I/O APIC register access and redirection entry masking",
+      "url": "https://github.com/asterinas/vostd/pull/986",
+      "head": "a56216e6b977ec7a1e682876ee3328cc897883bb",
+      "updatedAt": "2026-11-27T10:51:16Z"
+    },
+    {
+      "n": 965,
+      "title": "Refine review skill structural checks and evidence handling",
+      "url": "https://github.com/asterinas/vostd/pull/965",
+      "head": "43ab2407c1b251fae3aebab59baae7d1898bad61",
+      "updatedAt": "2026-11-27T09:23:42Z"
+    }
+  ]
 };
