@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T03:17:04.223Z",
+  "generatedAt": "2026-11-27T04:43:24.165Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "失败"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -299,7 +299,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "fix: prove `DmaStreamSlice::sync` and `daddr`",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/883",
-      "updatedAt": "2026-11-26T10:36:29Z",
+      "updatedAt": "2026-11-27T03:54:00Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -331,18 +331,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 887,
       "kind": "open",
       "draft": false,
-      "head": "d41697db1dbb660c3c0dd86bbaa08362d42d11a9",
+      "head": "cc4815f33a2df1ff5adbaa2f5cb6d3b873dd5d5b",
       "title": "prove x86 context data exceptions",
       "body": "## Summary\r\n\r\nEnable the x86 user-context data path and verify that register, pointer, TLS, and exception updates change only the requested field.\r\n\r\n- `UserContext` getters and setters, `take_exception`, and the `UserContextApi` instruction-pointer, stack-pointer, and trap-metadata operations preserve every other saved register, the trap number, the error code, and the pending exception.\r\n- `CpuException::type_` covers every variant. `is_cpu_exception` accepts vectors 0 through 31. `CpuExceptionType::is_fault_or_trap` classifies fault and trap variants.\r\n- `activate_tls_pointer` stays `external_body`: it is the FSBASE write, and this change supplies no hardware-state postcondition.\r\n- Exception construction, user-mode execution, FPU save/restore, trap dispatch, and `UserMode` stay out until their hardware and scheduling contracts exist.",
       "url": "https://github.com/asterinas/vostd/pull/887",
-      "updatedAt": "2026-11-26T08:19:12Z",
+      "updatedAt": "2026-11-27T03:21:51Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -745,29 +745,29 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 934,
       "kind": "open",
       "draft": false,
-      "head": "e861fc864cdfbc6d3fad32361498055c010207c2",
+      "head": "dfbbd017f145704de2246cebef8702c6c8338671",
       "title": "prove: verify seven frame ktests",
       "body": "## Summary\n\nBring seven frame-management test functions into Verus verification. Cover allocation, cloning, release, borrowing, raw-pointer round trips, single-frame segment conversion, and linked-list push/pop operations.\n\nVerification covers successful allocation paths. Metadata-content assertions are retained for the migrated tests, while unsupported tests remain commented out.\n\n## 1. Additional test coverage\n\n| Area | Newly covered test functions |\n| --- | --- |\n| Frame allocation and reference management | `frame_allocation`, `frame_clone`, `frame_drop` |\n| Borrowing and raw-pointer permissions | `frame_ref_preserves_refcnt`, `frame_impls_non_null_ptr` |\n| Frame-to-segment conversion and iteration | `frame_to_segment` |\n| Linked-list insertion, traversal, and removal | `linked_list_push_pop` |\n\nThe frame tests check metadata values, reference counts, sizes, and addresses where supported. The raw-pointer test preserves the original `into_raw` → `from_raw` → `raw_as_ref` order, obtaining a borrowed pointer and reading permission from the restored frame before calling `raw_as_ref`.\n\nThe segment test proves that conversion preserves the frame's address, produces a page-sized segment, and yields the original metadata value during iteration.\n\nThe linked-list test retains all assertions on its successful allocation path, including cursor traversal in the order `2 → 1 → 3`, the terminal cursor state, pop results, and list sizes.\n\n## 2. Metadata representations\n\nAdd separate concrete representations for typed and untyped metadata carrying a `u32` value. Share their structure and representation implementations through `define_u32_frame_meta!`, while keeping their enum variants and typed/untyped trait behavior distinct.\n\nThe tests reuse these concrete types through `MockFrameMeta` and `MockUFrameMeta` aliases. The metadata model does not depend on the test module, and the original `Untyped` variant remains unchanged.\n\nExtend `MetaSlotSmall` to represent the linked-list test metadata. Use compact model layouts to retain the existing 64-byte size and 8-byte alignment checks for `MetaSlot`.\n\n## 3. Specifications supporting the tests\n\n| API / component | Addition and purpose |\n| --- | --- |\n| `Frame::borrow` | Specify that borrowing preserves the metadata-slot permission, supporting reference-count checks through the borrowed handle. |\n| `UniqueFrame::try_from_shared` | Expose the successful conversion's permissions, reference-count transition, and preservation of unrelated slots. |\n| Linked-list queries and cursor movement | Borrow owner permissions rather than consuming them, so callers can continue using the list or cursor. |\n| Linked-list insertion and removal | Specify metadata-value ordering and preservation of unrelated region entries. |\n| `CursorMut::current_meta` | Relate the returned metadata to the current element and preserve the list/region invariants after the mutable borrow ends. |\n| Frame-to-segment conversion | Add a proved bridge exposing the converted segment's invariant, address, size, and singleton iteration sequence without opening its internal representation. |\n| Segment iteration | Expose the finite iteration metric and add the test's metadata/permission invariant. |",
       "url": "https://github.com/asterinas/vostd/pull/934",
-      "updatedAt": "2026-11-25T12:14:41Z",
+      "updatedAt": "2026-11-27T04:28:18Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
       "n": 935,
       "kind": "open",
       "draft": false,
-      "head": "606ef10e5e8c73fe29281d89ac83d6ab248f947f",
+      "head": "c48862c08a4dcc9c00cf9bfb019b68062615b64d",
       "title": "Add initial specs for TLB",
       "body": "As the title shows.",
       "url": "https://github.com/asterinas/vostd/pull/935",
-      "updatedAt": "2026-11-26T18:58:37Z",
+      "updatedAt": "2026-11-27T03:55:54Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -846,7 +846,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -997,47 +997,47 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 954,
       "kind": "open",
       "draft": false,
-      "head": "b86b7eab0457543ee2d8b8ea93b4ca9bd90186ba",
+      "head": "46f4d2e8d1c6af845f8067daa5c0a3bed0a21ff8",
       "title": "prove: specify the x86 context switch FFI contract",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/954",
-      "updatedAt": "2026-11-26T10:52:49Z",
+      "updatedAt": "2026-11-27T03:21:36Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 955,
       "kind": "open",
       "draft": false,
-      "head": "b00942221571aade60572a7a5bfbee7cb3821dd5",
+      "head": "a7fa539b89663384b8aa8ffe8355fe54f5a68387",
       "title": "prove: x86 idt construction",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/955",
-      "updatedAt": "2026-11-26T08:18:53Z",
+      "updatedAt": "2026-11-27T03:21:34Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
       "n": 956,
       "kind": "open",
       "draft": false,
-      "head": "e1649d5316dcc2de74e085f4027be71091c12c5b",
+      "head": "652001d88e393c2064d9d6378748eb4810c5952f",
       "title": "prove: verify EFI setup relocation validation",
       "body": "",
       "url": "https://github.com/asterinas/vostd/pull/956",
-      "updatedAt": "2026-11-26T08:14:09Z",
+      "updatedAt": "2026-11-27T03:22:29Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1080,7 +1080,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1188,7 +1188,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1206,7 +1206,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1247,20 +1247,20 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 976,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
-      "head": "b138a9c0e1e212e28750ad0506c87af765c02072",
+      "head": "aea6d27b3296e04742fba1a855b4713bf8bbd3e6",
       "title": "fix: allow untracked mappings beyond frame metadata coverage in the page table model",
       "body": "Fix #975 \n\nThis PR separates the physical address range encodable by a leaf PTE from the range covered by frame metadata. Tracked mappings still require a valid metadata slot. Untracked mappings can extend beyond `MAX_PADDR` as long as they satisfy the page-alignment and architecture-specific PTE bounds.",
       "url": "https://github.com/asterinas/vostd/pull/976",
-      "updatedAt": "2026-11-27T03:16:09Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
-      "reviewDecision": "CHANGES_REQUESTED",
+      "updatedAt": "2026-11-27T04:22:34Z",
+      "mergedAt": "2026-11-27T03:54:16Z",
+      "closedAt": "2026-11-27T03:54:16Z",
+      "mergeCommit": "3a9bc536f9e67072fc484c3802205c3e975a6e1a",
+      "reviewDecision": null,
       "ciState": "SUCCESS",
-      "review": "需修改",
-      "gate": "BLOCKED",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1278,7 +1278,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1350,7 +1350,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1390,5 +1390,13 @@ window.PLAN_PR_SNAPSHOT = {
       "ci": "成功"
     }
   ],
-  "candidates": []
+  "candidates": [
+    {
+      "n": 985,
+      "title": "Prove ordered and complete CpuSet iteration",
+      "url": "https://github.com/asterinas/vostd/pull/985",
+      "head": "658aecd8576b95724d6bbd264b891dc0231f3a12",
+      "updatedAt": "2026-11-27T04:36:34Z"
+    }
+  ]
 };

@@ -277,10 +277,10 @@ window.PLAN_PR_CATALOG = [
     "n": 915,
     "scope": "linux-bzimage-builder 纳入 Cargo workspace 与 Verus；证明 SetupVA / SetupFileOffset 映射算术。映射证明仍依赖 setup ELF 地址/偏移范围假设（assume），登记为 trusted boundary。",
     "implements": [],
-    "reuses": [],
-    "note": "",
-    "reviewedHead": "b6db6df974cf0af881255cf88613836613fc6ce4",
-    "reviewedAt": "2026-11-14"
+    "reuses": ["BZ_TRUST"],
+    "note": "正向转换由 to_flat_binary 和 new_pe_sec_header 使用。#915 评审接受正常构建的 setup ELF 在 64 位宿主上的 VA 范围假设；BZ_TRUST 复用这项评审依据，实际产物的独立检查仍待交付。",
+    "reviewedHead": "b90a2ed913853673161a985cb02c87bbb12ad88c",
+    "reviewedAt": "2026-11-27"
   },
   {
     "n": 918,

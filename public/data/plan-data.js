@@ -589,10 +589,10 @@ window.PLAN_BASE = {
     { id: "BZ_TRUST", lane: "bzimage", face: "libs/linux-bzimage", title: "把 ELF 范围的 assume 登记为可信边界",
       mods: ["libs/linux-bzimage"],
       todo: [
-        "登记 mapping.rs 中 From<SetupVA> / From<SetupFileOffset> 的两处 assume（VA 范围与 offset 上界）及全部消费者；来源注释已有，但没有独立检查器。",
-        "From<usize> 接受任意值，转换内部再假定范围，调用者没有承担相应 requires。",
+        "暂缓消除 mapping.rs 中 SetupVA → SetupFileOffset 的 assume。to_flat_binary 和 new_pe_sec_header 从 ELF 段头取得 VA，各自的输入合同已限定地址范围。SetupVA::from(usize) 可构造任意地址，From::from 的合同没有地址前置条件。",
+        "按 #915 的评审记录正向 VA 范围适用的构建流程和宿主字宽，在实际 setup ELF 上核对两个调用点使用的段地址。反向 SetupFileOffset → SetupVA 的偏移上界单独登记。",
       ],
-      accept: "对源文件、ELF 等 Verus 无法直接证明的事实，逐项记录来源、消费者依赖与可运行检查（TB_ELF_RANGE）。",
+      accept: "在 TB_ELF_RANGE 中分别记录两处假设的来源、使用位置和可运行的产物检查。正向转换保留现有 From 实现及其范围假设。",
       src: "§2 · §8" },
     { id: "BZ_ELF", lane: "bzimage", face: "libs/linux-bzimage", title: "收窄边界：ELF 解析合同 · 链接断言",
       mods: ["libs/linux-bzimage"],
@@ -1176,7 +1176,7 @@ window.PLAN_BASE = {
         "BZ_RELOC",
         "BZ_EFI_OUT",
       ],
-      "record": "通过 ELF parser 合同、链接断言或可独立检查的构建前置逐步缩小。"
+      "record": "按 #915 保留正常构建的 setup ELF 在 64 位宿主上的正向 VA 范围假设。用实际产物核对段地址；反向偏移上界与 ELF 解析、布局的外部条件分别记录。"
     },
     {
       "id": "TB_EXTABLE_LINK",

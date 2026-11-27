@@ -1,12 +1,16 @@
 # VOSTD x86 验证计划
 
 <!-- BEGIN GENERATED:meta -->
-计划版本 r14（2026-11-27）· 源码基线 main [`7cd0bcdcd`](https://github.com/asterinas/vostd/commit/7cd0bcdcddfca4091415daeebc8b4017f65a7700) · 仪表盘快照 2026-11-26 22:39（北京时间）（`7cd0bcdcd`）· 132 个工作项、235 条依赖
+计划版本 r15（2026-11-27）· 源码基线 main [`7cd0bcdcd`](https://github.com/asterinas/vostd/commit/7cd0bcdcddfca4091415daeebc8b4017f65a7700) · 仪表盘快照 2026-11-26 22:39（北京时间）（`7cd0bcdcd`）· 132 个工作项、235 条依赖
 <!-- END GENERATED:meta -->
 
 本次范围是先完成 x86 验证，按 x86 平台、独立的 bzImage、OSTD 公共模块三条路线推进。RISC-V、LoongArch 适配与多架构迁移不纳入本次计划。bzImage 只在最终镜像、运行与范围验收处连接 x86；它的解析、格式、压缩与 setup 局部证明可以独立开展。
 
-## 0. 本次修订（r14）
+## 0. 本次修订（r15）
+
+暂缓消除 bzImage 中 `SetupVA → SetupFileOffset` 的 `assume`。正常构建的 setup ELF 为两个调用点提供有界段地址，但现有 `From` 接口也接受由任意 `usize` 构造的地址。BZ_TRUST 继续登记假设并核对实际产物，保留正向转换的执行接口。[PR #915 评审讨论](https://github.com/asterinas/vostd/pull/915#discussion_r4540618810)
+
+### 上一版（r14）
 
 从主线 `fece47de1` 复核到 `7cd0bcdcd`。#979 已接入 COM1 的静态端口和初始化入口。#978 移除 may_panic，#980 放宽可返回错误的公共 API 前置，#982 同步 MM 文档。[主线差异](https://github.com/asterinas/vostd/compare/fece47de1b346d9d886ba3b03d4b6f6adc69945f...7cd0bcdcddfca4091415daeebc8b4017f65a7700)
 
@@ -577,9 +581,9 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 
 **BZ_TRUST** — 把 ELF 范围的 assume 登记为可信边界
 
-- 实施 PR：—；复用 / 协调：—；模块：libs/linux-bzimage
-- 要做什么：登记 mapping.rs 中 From<SetupVA> / From<SetupFileOffset> 的两处 assume（VA 范围与 offset 上界）及全部消费者；来源注释已有，但没有独立检查器。 From<usize> 接受任意值，转换内部再假定范围，调用者没有承担相应 requires。
-- 验收 / 限定：对源文件、ELF 等 Verus 无法直接证明的事实，逐项记录来源、消费者依赖与可运行检查（TB_ELF_RANGE）。
+- 实施 PR：—；复用 / 协调：#915；模块：libs/linux-bzimage
+- 要做什么：暂缓消除 mapping.rs 中 SetupVA → SetupFileOffset 的 assume。to_flat_binary 和 new_pe_sec_header 从 ELF 段头取得 VA，各自的输入合同已限定地址范围。SetupVA::from(usize) 可构造任意地址，From::from 的合同没有地址前置条件。 按 #915 的评审记录正向 VA 范围适用的构建流程和宿主字宽，在实际 setup ELF 上核对两个调用点使用的段地址。反向 SetupFileOffset → SetupVA 的偏移上界单独登记。
+- 验收 / 限定：在 TB_ELF_RANGE 中分别记录两处假设的来源、使用位置和可运行的产物检查。正向转换保留现有 From 实现及其范围假设。
 - 前置：无
 
 **BZ_ELF** — 收窄边界：ELF 解析合同 · 链接断言
@@ -1378,7 +1382,7 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 | TB_IOMMU | arch/x86/iommu（未纳入计划） | IrqRemapping::init 分配的 IRT 项与 remapping index，以及 DMA 设备地址映射/解除的硬件条件。 | PCI_ENC、PCI_MSIX、IRQLINE、IOAPIC_ENTRY、SA_DMA、DMA_MAP | #919 的 remapping 地址编码不等于 IOMMU / remapping 已验证。 |
 | TB_TDX | arch/x86/tdx_guest.rs（未纳入计划） | TDX 路径的初始化、中断语义与 DMA unprotect/reprotect 的输入条件。 | PITIRQ、DMA_MAP | 首个中断闭环限定为非 TDX 的 BSP 路径。 |
 | TB_HW_OPS | CPUID / MSR / volatile / 汇编的外部规约 | 主线的 APIC 与 AVX 探测依赖共享 CPUID 模型，TSC 回退时的叶 0x16 基频来自执行核。#963 的地址算术对任意 MSR 读值成立，物理地址对应实际设备仍依赖硬件输入。TSC 回退计算保留两条乘积上界假设。#959 分支使用共享叶 0xD 能力模型，需另证 BSP/AP 的容量兼容性。#977 的指令封装仍需本核失效、CR3 写入和读回的硬件语义。#969 的 PortWriteSequence 限定软件写入前缀，器件状态仍需平台证据。PIO 类型规约约束宽度和端口范围，设备读值、协议写效果及进展属于硬件输入。#955 的 load_idtr 与 #954 的 context_switch 分别提供指令与 FFI 合同。 #983 的 _rdtsc 只给一次读数，RDRAND 需执行核具备支持。#984 的描述符指令依赖平台语义。#979 的 OUTPUT_EMPTY 轮询进展和 QEMU isa-debug-exit 的退出行为各取决于设备配置。 | APIC_PROBE、APIC_RESERVE、LAPIC_DEV、CPU_FEAT、CPU_ENABLE、XSAVE、IDT_LOAD、TSC_VALUE、CAL_FREQ、PT_X86、IO_PIO、IO_MMIO、LOC_CELL、TASK_CTX、HPET、PIT_CFG、PIC、SERIAL_QEMU_CMOS、SA_DMA、DMA_MAP、COM1_SEND、HPET_REGS、QEMU_EXIT、GDT、TMR_DEADLINE、PT_LOCAL_FLUSH、PT_FLUSH_NONGLOBAL、PT_FLUSH_GLOBAL | 按操作记录 CPUID、控制寄存器、x87、lidt、切换汇编、CR3 和 invlpg 的作用。分别核对软件取得寄存器权限、Once 发布和 CPU 身份的证据。 |
-| TB_ELF_RANGE | ELF 与链接产物 | mapping.rs 里 From<SetupVA> / From<SetupFileOffset> 的 VA 范围与 offset 上界假设。#916/#931 的 parser、get_data、opaque ELF 类型和 bytes_of 的字节布局。#956 的节名查找、节解码与 Rela 条目取自 xmas-elf 的外部模型，须对应到实际 EFI setup 文件。 | BZ_TRUST、BZ_ELF、BZ_RANGE、BZ_PE、BZ_RELOC、BZ_EFI_OUT | 通过 ELF parser 合同、链接断言或可独立检查的构建前置逐步缩小。 |
+| TB_ELF_RANGE | ELF 与链接产物 | mapping.rs 里 From<SetupVA> / From<SetupFileOffset> 的 VA 范围与 offset 上界假设。#916/#931 的 parser、get_data、opaque ELF 类型和 bytes_of 的字节布局。#956 的节名查找、节解码与 Rela 条目取自 xmas-elf 的外部模型，须对应到实际 EFI setup 文件。 | BZ_TRUST、BZ_ELF、BZ_RANGE、BZ_PE、BZ_RELOC、BZ_EFI_OUT | 按 #915 保留正常构建的 setup ELF 在 64 位宿主上的正向 VA 范围假设。用实际产物核对段地址；反向偏移上界与 ELF 解析、布局的外部条件分别记录。 |
 | TB_EXTABLE_LINK | 最终内核链接产物 | __ex_table / __ex_table_end 符号与表项：仓库里只有声明，没有定义。 | F_RECOVER、ACC_IMG | 用镜像链接检查记录，不能由缺页恢复证明替代。 |
 | TB_ALLOC | 用户提供的全局 heap/frame allocator 与 alloc 外部规约 | __GLOBAL_HEAP_ALLOCATOR_REF 宏生成的接口与 alloc 的外部规约。 GlobalFrameAllocator 的可用区域、对齐和唯一性承诺；OSTD 元数据/包装不在此边界中。 | IDT_TABLE、SA_HEAP、MM_FRAME、HEAP_GLOBAL、LOC_DYNAMIC、GDT、MM_BOOT_FRAMES | x86 链上的 Box::new / Box::leak 只消费这份外部规约。 |
 | TB_STACK_CONFIG | 编译期 OSTD_TASK_STACK_SIZE_IN_PAGES 与 configured_stack_size_in_pages | 合法十进制输入由调用者/构建环境提供；该静态初始化仍 external_body。KERNEL_STACK_SIZE 已证上界/页对齐不保证非零。 | TASK_STACK、TASK_STACK_ALLOC | ostd/src/task/kernel_stack.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc；栈分配验收补非零与 guard-page 加法条件。 |
@@ -1393,6 +1397,7 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 下列记录保留历史判断，当前关系以最新版本决定为准。
 
 <!-- BEGIN GENERATED:changes -->
+- **r15 · 2026-11-27**：暂缓消除 bzImage 正向地址转换的 assume。依据 #915 的评审，BZ_TRUST 按正常构建的 setup ELF 登记地址边界和调用者，保留现有 From 接口。
 - **r14 · 2026-11-27**：将后续工作拆为可单独提交与验收的函数和文件，按主线及开放 PR 更新三条路线的调用合同。
   - 拆分 SERIAL_QEMU_CMOS → SERIAL_QEMU_CMOS + COM1_SEND + QEMU_EXIT + ACC_SCOPE：原 ID 保留串口预留与初始化。发送由控制台消费，QEMU 出口由 panic::abort 消费。CMOS 的 FADT 字段和敏感端口保留在总验收清单，待出现 RTC 调用者再建节点。
   - 拆分 HPET → HPET + HPET_REGS：比较器数量和偏移可在给定设备窗口下验证；固件提供的实际窗口、IRQ 和 Once 发布由 init 集成。
