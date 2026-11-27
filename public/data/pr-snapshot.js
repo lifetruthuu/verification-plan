@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T04:43:24.165Z",
+  "generatedAt": "2026-11-27T04:54:46.176Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -252,7 +252,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "FAILURE",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "失败"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -576,7 +576,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -846,7 +846,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1008,7 +1008,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -1026,7 +1026,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1080,7 +1080,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -1188,7 +1188,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1206,7 +1206,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1278,7 +1278,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -1350,7 +1350,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -1396,7 +1396,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Prove ordered and complete CpuSet iteration",
       "url": "https://github.com/asterinas/vostd/pull/985",
       "head": "658aecd8576b95724d6bbd264b891dc0231f3a12",
-      "updatedAt": "2026-11-27T04:36:34Z"
+      "updatedAt": "2026-11-27T04:50:57Z"
     }
   ]
 };
