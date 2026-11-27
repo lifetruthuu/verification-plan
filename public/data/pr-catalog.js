@@ -287,7 +287,7 @@ window.PLAN_PR_CATALOG = [
     "n": 918,
     "scope": "ostd-test 初始化与格式化证明。",
     "implements": [],
-    "reuses": ["KTEST_DISCOVERY"],
+    "reuses": [],
     "note": "",
     "reviewedHead": "30581d3014f3ddf537d406f997ddc3abe416b514",
     "reviewedAt": "2026-11-14"

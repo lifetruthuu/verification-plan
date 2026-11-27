@@ -1,14 +1,14 @@
 # VOSTD x86 验证计划
 
 <!-- BEGIN GENERATED:meta -->
-计划版本 r16（2026-11-27）· 源码基线 main [`3a9bc536f`](https://github.com/asterinas/vostd/commit/3a9bc536f9e67072fc484c3802205c3e975a6e1a) · 仪表盘快照 2026-11-27 11:54（北京时间）（`3a9bc536f`）· 133 个工作项、236 条依赖
+计划版本 r17（2026-11-27）· 源码基线 main [`3a9bc536f`](https://github.com/asterinas/vostd/commit/3a9bc536f9e67072fc484c3802205c3e975a6e1a) · 仪表盘快照 2026-11-27 11:54（北京时间）（`3a9bc536f`）· 132 个工作项、235 条依赖
 <!-- END GENERATED:meta -->
 
 本次范围是先完成 x86 验证，按 x86 平台、独立的 bzImage、OSTD 公共模块三条路线推进。RISC-V、LoongArch 适配与多架构迁移不纳入本次计划。bzImage 只在最终镜像、运行与范围验收处连接 x86；它的解析、格式、压缩与 setup 局部证明可以独立开展。
 
-## 0. 本次修订（r16）
+## 0. 本次修订（r17）
 
-本版将三条路线的近期工作排成九份候选 PR。每份从现有源码入口出发，写明将首次进入验证的执行体、能复用的合同、消费结果的位置和验证命令。图中的节点继续记录可以分别验收的性质；同一段执行流程可在一份 PR 中覆盖多个节点。
+OSTD 公共模块的“测试项登记与枚举”暂缓作为独立 PR，原工作项 `KTEST_DISCOVERY` 保留在附录 C。公共路线近期可选 PCI 配置读取与设备标识构造、slab 小槽借还两项。三条路线合计八份候选 PR。
 
 主线已合入 #976。页表叶映射的架构物理地址上界与跟踪帧的元数据范围分别检查，映射调用者仍须建立各自的前置。#985 已为 CpuSet 迭代提交成员、升序和完整性证明，后续任务在调用者使用这些保证时衔接。bzImage 的正向地址转换沿用 r15 的暂缓决定，构建调用处记录正常 setup ELF 的地址范围。[主线变更](https://github.com/asterinas/vostd/compare/7cd0bcdcddfca4091415daeebc8b4017f65a7700...3a9bc536f9e67072fc484c3802205c3e975a6e1a) · [CpuSet PR](https://github.com/asterinas/vostd/pull/985) · [地址转换评审](https://github.com/asterinas/vostd/pull/915#discussion_r4540618810)
 
@@ -90,12 +90,6 @@ PCI 按类型、编码、配置事务、location 枚举、BAR、capability、MSI
 在固件按址成功并授予独占页的前提下，证明段文件前缀和零尾部落在请求的物理区间。记录固件失败、地址不符和越界的原有失败条件，区分固件保证与 Rust 包装层已证性质。 验证命令为 `PAYLOAD_FILE=/dev/null cargo dv verify -p linux-bzimage-setup --target x86_64-unknown-none`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/linux-bzimage/setup/src/x86/amd64_efi/alloc.rs#L6)
 
 ### OSTD 公共模块
-
-**从注册测试项到按模块和名称枚举**（KTEST_DISCOVERY）
-
-可从主线开始。ostd/libs/ostd-test/src/lib.rs 的 KtestIter::new/default 已由 #918 验证，KtestItem::new/info 与 KtestIter::next 仍为普通 Rust。 从 ostd-macros 的 #[ktest] 生成的注册语句出发，验证 KtestItem::new、KtestIter::next 的索引和 clone，以及 KtestItem::info 返回的元数据。
-
-给定链接器提供的有效、固定测试表，成功取项保留登记的模块名、函数名等元数据并推进一位，空表和表尾保持下标并返回 None。用 asterinas/asterinas 的 osdk/deps/test-kernel/src/lib.rs @885e0f5c4 核对建树与过滤调用。登记链接段和运行测试的 panic 分类各自标明边界。 验证命令为 `cargo dv verify -p ostd-test`。[原始执行入口](https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/ostd-test/src/lib.rs#L248)
 
 **读取 PCI 配置字并构造设备标识**（PCI_CFG、PCI_TYPES）
 
@@ -1090,13 +1084,6 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 - 验收 / 限定：交付实际创建、首次执行、调度/等待/唤醒和退出的资源证据，覆盖分配失败、无 scheduler 时的 FIFO fallback、CPU 选择与远端通知。客户调度策略/回调进展属 TB_CLIENT_HOOKS；内置 FIFO 和软件通知包装在本项范围内，不能由注入接口的可信边界豁免。
 - 前置：TASK_RUNTIME（确认 · 验收前置）、TASK_SW（确认 · 验收前置）、TASK_STACK_ALLOC（确认 · 验收前置）、PREEMPT_PIN（确认 · 验收前置）、SMP_IPI（确认 · 验收前置）、SYNC_GUARD（确认 · 验收前置）、TRAP_DATA（确认 · 验收前置）
 
-**KTEST_DISCOVERY** — 从测试项登记到 OSDK 收集与过滤
-
-- 实施 PR：—；复用 / 协调：#918；模块：libs/ostd-test
-- 要做什么：沿 #[ktest] 生成的 KtestItem::new、KtestIter::new/next 和 KtestItem::info，以同一份 .ktest_array 为基准验证测试项的身份、次序和元数据。在原位处理 get 越界、成功后下标递增与 clone 保留字段。
-- 验收 / 限定：给定 TB_KTEST_LINK 的固定表，从下标 0 开始时按表序逐项返回，到末尾保持下标并返回 None。核对 OSDK 的 KtestTree::from_iter 和按模块名、函数名过滤的调用。宏生成和链接布局分别注明来源，运行测试的 panic 分类归 KTEST_RESULT。运行 cargo dv verify -p ostd-test。
-- 前置：无
-
 **KTEST_RESULT** — 内核测试结果分类
 
 - 实施 PR：—；复用 / 协调：#942、#958；模块：libs/ostd-test
@@ -1107,9 +1094,9 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 **COMMON_AUDIT** — 公共 API 与残留占位清单验收
 
 - 实施 PR：#985；复用 / 协调：#937、#940；模块：cpu/set、user/user、timer/mod、util/ops、console/console、logger/logger、panic/panic
-- 要做什么：逐模块盘点 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util 和辅助库，把未启用入口、占位与可信体落实到工作项。CpuSet::iter 的顺序与完整性由PR #985 跟踪。 登记、取项及名称过滤由 KTEST_DISCOVERY 交付，测试的 panic 分类由 KTEST_RESULT 交付。
+- 要做什么：逐模块盘点 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util 和辅助库，把未启用入口、占位与可信体落实到工作项。CpuSet::iter 的顺序与完整性由 PR #985 跟踪。 登记、取项及名称过滤已移入暂缓清单。测试运行的 panic 分类仍由 KTEST_RESULT 验收。
 - 验收 / 限定：交付固定 main 上的 API/模块开关清单，引用本计划工作项或逐条可信边界；对剩余缺口形成可执行子任务并关闭，不能仅做清单就宣布 x86 完成。console/logger 的格式化与内核回调可保留明确外部条件，其他公共执行代码不隐含排除。
-- 前置：KTEST_RESULT（确认 · 验收前置）、KTEST_DISCOVERY（确认 · 验收前置）
+- 前置：KTEST_RESULT（确认 · 验收前置）
 
 **MM_BOOT_FRAMES** — 把扣除 early 分配的可用页交给全局 frame 分配器
 
@@ -1415,7 +1402,6 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 | TASK_COMPOSE | SYNC_GUARD | 确认 · 验收前置 | 默认 FIFO 通过 disable_irq().lock() 保护 run queue 的权限和恢复合同 | ostd/src/task/scheduler/fifo_scheduler.rs::enqueue,local_rq_with,mut_local_rq_with @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | TASK_COMPOSE | TRAP_DATA（跨路线） | 确认 · 验收前置 | TaskBuilder::build 用 UserContext::tls_pointer 初始化 TaskContext TLS 字段 | ostd/src/task/mod.rs::TaskBuilder::build; arch/x86/cpu/context.rs @8e681282d19b29bdc1b6e715930fe9224a0c88dc |
 | COMMON_AUDIT | KTEST_RESULT | 确认 · 验收前置 | 公共辅助库仍需核对主线测试运行入口的结果分类、panic 捕获和消息匹配；已关闭的 #942 仅供参考。 | ostd/libs/ostd-test/src/lib.rs::KtestItem::run @fece47de1 |
-| COMMON_AUDIT | KTEST_DISCOVERY | 确认 · 验收前置 | 公共辅助库验收使用 ostd-test 原登记与枚举路径的测试项身份、次序和表尾合同。 | ostd/libs/ostd-test/src/lib.rs::KtestItem::{new,info},KtestIter::next @3a9bc536f；osdk/deps/test-kernel/src/lib.rs::KtestTree::from_iter 调用 @885e0f5c4 |
 | MM_BOOT_FRAMES | LOC_EARLY_GLOBAL | 确认 · 验收前置 | 全局 early allocator 已分配的两个区间及一次性取走权限 | ostd/src/mm/frame/allocator.rs::init,EarlyFrameAllocator::allocated_regions @7cd0bcdcd |
 | MM_BOOT_ROOT | PT_X86（跨路线） | 确认 · 验收前置 | 首次 from_current_pt 读到当前核的启动根物理地址及对齐条件 | ostd/src/mm/page_table/boot_pt.rs::from_current_pt,root_address @7cd0bcdcd |
 | MM_BOOT_ACTIVATE | MM_BOOT_ROOT | 确认 · 验收前置 | dismiss 取得同一启动页表及其固件页和自建页的记录；切换后本核不再取得该借用 | ostd/src/mm/page_table/boot_pt.rs::with_borrow,dismiss @7cd0bcdcd |
@@ -1435,7 +1421,7 @@ npm run plan -- help   # 其余命令：show / impact / edge / accept / pr / rev
 ## 附录 C：后续工作与可信边界
 
 <!-- BEGIN GENERATED:later -->
-r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）。多架构迁移仍在 outOfScope；不因某项不在首个 BSP 中断路径上就将其排除。
+- **KTEST_DISCOVERY**（OSTD 公共模块）测试项登记与枚举：暂缓作为独立 PR 提交，本轮公共模块验收已移除此项前置。 #918 已验证迭代器初始化。后续若与测试框架的执行路径一并验证，可沿 KtestItem::new、KtestIter::next 和 KtestItem::info 核对条目身份、表序、表尾下标及 OSDK 按模块名和函数名过滤的行为。固定链接表的前提见 TB_KTEST_LINK。 依据：ostd/libs/ostd-test/src/lib.rs @3a9bc536f，asterinas/asterinas 的 osdk/deps/test-kernel/src/lib.rs @885e0f5c4
 <!-- END GENERATED:later -->
 
 可信输入需有来源与调用条件，既有软件占位不能凭边界名称自动豁免。
@@ -1443,7 +1429,7 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 <!-- BEGIN GENERATED:trusted -->
 | 编号 | 提供者 | 计划内代码消费的输入 | 消费者 | 记录方式 |
 |---|---|---|---|---|
-| TB_KTEST_LINK | #[ktest] 登记与内核链接器 | __ktest_array 到 __ktest_array_end 指定有序、对齐、可读且保持不变的 KtestItem 表；区间长度是条目大小的整数倍，可构造有效的静态切片。 | KTEST_DISCOVERY | 对照 ostd-macros 的登记和 OSDK 的链接区间核对条目来源。给定该切片后，构造、索引、clone 和 info 的软件效果在 ostd-test 内证明。 |
+| TB_KTEST_LINK | #[ktest] 登记与内核链接器 | __ktest_array 到 __ktest_array_end 指定有序、对齐、可读且保持不变的 KtestItem 表；区间长度是条目大小的整数倍，可构造有效的静态切片。 | KTEST_DISCOVERY | 随测试项登记与枚举暂缓。复核时对照 ostd-macros 的登记和 OSDK 的链接区间核对条目来源。给定该切片后，构造、索引、clone 和 info 的软件效果在 ostd-test 内证明。 |
 | TB_BOOT_INPUT | arch/x86/boot（未纳入计划） | 固件内存区域（EARLY_INFO.memory_regions）、ACPI RSDP 来源、初始 CS == KERNEL_CS、GS.base 初值与 CPU 数量、AP 汇编启动输入与初始页表 / CPU 状态。 | IO_WIN、ACPI_TABLES、GDT、CPU_ENABLE、LOC_ID、SMP_AP、LOC_EARLY_GLOBAL、MM_BOOT、BOOT_COMMON、TSS_LOCAL、EARLY_INFO_INIT、HPET、MM_BOOT_FRAMES、MM_BOOT_ROOT、LOC_DYNAMIC_ADDR | 每个消费者写明对固件和初始 CPU 状态的要求。#959 的寄存器 owner 仍需由 BSP/AP 启动代码取得并绑定到执行核。 #981 依赖 ACPI parser 的外部模型及实际表的可读映射。#984 依赖选定链接产物的 .cpu_local_tss 位置和四级页表规范地址假设。 |
 | TB_IDT_LINK | 内核链接产物、trap.S 与选定 x86 平台 | trap_handler_table 的 256 个地址已重定位、规范、终身只读并对应同号入口。向量 3、4 支持用户态软件触发。21、29、30 的 stub 要求投递时 CPU 不压入错误码。各加载核具备 CPL0 和可共享的内核代码选择子。 | IDT_TABLE、IDT_LOAD、TRAP_DISP | 按最终 ELF、平台启用的异常及其栈布局建立 vectors_ready、valid_vectors 和 idt_load_context。ostd/src/arch/x86/trap/{idt.rs,trap.S}、verified_libs/vstd_extra/src/external/x86_idt.rs @c9a85a789。 |
 | TB_IOMMU | arch/x86/iommu（未纳入计划） | IrqRemapping::init 分配的 IRT 项与 remapping index，以及 DMA 设备地址映射/解除的硬件条件。 | PCI_ENC、PCI_MSIX、IRQLINE、IOAPIC_ENTRY、SA_DMA、DMA_MAP | #919 的 remapping 地址编码不等于 IOMMU / remapping 已验证。 |
@@ -1464,6 +1450,9 @@ r2 的七项后续工作已保留 ID 纳入当前范围（见 r3 变更记录）
 下列记录保留历史判断，当前关系以最新版本决定为准。
 
 <!-- BEGIN GENERATED:changes -->
+- **r17 · 2026-11-27**：暂缓将内核测试项登记与枚举作为独立 PR，保留原工作项供后续查阅，撤下公共模块本轮验收前置。
+  - 范围调整 KTEST_DISCOVERY（nodes → later，保留 ID）：保留测试登记、表序、表尾和元数据的复核范围，暂缓单独提交。
+  - 移除依赖 KTEST_DISCOVERY → COMMON_AUDIT：测试项登记与枚举已转入暂缓清单，本轮公共 API 验收无需等待这份交付。
 - **r16 · 2026-11-27**：三条路线按新增执行路径及其调用者组织后续 PR，保留逐项合同验收。以原 Rust 实现为基线补规约和证明，记录必要的执行差异及可信边界。
   - 新增 KTEST_DISCOVERY：用同一项验收串起 KtestItem 登记、按表序枚举与 OSDK 过滤，并登记固定链接表的可信输入。
   - 新增依赖 KTEST_DISCOVERY → COMMON_AUDIT：将原属公共辅助库盘点的测试项发现流程落实为可独立核对的执行交付。

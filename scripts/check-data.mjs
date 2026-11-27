@@ -130,7 +130,7 @@ export function validate(plan, snapshot, catalog) {
   }
   const m = PlanModel.build(plan, snapshot, catalog);
   assert.equal(m.issues.length, 0, m.issues.join("\n"));
-  validateChanges(plan, all);
+  validateChanges(plan, [...all, ...(plan.later || [])]);
   validateTraceability(plan, catalog, m);
   const facts = new Map(snapshot.prs.map(p => [p.n, p]));
   for (const n of plan.nodes) for (const pr of [...n.prs, ...n.reuse]) {

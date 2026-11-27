@@ -2031,5 +2031,25 @@ window.PLAN_HISTORY = [
         "why": "将原属公共辅助库盘点的测试项发现流程落实为可独立核对的执行交付。"
       }
     ]
+  },
+  {
+    "revision": 17,
+    "date": "2026-11-27",
+    "reason": "暂缓将内核测试项登记与枚举作为独立 PR，保留原工作项供后续查阅，撤下公共模块本轮验收前置。",
+    "edgesRemoved": [
+      {
+        "a": "KTEST_DISCOVERY",
+        "b": "COMMON_AUDIT",
+        "why": "测试项登记与枚举已转入暂缓清单，本轮公共 API 验收无需等待这份交付。"
+      }
+    ],
+    "moved": [
+      {
+        "id": "KTEST_DISCOVERY",
+        "from": "nodes",
+        "to": "later",
+        "why": "保留测试登记、表序、表尾和元数据的复核范围，暂缓单独提交。"
+      }
+    ]
   }
 ];

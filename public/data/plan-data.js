@@ -114,19 +114,8 @@ window.PLAN_BASE = {
       "key": "common",
       "name": "OSTD 公共模块",
       "sub": "PCI · MM · CPU-local · IRQ/抢占资源 · task · sync · heap · DMA",
-      "note": "从测试项登记到测试树取项、从 PCI 配置字到设备 ID，均有原始消费者可用于验收。slab 小槽的借还接续在审的 slot 和空闲链证明。CpuSet 遍历由 #985 跟踪。",
+      "note": "近期可验证 PCI 配置字读取与设备 ID 构造，或接续 slot 和空闲链证明，验证 slab 小槽借还。测试项登记与枚举暂缓。CpuSet 遍历由 #985 跟踪。",
       "packages": [
-        {
-          "title": "从注册测试项到按模块和名称枚举",
-          "ids": [
-            "KTEST_DISCOVERY"
-          ],
-          "baseline": "可从主线开始。ostd/libs/ostd-test/src/lib.rs 的 KtestIter::new/default 已由 #918 验证，KtestItem::new/info 与 KtestIter::next 仍为普通 Rust。",
-          "scope": "从 ostd-macros 的 #[ktest] 生成的注册语句出发，验证 KtestItem::new、KtestIter::next 的索引和 clone，以及 KtestItem::info 返回的元数据。",
-          "accept": "给定链接器提供的有效、固定测试表，成功取项保留登记的模块名、函数名等元数据并推进一位，空表和表尾保持下标并返回 None。用 asterinas/asterinas 的 osdk/deps/test-kernel/src/lib.rs @885e0f5c4 核对建树与过滤调用。登记链接段和运行测试的 panic 分类各自标明边界。",
-          "command": "cargo dv verify -p ostd-test",
-          "source": "https://github.com/asterinas/vostd/blob/3a9bc536f9e67072fc484c3802205c3e975a6e1a/ostd/libs/ostd-test/src/lib.rs#L248"
-        },
         {
           "title": "读取 PCI 配置字并构造设备标识",
           "ids": [
@@ -998,13 +987,6 @@ window.PLAN_BASE = {
       ],
       accept: "交付实际创建、首次执行、调度/等待/唤醒和退出的资源证据，覆盖分配失败、无 scheduler 时的 FIFO fallback、CPU 选择与远端通知。客户调度策略/回调进展属 TB_CLIENT_HOOKS；内置 FIFO 和软件通知包装在本项范围内，不能由注入接口的可信边界豁免。",
       src: "§7 · r3 源码复核" },
-    { id: "KTEST_DISCOVERY", lane: "common", face: "libs/ostd-test · KtestItem / KtestIter", title: "从测试项登记到 OSDK 收集与过滤",
-      mods: ["libs/ostd-test"],
-      todo: [
-        "沿 #[ktest] 生成的 KtestItem::new、KtestIter::new/next 和 KtestItem::info，以同一份 .ktest_array 为基准验证测试项的身份、次序和元数据。在原位处理 get 越界、成功后下标递增与 clone 保留字段。",
-      ],
-      accept: "给定 TB_KTEST_LINK 的固定表，从下标 0 开始时按表序逐项返回，到末尾保持下标并返回 None。核对 OSDK 的 KtestTree::from_iter 和按模块名、函数名过滤的调用。宏生成和链接布局分别注明来源，运行测试的 panic 分类归 KTEST_RESULT。运行 cargo dv verify -p ostd-test。",
-      src: "§3 · §7" },
     { id: "KTEST_RESULT", lane: "common", face: "libs/ostd-test", title: "内核测试结果分类",
       mods: ["libs/ostd-test"],
       todo: ["#942 已关闭未合并。若公共测试验收需要分类合同，在主线 KtestItem::run 的实际返回分支核对正常返回、预期 panic、消息匹配及未知 payload；捕获与 downcast 的边界单列。"],
@@ -1013,8 +995,8 @@ window.PLAN_BASE = {
     { id: "COMMON_AUDIT", lane: "common", face: "cpu/set · user · timer · util · 辅助库", title: "公共 API 与残留占位清单验收",
       mods: ["cpu/set", "user/user", "timer/mod", "util/ops", "console/console", "logger/logger", "panic/panic"],
       todo: [
-        "逐模块盘点 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util 和辅助库，把未启用入口、占位与可信体落实到工作项。CpuSet::iter 的顺序与完整性由PR #985 跟踪。",
-        "登记、取项及名称过滤由 KTEST_DISCOVERY 交付，测试的 panic 分类由 KTEST_RESULT 交付。",
+        "逐模块盘点 cpu/set、user::UserMode、timer/jiffies、console/logger/panic、util 和辅助库，把未启用入口、占位与可信体落实到工作项。CpuSet::iter 的顺序与完整性由 PR #985 跟踪。",
+        "登记、取项及名称过滤已移入暂缓清单。测试运行的 panic 分类仍由 KTEST_RESULT 验收。",
       ],
       accept: "交付固定 main 上的 API/模块开关清单，引用本计划工作项或逐条可信边界；对剩余缺口形成可执行子任务并关闭，不能仅做清单就宣布 x86 完成。console/logger 的格式化与内核回调可保留明确外部条件，其他公共执行代码不隐含排除。",
       src: "r3 源码复核" },
@@ -1197,7 +1179,15 @@ window.PLAN_BASE = {
   ],
 
   /* Deferred work only. r3 moved the seven previously parked x86 items into nodes. */
-  later: [],
+  later: [
+    { id: "KTEST_DISCOVERY", lane: "common", face: "libs/ostd-test",
+      title: "测试项登记与枚举", why: "暂缓作为独立 PR 提交，本轮公共模块验收已移除此项前置。",
+      todo: [
+        "#918 已验证迭代器初始化。后续若与测试框架的执行路径一并验证，可沿 KtestItem::new、KtestIter::next 和 KtestItem::info 核对条目身份、表序、表尾下标及 OSDK 按模块名和函数名过滤的行为。固定链接表的前提见 TB_KTEST_LINK。",
+      ],
+      after: [],
+      ev: "ostd/libs/ostd-test/src/lib.rs @3a9bc536f，asterinas/asterinas 的 osdk/deps/test-kernel/src/lib.rs @885e0f5c4" },
+  ],
 
   /* Inputs the plan consumes from code it does not verify (dashboard class “unplanned”
    * and external facts). Each consumer must state the input as a requires. */
@@ -1207,7 +1197,7 @@ window.PLAN_BASE = {
       "provider": "#[ktest] 登记与内核链接器",
       "input": "__ktest_array 到 __ktest_array_end 指定有序、对齐、可读且保持不变的 KtestItem 表；区间长度是条目大小的整数倍，可构造有效的静态切片。",
       "consumers": ["KTEST_DISCOVERY"],
-      "record": "对照 ostd-macros 的登记和 OSDK 的链接区间核对条目来源。给定该切片后，构造、索引、clone 和 info 的软件效果在 ostd-test 内证明。"
+      "record": "随测试项登记与枚举暂缓。复核时对照 ostd-macros 的登记和 OSDK 的链接区间核对条目来源。给定该切片后，构造、索引、clone 和 info 的软件效果在 ostd-test 内证明。"
     },
     {
       "id": "TB_BOOT_INPUT",
