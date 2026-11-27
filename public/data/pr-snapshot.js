@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T03:04:29.135Z",
+  "generatedAt": "2026-11-27T03:17:04.223Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -1253,7 +1253,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "fix: allow untracked mappings beyond frame metadata coverage in the page table model",
       "body": "Fix #975 \n\nThis PR separates the physical address range encodable by a leaf PTE from the range covered by frame metadata. Tracked mappings still require a valid metadata slot. Untracked mappings can extend beyond `MAX_PADDR` as long as they satisfy the page-alignment and architecture-specific PTE bounds.",
       "url": "https://github.com/asterinas/vostd/pull/976",
-      "updatedAt": "2026-11-27T02:56:51Z",
+      "updatedAt": "2026-11-27T03:16:09Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
