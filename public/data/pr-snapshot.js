@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T21:25:21.737Z",
+  "generatedAt": "2026-11-28T07:57:54.740Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -288,7 +288,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -569,14 +569,14 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Verify heap slots and free-slot list",
       "body": "## Summary\n\nEnable `ostd::mm::heap::{slot, slot_list}` in place and verify ten existing functions across `SlotInfo`, `HeapSlot`, and `SlabSlotList`, including:\n\n- Exclusive linear-mapped byte ownership, `SlabSlot` alignment (`align_of::<usize>()`), exact pointer/type/size accessors, and `paddr_to_vaddr` round-trip conversion in `SlotInfo::size` and `HeapSlot::{new, paddr, size, info, as_ptr}`.\n- Empty list construction, LIFO push/pop sequence transitions, exclusive slot ownership transfer, link preservation, and address uniqueness (`no_duplicates()`) in `SlabSlotList::{default, new, push, pop}`.\n- Retaining the original `usize` intrusive-link representation using `vstd::raw_ptr` permissions (`PointsToRaw`, `PointsTo<usize>`, `IsExposed`) rather than adding external raw-pointer read/write axioms.\n\nOverlaps #505 in scope; implemented independently from `main` without external raw-pointer read/write specifications.\n\n## Executable Code Changes\n\n- Add `pub(super) fn HeapSlot::into_memory(self) -> Tracked<PointsToRaw>` (`ostd/src/mm/heap/slot.rs`) to move the private erased permission into `SlabSlotList::push` without widening field visibility (erased at runtime).\n- In `SlabSlotList::push` (`ostd/src/mm/heap/slot_list.rs`), replace `slot_ptr.cast::<usize>().write(original_head.map_or(0, |h| h.as_ptr() as usize))` with an explicit `match` using `vstd::raw_ptr::expose_provenance` and `ptr_mut_write`, and gate the inline `const { assert!(...) }` with `#[cfg(not(verus_keep_ghost))]` (enforced by `requires` under Verus).\n- In `SlabSlotList::pop` (`ostd/src/mm/heap/slot_list.rs`), replace `original_head.as_ptr().cast::<usize>().read() as *mut u8` with `vstd::raw_ptr::ptr_mut_read` and `with_exposed_provenance::<u8>`.\n- Gate `#[derive(Debug)]` on `SlabSlotList` with `#[cfg_attr(not(verus_keep_ghost), derive(Debug))]` because its erased `Ghost`/`Tracked` fields do not implement `Debug` (`Debug` remains active in non-verify builds).\n- Preserve `HeapSlot::new`'s original 2-argument Rust signature via `#[verus_spec(with Tracked(mem): Tracked<PointsToRaw>)]`.\n\nAll executable adaptations carry adjacent `Origin Rust:` comments. No changes to the original executable logic.\n\n## Trusted Boundaries\n\n- Keep the pre-existing `unsafe impl Sync` and `unsafe impl Send` for `SlabSlotList<SLOT_SIZE>` verbatim outside `verus!` (no `#[verifier::external]` needed; all methods take `&mut self` with exclusive slot ownership, as discussed with @hiroki-chen).\n- Rely only on existing `vstd` (`raw_ptr`, `layout`, `std_specs::ptr`) and `vstd_extra::external::ptr` specifications; no new `assume_specification` is added.\n- No `assume()`, `admit()`, `#[verifier::external_body]`, `#[verifier::external]`, or `allowed_to_panic_if` is introduced.\n\n## Out of Scope\n\n- Slab allocator verification (`ostd/src/mm/heap/slab.rs`, `Slab`, `SlabMeta`).\n- Large slot allocation and deallocation (`HeapSlot::{alloc_large, dealloc_large}`, `LargeAllocFrameMeta`).\n- Global allocator trait and dispatch (`GlobalHeapAllocator`, `extern \"Rust\"` upcalls, `#[alloc_error_handler]`, `#[global_allocator]`, `AllocDispatch`).\n- Optional migration of `HeapSlot` from `impl Inv` to `#[verifier::type_invariant]` (deferred pending maintainer preference).\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nEnable `pub mod heap;` in `ostd/src/mm/mod.rs` with `slot` and `slot_list` active (`13 verified, 0 errors` in focused verification across `mm::heap::slot` and `mm::heap::slot_list`, zero warnings in `mm::heap`, and clean full-crate verification across `x86_64`, `riscv64`, and `loongarch64`).\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `HeapSlot::inv` (`open`, `ostd::mm::heap::slot`) | States linear-mapping bounds (`LINEAR_MAPPING_BASE_VADDR <= addr` and `addr + size <= VMALLOC_BASE_VADDR`), `align_of::<usize>()` alignment for `SlotInfo::SlabSlot`, and exclusive `PointsToRaw` byte-range and provenance ownership. |\n| `SlotInfo::size` / `HeapSlot::{info, as_ptr}` (`dual_spec`) | Uses `#[verus_verify(dual_spec, open)]` for `SlotInfo::size` and `#[verus_verify(dual_spec)]` (closed) for `HeapSlot::{info, as_ptr}` with self-referential `returns` contracts, avoiding duplicate spec mirror functions. |\n| `HeapSlot::memory` (`closed`, `ostd::mm::heap::slot`) | Exposes the slot's erased `PointsToRaw` permission for specs (`HeapSlot::inv`, `new`, `into_memory`). |\n| `SlotNode` (`tracked struct`, `ostd::mm::heap::slot_list`) | Private linear resource per queued free slot holding the link word `PointsTo<usize>`, tail bytes `PointsToRaw`, and `IsExposed` provenance for the next pointer's integer round-trip. |\n| `SlabSlotList::slots` (`closed`, `ostd::mm::heap::slot_list`) | Models the free list as `Seq<*mut u8>` in insertion order (last element is the head returned by `pop`). |\n| `SlabSlotList::inv` (`closed`, `ostd::mm::heap::slot_list`) | Relates `head` to `slots.last()`, tracks per-node `SlotNode` permissions and link words over `Set::range(0, slots.len() as int)` via `node_inv(i)`, and maintains `slots.map_values(|p: *mut u8| p.addr()).no_duplicates()`. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `SlotInfo::size` | `ostd::mm::heap::slot` | `#[verus_verify(dual_spec, open)]`; exact `returns self.size()`. |\n| `HeapSlot::new` | `ostd::mm::heap::slot` | Keeps original `(addr, info)` Rust signature with `with Tracked(mem): Tracked<PointsToRaw>`; establishes `res.inv()`, `res.as_ptr() == addr.as_ptr()`, `res.info() == info`, and `res.memory() == mem`. |\n| `HeapSlot::into_memory` | `ostd::mm::heap::slot` | `pub(super)` consuming helper ensuring `res@ == self.memory()`. |\n| `HeapSlot::paddr` | `ostd::mm::heap::slot` | Under `self.inv()`, rules out subtraction underflow, proves `paddr_to_vaddr(res) == self.as_ptr().addr()`, and returns `(self.as_ptr().addr() - LINEAR_MAPPING_BASE_VADDR) as Paddr`. |\n| `HeapSlot::{size, info, as_ptr}` | `ostd::mm::heap::slot` | Exact `returns` contracts (`self.info().size()`, `self.info()`, `self.as_ptr()`). |\n| `SlabSlotList::{default, new}` | `ostd::mm::heap::slot_list` | Establishes `res.inv()` and `res.slots() == Seq::empty()`. |\n| `SlabSlotList::push` | `ostd::mm::heap::slot_list` | Under `old(self).inv()`, `slot.inv()`, `cfg!(feature = \"allow_panic\") ==> slot.info() is SlabSlot`, `SLOT_SIZE >= size_of::<usize>()`, and `slot.info() is SlabSlot ==> slot.info().size() == SLOT_SIZE` (ruling out both documented panic paths under `allow_panic` while preserving early-return behavior for non-slab slots in default builds), derives address freshness from `PointsTo::is_disjoint` (local `tracked_distinct`), preserves `final(self).inv()`, updates `slots()` conditionally on `SlabSlot`, and exposes `final(self).slots().map_values(|p: *mut u8| p.addr()).no_duplicates()`. |\n| `SlabSlotList::pop` | `ostd::mm::heap::slot_list` | Under `old(self).inv()`, preserves `final(self).inv()`, exposes `no_duplicates()` on both `old(self).slots()` and `final(self).slots()`, proves `res is None <==> old(self).slots().len() == 0`, and on `Some(slot)` restores `slot.inv()`, `slot.as_ptr() == old(self).slots().last()`, `slot.info() == SlabSlot(SLOT_SIZE)`, `SLOT_SIZE >= size_of::<usize>()`, and `final(self).slots() == old(self).slots().drop_last()`. |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, executable edits are minimal, behavior-preserving, and annotated with adjacent `Origin Rust:` comments:\n\n- **`HeapSlot::into_memory` (`ostd/src/mm/heap/slot.rs`)**: `HeapSlot`'s fields remain private per review feedback; this `pub(super)` helper consumes `HeapSlot` (no `Drop` impl) to extract its erased `Tracked<PointsToRaw>` for `SlabSlotList::push`.\n- **Permission-aware link write/read (`ostd/src/mm/heap/slot_list.rs`)**: `assume_specification` cannot attach tracked `PointsTo<usize>` / `IsExposed` permissions to raw `<*mut usize>::{write, read}`; using `vstd::raw_ptr::{expose_provenance, ptr_mut_write, ptr_mut_read, with_exposed_provenance}` compiles to the same `as usize`, `core::ptr::{write, read}`, and `as *mut u8` operations while verifying exclusive access and provenance.\n- **Inline `const { assert! }` (`ostd/src/mm/heap/slot_list.rs`)**: Verus does not translate inline `const` blocks; gating it under `#[cfg(not(verus_keep_ghost))]` keeps the compile-time assertion in non-verify builds while `push`'s `requires SLOT_SIZE >= size_of::<usize>()` enforces the same bound under Verus.\n- **`#[derive(Debug)]` on `SlabSlotList` (`ostd/src/mm/heap/slot_list.rs`)**: `Ghost<Seq<*mut u8>>` and `Tracked<Map<int, SlotNode>>` do not implement `core::fmt::Debug`; `#[cfg_attr(not(verus_keep_ghost), derive(Debug))]` preserves `Debug` in non-verify builds.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `assume()`, `admit()`, `#[verifier::external_body]`, `#[verifier::external]`, `assume_specification`, or `allowed_to_panic_if`.\n  - Pre-existing `unsafe impl Sync` and `unsafe impl Send` for `SlabSlotList<SLOT_SIZE>` remain verbatim outside `verus!` as the thread-safety boundary (all methods take `&mut self` with no interior mutability and exclusive ownership of queued slots).\n  - Under `feature = \"allow_panic\"`, `SlabSlotList::push` statically rules out both panic paths via `requires` (`cfg!(feature = \"allow_panic\") ==> slot.info() is SlabSlot` and `slot.info() is SlabSlot ==> slot.info().size() == SLOT_SIZE`), so no panic permission is needed; under the default configuration, the non-panicking early return for non-slab slots is preserved and modeled in `ensures`.\n- **Deferred / out of scope**:\n  - `ostd/src/mm/heap/slab.rs` (`Slab`, `SlabMeta`), `HeapSlot::{alloc_large, dealloc_large}`, `LargeAllocFrameMeta`, and global allocator dispatch (`GlobalHeapAllocator`, `AllocDispatch`, `#[global_allocator]`, `#[alloc_error_handler]`).\n  - Optional migration of `HeapSlot` from `impl Inv` to `#[verifier::type_invariant]` and any future per-node frame lemmas needed once `slab.rs` is verified.\n\n</details>\n",
       "url": "https://github.com/asterinas/vostd/pull/923",
-      "updatedAt": "2026-11-26T15:44:02Z",
+      "updatedAt": "2026-11-27T23:31:38Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "UNKNOWN",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -767,7 +767,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Add initial specs for TLB",
       "body": "As the title shows.",
       "url": "https://github.com/asterinas/vostd/pull/935",
-      "updatedAt": "2026-11-27T19:24:43Z",
+      "updatedAt": "2026-11-28T07:49:42Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -925,11 +925,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "99b2cd813368e6d243b6c977d8216d972855af87",
+      "head": "11e8505281738bf08e54167d0bcc681fa58cd565",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-27T16:22:00Z",
+      "updatedAt": "2026-11-28T07:56:58Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1026,7 +1026,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "DIRTY",
       "ci": "成功"
     },
     {
@@ -1044,7 +1044,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1188,7 +1188,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1206,7 +1206,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "UNKNOWN",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1361,7 +1361,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: verify x86 TSC and RDRAND hardware accessors",
       "body": "## Summary\n\nVerify x86 TSC and RDRAND hardware accessors in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc`:\n\n- `tsc_freq`: unwind-free frequency read from the verified `TSC_FREQ` (`AtomicU64`).\n- `read_tsc`: invariant-preserving, unwind-free timestamp counter read via `_rdtsc`.\n- `read_random`: hardware RNG read via `_rdrand64_step` under `cpu_feature_model().supports_rdrand`.\n\nAlso extend `CpuFeatureModel` / `cpuid_consistent` in `ostd::specs::context` with `supports_rdrand` (`CPUID.01H:ECX[bit 30]`).\n\n## Executable Code Changes\n\nNone — only uncommented existing `AtomicU64` / `Ordering` imports, `kernel::tsc::TSC_FREQ`, and `arch::x86::{tsc_freq, read_tsc, read_random}` in place without altering their bodies, types, or visibility.\n\n## Trusted Boundaries\n\nAudited against Rust 1.100.0 `core_arch` and the Intel SDM:\n\n- `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`): `assume_specification` (`opens_invariants none`, `no_unwind`), with a `TODO` to upstream to Verus `vstd`.\n- `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`): `assume_specification` guarded by `cpu_feature_model().supports_rdrand` (placed in `ostd` due to the `cpu_feature_model()` dependency).\n- No `#[verifier::external_body]`, `assume()`, or `admit()` is introduced.\n\n## Out of Scope\n\n- Runtime `RDRAND` CPUID guard in `read_random()` (tracks Asterinas v0.16.0; runtime checks belong to a future upstream sync).\n- `no_unwind` / `opens_invariants none` on `read_random()` and `opens_invariants none` on `tsc_freq()` (blocked by vendored `vstd::std_specs::{iter, atomic}`).\n- Remaining unverified items in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc` (e.g., `init_tsc_freq`).\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nVerify `tsc_freq`, `read_tsc`, and `read_random` in `ostd::arch::x86` (`Exec`: `16 -> 33`, **+17 Verified Exec LoC**, **0 Trusted Exec LoC**) and enable `TSC_FREQ` in `ostd::arch::x86::kernel::tsc` (`Exec`: `25 -> 25`, **0 Trusted Exec LoC**), backed by `CpuFeatureModel::supports_rdrand` and 2 new `assume_specification` entries (`_rdrand64_step` in `ostd/specs/context.rs` and `_rdtsc` in `verified_libs/vstd_extra/src/external/x86.rs`).\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `CpuFeatureModel::supports_rdrand` (`ostd::specs::context`) | Models `CPUID.01H:ECX[bit 30]` (`max_basic_leaf >= 1 && features.ecx & (1u32 << 30) != 0`) across `CpuFeatureModel`, `from_cpuid`, and `cpuid_consistent` leaf 1 so callers can discharge `supports_rdrand` via `__cpuid(0)` + `__cpuid_count(1, 0)`. |\n| `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`) | `assume_specification` requiring `cpu_feature_model().supports_rdrand`, ensuring `flag == 0 || flag == 1` and `flag == 0 ==> *final(val) == 0u64`, with `opens_invariants none` and `no_unwind when cpu_feature_model().supports_rdrand`. |\n| `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`) | `assume_specification` returning an unconstrained `u64` with `opens_invariants none` and `no_unwind`, marked with `TODO` to upstream to Verus `vstd`. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `TSC_FREQ` | `ostd::arch::x86::kernel::tsc` | Marked `#[verus_verify]` (`AtomicU64::new(0)`), reusing `vstd::std_specs::atomic`. |\n| `tsc_freq` | `ostd::arch::x86` | `#[verus_spec(no_unwind)]`; loads `kernel::tsc::TSC_FREQ` with `Ordering::Acquire`. |\n| `read_tsc` | `ostd::arch::x86` | `#[verus_spec(opens_invariants none no_unwind)]`; delegates to `core::arch::x86_64::_rdtsc`. |\n| `read_random` | `ostd::arch::x86` | `#[verus_spec(requires cpu_feature_model().supports_rdrand)]` with loop invariant `cpu_feature_model().supports_rdrand` across `for _ in 0..RETRY_LIMIT` (10 retries). |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, no executable code was rewritten:\n\n- **`ostd/src/arch/x86/kernel/tsc.rs`**: Only uncommented `AtomicU64` in `use core::sync::atomic` and `pub(in crate::arch) static TSC_FREQ: AtomicU64 = AtomicU64::new(0);` with `#[verus_verify]`.\n- **`ostd/src/arch/x86/mod.rs`**: Only uncommented `use core::sync::atomic::Ordering;` and `tsc_freq`, `read_tsc`, `read_random`.\n  - Preserved `for _ in 0..RETRY_LIMIT` verbatim rather than rewriting to `while` or adding `external_body`, accepting the omission of `no_unwind` / `opens_invariants none` until `vstd::std_specs::iter` provides them.\n  - Preserved v0.16.0 `read_random()` without injecting a runtime CPUID check, capturing the hardware requirement in `requires cpu_feature_model().supports_rdrand` instead.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `#[verifier::external_body]`, `assume()`, or `admit()`.\n  - `vstd_extra::external::x86` (`core::arch::x86_64::_rdtsc`): `RDTSC` is a baseline x86-64 instruction (`core_arch/src/x86/rdtsc.rs` carries no `#[target_feature]`), executes without unwinding, and returns `u64`. Carries a `TODO` note to upstream to Verus `vstd`.\n  - `ostd::specs::context` (`core::arch::x86_64::_rdrand64_step`): `core_arch/src/x86_64/rdrand.rs` requires `#[target_feature(enable = \"rdrand\")]`, which is absent on `x86_64-unknown-none`. Requiring `cpu_feature_model().supports_rdrand` prevents `#UD`/UB on CPUs without `RDRAND`; postconditions match Rust 1.100.0 `core_arch` and Intel SDM Vol. 2B. Placed in `ostd/specs/context.rs` alongside `__cpuid` / `__cpuid_count` because it depends on `cpu_feature_model()`.\n- **Deferred / out of scope**:\n  - Upstream Asterinas v0.19+ runtime `RDRAND` feature guard in `read_random()`.\n  - Adding `no_unwind` / `opens_invariants none` to `vstd::std_specs::iter` (`Range` / `VerusForLoopWrapper`) and `opens_invariants none` to `vstd::std_specs::atomic::AtomicU64::load`.\n  - Verifying `kernel::tsc::init_tsc_freq` and the remaining unverified functions in `ostd/src/arch/x86/mod.rs`.\n\n</details>\n",
       "url": "https://github.com/asterinas/vostd/pull/983",
-      "updatedAt": "2026-11-27T17:05:11Z",
+      "updatedAt": "2026-11-28T06:25:16Z",
       "mergedAt": "2026-11-27T17:05:11Z",
       "closedAt": "2026-11-27T17:05:11Z",
       "mergeCommit": "1ee2aeeeb5a72e47442e50dbefeaf33b1f46b9d9",
@@ -1410,18 +1410,81 @@ window.PLAN_PR_SNAPSHOT = {
   ],
   "candidates": [
     {
+      "n": 998,
+      "title": "prove: verify bzImage legacy i386 allocator range construction",
+      "url": "https://github.com/asterinas/vostd/pull/998",
+      "head": "42f70ff2de8d4bc5099c953d4a7eee764273c2b0",
+      "updatedAt": "2026-11-28T07:32:44Z"
+    },
+    {
+      "n": 997,
+      "title": "prove: verify x86 bzImage EFI-to-E820 memory type mapping",
+      "url": "https://github.com/asterinas/vostd/pull/997",
+      "head": "9b79994f5da4ed32e7b60a21f55a1f83abe9afbe",
+      "updatedAt": "2026-11-28T07:34:40Z"
+    },
+    {
+      "n": 996,
+      "title": "prove: verify bzImage firmware record layouts",
+      "url": "https://github.com/asterinas/vostd/pull/996",
+      "head": "27c81a492513208f84c6c2589edc86d6a518a4c6",
+      "updatedAt": "2026-11-28T07:42:39Z"
+    },
+    {
+      "n": 995,
+      "title": "prove: verify x86 TDX trap-frame register accessors",
+      "url": "https://github.com/asterinas/vostd/pull/995",
+      "head": "8092e69effba8aa73c61631ac51cd10ebf8fc5ff",
+      "updatedAt": "2026-11-28T07:46:56Z"
+    },
+    {
+      "n": 994,
+      "title": "prove: verify bzImage EFI command-line loading and page allocation",
+      "url": "https://github.com/asterinas/vostd/pull/994",
+      "head": "2aa68361eb80c19308649be0e800d1443c246c51",
+      "updatedAt": "2026-11-28T07:36:52Z"
+    },
+    {
+      "n": 992,
+      "title": "prove: verify bzImage setup header and screen info layouts",
+      "url": "https://github.com/asterinas/vostd/pull/992",
+      "head": "4a8c8942626b4b8d4fed81df1fc6c3ac2d862637",
+      "updatedAt": "2026-11-28T07:32:24Z"
+    },
+    {
+      "n": 991,
+      "title": "prove: verify x86 trap and syscall frame layouts",
+      "url": "https://github.com/asterinas/vostd/pull/991",
+      "head": "eacd88367fa78434093f146be630658cb0f4b762",
+      "updatedAt": "2026-11-28T07:36:47Z"
+    },
+    {
+      "n": 990,
+      "title": "prove: verify bzImage zero-page table capacities and bounds",
+      "url": "https://github.com/asterinas/vostd/pull/990",
+      "head": "6dd442a8e1665ed1d7d83d61e9590da386ac9618",
+      "updatedAt": "2026-11-28T07:36:01Z"
+    },
+    {
+      "n": 989,
+      "title": "prove: verify x86 user context trap frame projection",
+      "url": "https://github.com/asterinas/vostd/pull/989",
+      "head": "18d1bbca2d1bad1042a143fa8923b3273cf23cfa",
+      "updatedAt": "2026-11-28T07:35:31Z"
+    },
+    {
       "n": 986,
       "title": "prove: verify x86 I/O APIC register access and redirection entry masking",
       "url": "https://github.com/asterinas/vostd/pull/986",
-      "head": "a56216e6b977ec7a1e682876ee3328cc897883bb",
-      "updatedAt": "2026-11-27T10:51:16Z"
+      "head": "3a32cfb31b4854ea85c97a7dc525830ca5f78882",
+      "updatedAt": "2026-11-28T02:56:52Z"
     },
     {
       "n": 965,
       "title": "Refine review skill structural checks and evidence handling",
       "url": "https://github.com/asterinas/vostd/pull/965",
-      "head": "43ab2407c1b251fae3aebab59baae7d1898bad61",
-      "updatedAt": "2026-11-27T09:23:42Z"
+      "head": "c27de25e67d72618c1947578e0060524a43c5e85",
+      "updatedAt": "2026-11-28T07:37:33Z"
     }
   ]
 };
