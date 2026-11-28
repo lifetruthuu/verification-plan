@@ -1,6 +1,6 @@
 window.PLAN_PR_SNAPSHOT = {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-28T07:57:54.740Z",
+  "generatedAt": "2026-11-28T20:14:14.938Z",
   "source": "https://github.com/asterinas/vostd",
   "prs": [
     {
@@ -36,7 +36,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -54,7 +54,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -72,7 +72,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -90,7 +90,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -108,7 +108,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -144,7 +144,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "UNKNOWN",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "未知"
     },
     {
@@ -162,7 +162,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -234,7 +234,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -306,7 +306,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -342,7 +342,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -378,7 +378,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -761,20 +761,20 @@ window.PLAN_PR_SNAPSHOT = {
     },
     {
       "n": 935,
-      "kind": "open",
+      "kind": "merged",
       "draft": false,
-      "head": "d9109cfeeb7e5de8d865be07ef059b82f90e3c37",
+      "head": "2d3e3eb8c1f0a734b8b720020f00cd51c9fd9505",
       "title": "Add initial specs for TLB",
       "body": "As the title shows.",
       "url": "https://github.com/asterinas/vostd/pull/935",
-      "updatedAt": "2026-11-28T07:49:42Z",
-      "mergedAt": null,
-      "closedAt": null,
-      "mergeCommit": null,
-      "reviewDecision": "CHANGES_REQUESTED",
+      "updatedAt": "2026-11-28T08:20:15Z",
+      "mergedAt": "2026-11-28T08:20:15Z",
+      "closedAt": "2026-11-28T08:20:15Z",
+      "mergeCommit": "2c26ce5158e36c7e3898f46aa8ef74313a3e45c2",
+      "reviewDecision": null,
       "ciState": "SUCCESS",
-      "review": "需修改",
-      "gate": "BLOCKED",
+      "review": "无汇总结论",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -835,18 +835,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 940,
       "kind": "open",
       "draft": false,
-      "head": "2128c47df7d6c2d27cfcc2a388be1cdc31f6073b",
+      "head": "3b6ea6f946a35ad6965fa5a785003129ca367e7d",
       "title": "prove: verify RISC-V ISA extension parsers",
-      "body": "## Summary\r\n\r\nVerify the RISC-V ISA extension parsers (`parse_isa_string` and `parse_isa_extensions_list`) and the `EXTENSION_TABLE` lookup table in `ostd::arch::riscv::cpu::extension`, backed by centralized `fdt::node::NodeProperty` external specifications in `vstd_extra::external::fdt`, reusable UTF-8 string lemmas in `vstd_extra::external::str`, and the existing verified `bitflags` crate.\r\n\r\n## Specification Models & Contracts\r\n\r\n| Item | What It Provides |\r\n| --- | --- |\r\n| `ExNodeProperty<'a>` / `trim_trailing_nul_len` / `lemma_trim_trailing_nul_len` / `NodeProperty::as_str` (`vstd_extra::external::fdt`) | Exposes `fdt::node::NodeProperty<'a>` (`name`, `value`), defines deterministic recursive `trim_trailing_nul_len(b: Seq<u8>) -> int` (with boundary lemma `lemma_trim_trailing_nul_len`), and specifies `NodeProperty::as_str` against `fdt 0.1.5`: returns `Some(s)` iff `valid_utf8(prop.value@)`, with `s.spec_bytes() == prop.value@[..trim_trailing_nul_len(prop.value@)]`; annotated with `opens_invariants none` and `no_unwind`. |\r\n| UTF-8 string lemmas (`vstd_extra::external::str`) | Reusable `pub proof fn`s (`lemma_str_bytes_eq_iff_view_eq`, `lemma_single_byte_str`, `lemma_encode_utf8_contains_ascii`, `lemma_ascii_char_boundary_after`) built on `vstd::utf8` lemmas. |\r\n| `isa_start` / `first_end` (private `spec fn`) | Uses `Seq::is_prefix_of` to model the optional `\"rv32\"` or `\"rv64\"` prefix skip. Models the end of the first `_`-delimited segment (single-letter extensions). |\r\n| `name_at` / `has_name` (private `spec fn`) | Specifies an occurrence of byte sequence `name` within `b[lo..hi)` bounded by `delim` (or range boundaries), or at any position when `delim` is `None`. |\r\n| `recognized` (private `spec fn`) | Distinguishes the two device-tree formats: `riscv,isa` (reusing `trim_trailing_nul_len`, matching single-byte names in `[isa_start, first_end)` or `_`-delimited names after `first_end`) vs. `riscv,isa-extensions` (NUL-delimited names across the full byte slice). |\r\n| `bits_for` / `table_bits` (private `spec fn`) | Canonical `Seq::fold_left` bitwise union of `e.flag.bits()` over all entries in `extension_table()` matching `recognized`. |\r\n| `extension_table()` (private opaque `spec fn`) | Macro-generated `Seq<ExtensionData>` matching `EXTENSION_TABLE`, paired with `lemma_extension_table_wf` (proving all 82 names are non-empty, `<= usize::MAX`, free of `0u8`/`b'_'`, and pairwise distinct). |\r\n\r\nAll parser specification helpers remain private to `ostd::arch::riscv::cpu::extension`. `IsaExtensions` uses the existing verified `bitflags` crate (`empty`, `union`, `bits`, `from_bits_retain`) without modifying `verified_libs/bitflags`.\r\n\r\nEach extension lookup records its result in a ghost variable and invokes its step lemma after the branches rejoin. The step lemmas use the fixed extension table directly, and the single-character step reuses vstd’s `lemma_seq_contains_after_push`. A shared proof connects `Seq::is_prefix_of` to the slice comparison used by the executable prefix checks.\r\n\r\n## Verified Scope\r\n\r\n| Function / Entry | Module | Contract / Scope |\r\n| --- | --- | --- |\r\n| `parse_isa_string` | `ostd::arch::riscv::cpu::extension` | `requires allowed_to_panic_if(!valid_utf8(isa.value@))`, `ensures valid_utf8(isa.value@)`, and `returns IsaExtensions::from_bits_retain(table_bits(isa.value@, true))`. Preserves the original panic trigger for invalid UTF-8. (`no_unwind when valid_utf8(isa.value@)` is blocked by upstream callees lacking `no_unwind`: `<[T]>::starts_with`, `<[T]>::iter`, `vstd::array::array_as_slice`, `str::split_at`, `ForLoopGhostIterator::next`, `Iterator::find`, `UnwrapOrPanic::unwrap_or_panic`, and `bitflags` methods.) |\r\n| `parse_isa_extensions_list` | `ostd::arch::riscv::cpu::extension` | Accepts arbitrary byte slices and specifies `returns IsaExtensions::from_bits_retain(table_bits(isa_extensions.value@, false))`. (`no_unwind` is similarly blocked by `Index::index`, `<[T]>::iter`, `Iterator::find`, and `bitflags` methods.) |\r\n| `EXTENSION_TABLE` | `ostd::arch::riscv::cpu::extension` | Preserves the original slice type `exec const EXTENSION_TABLE: &[ExtensionData]` with `ensures EXTENSION_TABLE@ == extension_table()`. |\r\n| `init` / `has_extensions` / `GLOBAL_ISA_EXTENSIONS` | `ostd::arch::riscv::cpu::extension` | **Unverified** — kept commented out (deferred until `DEVICE_TREE` and `spin::Once` integration). |\r\n\r\n## Executable Code Changes & Justifications\r\n\r\nThe `Origin Rust:` blocks document the executable changes and retain the original parser code.\r\n\r\n- **Enable `arch::riscv::cpu::extension` in place**: Splits the commented block in `ostd/src/arch/riscv/mod.rs` to enable `pub(crate) mod cpu;` (leaving `boot`, `device`, and `iommu` commented out), and comments out `pub mod context;` and `pub mod local;` in `ostd/src/arch/riscv/cpu/mod.rs` so only the already-uncommented `pub mod extension;` is verified.\r\n- **Verified `bitflags` import and `union` (`use bitflags::bitflags;`, `extensions = extensions.union(ext_data.flag)`)**: Switches from `bitflags_upstream` to the verified `bitflags` crate. Replaces `|=` with `.union(...)` because `BitOrAssign` contracts for `bitflags` are split out into a separate follow-up PR; runtime bit semantics are identical.\r\n- **`isa.as_str().unwrap()` -> `isa.as_str().unwrap_or_panic()`**: Retains the exact `NodeProperty::as_str` call (backed by `vstd_extra::external::fdt`) and switches `.unwrap()` to `UnwrapOrPanic::unwrap_or_panic()` because `vstd`'s `Option::unwrap` requires `self.is_some()`, which would force `requires valid_utf8(isa.value@)` on `parse_isa_string` and block future callers reading raw device-tree data. The change preserves the panic trigger. `as_str()` returns `None` exactly when `isa.value@` is invalid UTF-8. The panic message and reported source location change.\r\n- **`str::starts_with` / `str::split('_')` in `parse_isa_string`**: Replaced with `isa_str.as_bytes().starts_with(b\"rv32\") || isa_str.as_bytes().starts_with(b\"rv64\")` and bounded `b'_'` scans with chained `str::split_at`, while preserving the original `ext_start >= isa_str.len()` early return, `for ch in first_part.chars()`, and both direct `if let Some(ext_data) = EXTENSION_TABLE.iter().find(...)` lookups (including the original closures `|e| e.name.len() == 1 && e.name.chars().next() == Some(ch)` and `|e| e.name == part`) without extra executable lookup temporaries.\r\n  - *Why not specify the original callees directly*: `str::starts_with` and `str::split` are generic over the unstable `core::str::pattern::Pattern` trait; `str` range indexing (`&isa_str[a..b]`) lacks an `assume_specification` for `<str as Index<I>>::index` in vendored `vstd` (and `SliceIndex::index` requires unstable `slice_index_methods`), whereas `str::split_at` is stable, O(1), and fully specified. Since `\"rv32\"`, `\"rv64\"`, and `b'_'` are ASCII, byte-level prefix checks and `b'_'` splits coincide identically with UTF-8 char boundaries and `str::split('_')`.\r\n- **`slice::split(|&b| b == 0)` in `parse_isa_extensions_list`**: Replaced with a bounded `0u8` scan while keeping `if !str.is_empty()`, `core::str::from_utf8(str)`, and the direct `if let Some(ext_data) = EXTENSION_TABLE.iter().find(|e| e.name == ext_name)` lookup intact without extra executable lookup temporaries.\r\n  - *Why not specify `slice::split` directly*: `<[T]>::split` and `core::slice::Split` are not specified in vendored `vstd`; adding a complete lazy `FnMut` iterator adapter contract in `vstd_extra` is deferred to a follow-up. The bounded scan visits the exact same NUL-delimited sub-slices in order.\r\n- **Centralized `fdt` external spec (`vstd_extra::external::fdt`)**: Placed `ExNodeProperty`, `trim_trailing_nul_len`, `lemma_trim_trailing_nul_len`, and `assume_specification[NodeProperty::as_str]` in `verified_libs/vstd_extra/src/external/fdt.rs` with `fdt = \"=0.1.5\"` in `verified_libs/vstd_extra/Cargo.toml` (matching `ostd`'s existing lockfile version with zero transitive dependencies, and pinned with `=` like `acpi = \"=5.2.0\"` so patch updates cannot silently invalidate the audited boundary).\r\n\r\n## Trusted Boundaries & Deferred Scope\r\n\r\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `admit()`, `assume()`, `#[verifier::external_body]`, `allowed_to_panic_if(true)`, or `#[verifier::rlimit]`. The only new trusted boundary is `verified_libs/vstd_extra/src/external/fdt.rs` (`ExNodeProperty` and `assume_specification[NodeProperty::as_str]`), audited directly against `fdt 0.1.5` (`src/node.rs:495-497`).\r\n- **Bitflags improvements split out**: Unrelated `verified_libs/bitflags/src/lib.rs` contract additions (`from_name`, `*AssignSpecImpl`, open `known_bits`/`unknown_bits`, etc.) from the earlier draft have been removed from this PR and separated into an independent follow-up branch/PR (`prove: complete verified bitflags contracts`).\r\n- **Deferred / out of scope**:\r\n  - `init()`, `has_extensions()`, and `GLOBAL_ISA_EXTENSIONS` remain commented out pending `DEVICE_TREE` and `spin::Once` verification on RISC-V.\r\n  - `ostd::arch::riscv::cpu::{context, local}` and `ostd::arch::riscv::{boot, device, iommu}` remain disabled.",
+      "body": "## Summary\r\n\r\nVerify the RISC-V ISA extension parsers (`parse_isa_string` and `parse_isa_extensions_list`) and the `EXTENSION_TABLE` lookup table in `ostd::arch::riscv::cpu::extension`, backed by centralized `fdt::node::NodeProperty` external specifications in `vstd_extra::external::fdt`, reusable UTF-8 string lemmas in `vstd_extra::external::str`, and the existing verified `bitflags` crate.\r\n\r\n## Specification Models & Contracts\r\n\r\n| Item | What It Provides |\r\n| --- | --- |\r\n| `ExNodeProperty<'a>` / `trim_trailing_nul_len` / `lemma_trim_trailing_nul_len` / `NodeProperty::as_str` (`vstd_extra::external::fdt`) | Exposes `fdt::node::NodeProperty<'a>` (`name`, `value`), defines deterministic recursive `trim_trailing_nul_len(b: Seq<u8>) -> int` (with boundary lemma `lemma_trim_trailing_nul_len`), and specifies `NodeProperty::as_str` against `fdt 0.1.5`: returns `Some(s)` iff `valid_utf8(prop.value@)`, with `s.spec_bytes() == prop.value@[..trim_trailing_nul_len(prop.value@)]`; annotated with `opens_invariants none` and `no_unwind`. |\r\n| UTF-8 string lemmas (`vstd_extra::external::str`) | Reusable `pub proof fn`s (`lemma_str_bytes_eq_iff_view_eq`, `lemma_single_byte_str`, `lemma_encode_utf8_contains_ascii`, `lemma_ascii_char_boundary_after`) built on `vstd::utf8` lemmas. |\r\n| `isa_start` / `first_end` (private `spec fn`) | Uses `Seq::is_prefix_of` to model the optional `\"rv32\"` or `\"rv64\"` prefix skip. Models the end of the first `_`-delimited segment (single-letter extensions). |\r\n| `name_at` / `has_name` (private `spec fn`) | Specifies an occurrence of byte sequence `name` within `b[lo..hi)` bounded by `delim` (or range boundaries), or at any position when `delim` is `None`. |\r\n| `recognized` (private `spec fn`) | Distinguishes the two device-tree formats: `riscv,isa` (reusing `trim_trailing_nul_len`, matching single-byte names in `[isa_start, first_end)` or `_`-delimited names after `first_end`) vs. `riscv,isa-extensions` (NUL-delimited names across the full byte slice). |\r\n| `bits_for` / `table_bits` (private `spec fn`) | Canonical `Seq::fold_left` bitwise union of `e.flag.bits()` over all entries in `extension_table()` matching `recognized`. |\r\n| `extension_table()` (private opaque `spec fn`) | Macro-generated `Seq<ExtensionData>` matching `EXTENSION_TABLE`, paired with `lemma_extension_table_wf` (proving all 82 names are non-empty, `<= usize::MAX`, free of `0u8`/`b'_'`, and pairwise distinct). |\r\n\r\nAll parser specification helpers remain private to `ostd::arch::riscv::cpu::extension`. `IsaExtensions` uses the existing verified `bitflags` crate (`empty`, `union`, `bits`, `from_bits_retain`) without modifying `verified_libs/bitflags`.\r\n\r\nEach extension lookup records its result in a ghost variable and invokes its step lemma after the branches rejoin. The step lemmas use the fixed extension table directly, and the single-character step reuses vstd’s `lemma_seq_contains_after_push`. A shared proof connects `Seq::is_prefix_of` to the slice comparison used by the executable prefix checks.\r\n\r\n## Verified Scope\r\n\r\n| Function / Entry | Module | Contract / Scope |\r\n| --- | --- | --- |\r\n| `parse_isa_string` | `ostd::arch::riscv::cpu::extension` | `requires valid_utf8(isa.value@)` and `returns IsaExtensions::from_bits_retain(table_bits(isa.value@, true))`, preserving the original `isa.as_str().unwrap()`. (`no_unwind` is blocked by upstream callees lacking `no_unwind`: `<[T]>::starts_with`, `<[T]>::iter`, `vstd::array::array_as_slice`, `str::split_at`, `ForLoopGhostIterator::next`, `Iterator::find`, `Option::unwrap`, and `bitflags` methods.) |\r\n| `parse_isa_extensions_list` | `ostd::arch::riscv::cpu::extension` | Accepts arbitrary byte slices and specifies `returns IsaExtensions::from_bits_retain(table_bits(isa_extensions.value@, false))`. (`no_unwind` is similarly blocked by `Index::index`, `<[T]>::iter`, `Iterator::find`, and `bitflags` methods.) |\r\n| `EXTENSION_TABLE` | `ostd::arch::riscv::cpu::extension` | Preserves the original slice type `exec const EXTENSION_TABLE: &[ExtensionData]` with `ensures EXTENSION_TABLE@ == extension_table()`. |\r\n| `init` / `has_extensions` / `GLOBAL_ISA_EXTENSIONS` | `ostd::arch::riscv::cpu::extension` | **Unverified** — kept commented out (deferred until `DEVICE_TREE` and `spin::Once` integration). |\r\n\r\n## Executable Code Changes & Justifications\r\n\r\nThe `Origin Rust:` blocks document the executable changes and retain the original parser code.\r\n\r\n- **Enable `arch::riscv::cpu::extension` in place**: Splits the commented block in `ostd/src/arch/riscv/mod.rs` to enable `pub(crate) mod cpu;` (leaving `boot`, `device`, and `iommu` commented out), and comments out `pub mod context;` and `pub mod local;` in `ostd/src/arch/riscv/cpu/mod.rs` so only the already-uncommented `pub mod extension;` is verified.\r\n- **Verified `bitflags` `union` (`extensions = extensions.union(ext_data.flag)`)**: Replaces `|=` with `.union(...)` because `BitOrAssign` contracts for `bitflags` are split out into a separate follow-up PR; runtime bit semantics are identical.\r\n- **`str::starts_with` / `str::split('_')` in `parse_isa_string`**: Replaced with `isa_str.as_bytes().starts_with(b\"rv32\") || isa_str.as_bytes().starts_with(b\"rv64\")` and bounded `b'_'` scans with chained `str::split_at`, while preserving the original `isa.as_str().unwrap()`, `ext_start >= isa_str.len()` early return, `for ch in first_part.chars()`, and both direct `if let Some(ext_data) = EXTENSION_TABLE.iter().find(...)` lookups (including the original closures `|e| e.name.len() == 1 && e.name.chars().next() == Some(ch)` and `|e| e.name == part`) without extra executable lookup temporaries.\r\n  - *Why not specify the original callees directly*: `str::starts_with` and `str::split` are generic over the unstable `core::str::pattern::Pattern` trait; `str` range indexing (`&isa_str[a..b]`) lacks an `assume_specification` for `<str as Index<I>>::index` in vendored `vstd` (and `SliceIndex::index` requires unstable `slice_index_methods`), whereas `str::split_at` is stable, O(1), and fully specified. Since `\"rv32\"`, `\"rv64\"`, and `b'_'` are ASCII, byte-level prefix checks and `b'_'` splits coincide identically with UTF-8 char boundaries and `str::split('_')`.\r\n- **`slice::split(|&b| b == 0)` in `parse_isa_extensions_list`**: Replaced with a bounded `0u8` scan while keeping `if !str.is_empty()`, `core::str::from_utf8(str)`, and the direct `if let Some(ext_data) = EXTENSION_TABLE.iter().find(|e| e.name == ext_name)` lookup intact without extra executable lookup temporaries.\r\n  - *Why not specify `slice::split` directly*: `<[T]>::split` and `core::slice::Split` are not specified in vendored `vstd`; adding a complete lazy `FnMut` iterator adapter contract in `vstd_extra` is deferred to a follow-up. The bounded scan visits the exact same NUL-delimited sub-slices in order.\r\n- **Centralized `fdt` external spec (`vstd_extra::external::fdt`)**: Placed `ExNodeProperty`, `trim_trailing_nul_len`, `lemma_trim_trailing_nul_len`, and `assume_specification[NodeProperty::as_str]` in `verified_libs/vstd_extra/src/external/fdt.rs` with `fdt = \"=0.1.5\"` in `verified_libs/vstd_extra/Cargo.toml` (matching `ostd`'s existing lockfile version with zero transitive dependencies, and pinned with `=` like `acpi = \"=5.2.0\"` so patch updates cannot silently invalidate the audited boundary).\r\n- **Prover isolation for `Segment::next` (`ostd/src/mm/frame/segment.rs`)**: Adds `#[verifier::spinoff_prover]` on `Segment::next` to prevent an rlimit regression caused by SMT declaration-order changes when `arch::riscv::cpu::extension` is enabled.\r\n\r\n## Trusted Boundaries & Deferred Scope\r\n\r\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `admit()`, `assume()`, `#[verifier::external_body]`, or `#[verifier::rlimit]`. The only new trusted boundary is `verified_libs/vstd_extra/src/external/fdt.rs` (`ExNodeProperty` and `assume_specification[NodeProperty::as_str]`), audited directly against `fdt 0.1.5` (`src/node.rs:495-497`).\r\n- **Bitflags improvements split out**: Unrelated `verified_libs/bitflags/src/lib.rs` contract additions (`from_name`, `*AssignSpecImpl`, open `known_bits`/`unknown_bits`, etc.) from the earlier draft have been removed from this PR and separated into an independent follow-up branch/PR (`prove: complete verified bitflags contracts`).\r\n- **Deferred / out of scope**:\r\n  - `init()`, `has_extensions()`, and `GLOBAL_ISA_EXTENSIONS` remain commented out pending `DEVICE_TREE` and `spin::Once` verification on RISC-V.\r\n  - `ostd::arch::riscv::cpu::{context, local}` and `ostd::arch::riscv::{boot, device, iommu}` remain disabled.",
       "url": "https://github.com/asterinas/vostd/pull/940",
-      "updatedAt": "2026-11-26T13:04:56Z",
+      "updatedAt": "2026-11-28T08:50:00Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "DIRTY",
+      "gate": "CLEAN",
       "ci": "成功"
     },
     {
@@ -900,7 +900,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -925,11 +925,11 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 948,
       "kind": "open",
       "draft": false,
-      "head": "11e8505281738bf08e54167d0bcc681fa58cd565",
+      "head": "8c3ad32ebf471c9e8813e020bd79c3c801e6c3bd",
       "title": "prove: verify bzImage payload encoding, decoding, and loading",
       "body": "# Verify bzImage payload encoding, decoding, and loading\r\n\r\n  ## Summary\r\n  - Verify the full bzImage payload path with Verus: **encoding → format selection → decoding → ELF segment loading**.\r\n  - Specify the gzip/zlib byte relations.\r\n  - The loader's executable flow is unchanged.\r\n  - Initialized segment snapshots are recorded only in erased (proof-only) state.\r\n\r\n  ## Trusted boundary (not covered by the proof)\r\n  - The codec models apply only to reviewed `Vec` / slice / default-codec instances.\r\n  - `alloc_at` is an explicit trusted boundary: on normal return it guarantees only that the slice has the requested length.\r\n  - Allocator correctness and global physical-memory ownership are outside the proof.\r\n\r\n  ## Compatibility fixes (no logic changes)\r\n  - Replace the removed `MaybeUninit::fill` with `write_filled`.\r\n  - Switch to `no_std_io2` and `tdx-guest 0.4`.\r\n  - Replace unsupported slice-rest patterns with equivalent length/index checks.\r\n  - Expose internal decoder types required by the verified trait contracts.\r\n  - Keep the original Rust code in adjacent `Origin` comments.\r\n\r\n  ## Supporting changes\r\n  - Gate the bzImage-only external models.\r\n  - Add `make verify-bzimage`.",
       "url": "https://github.com/asterinas/vostd/pull/948",
-      "updatedAt": "2026-11-28T07:56:58Z",
+      "updatedAt": "2026-11-28T14:52:18Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
@@ -1008,7 +1008,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1026,7 +1026,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1044,7 +1044,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1080,7 +1080,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "DIRTY",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1181,14 +1181,14 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "Dyn typing patches",
       "body": "This patch introduces a series of patches to Verus that enable dynamic typing. I have also extended `dv` to enable automatic patch application. Patches are numbered and intended to apply in order. The reason that I use multiple small patches instead of one big one is to streamline the process of upstreaming their contents. The patches are as follows:\n\n1. `0001-verus-dyn-supertrait-impls.patch` amends Verus' trait conflict checking to allow `dyn T` when `T` has a supertrait.\n2. `0002-verus-dyn-imported-traits.patch` fixes a bug in Verus' dyn-compatibility check, in which it would reject supertraits defined outside of the current crate, due to not importing the full context.\n3. `0003-verus-dyn-reject-diagnostics.patch` splits the error message for unsupported `dyn` types to clarify which features are lacking for a given case.\n4. `0004-verus-type-identity.patch` gives Verus a new `TypeTag` primitive and emits z3 axioms constructing the tags of each given type and asserting that upcasting an object to a `dyn` type preserves its tag.\n5. `0005-verus-any-surface.patch` declares `core::any::Any` so that `dyn Any` is a legal type, and specifies `Any::is` and `Any::dyn_value`, using `TypeTag`s as the representation for `Any`'s `TypeId` type.\n\nAn additional optional patch, `verus-dyn-spec-fn-generic.patch`, extends the range of a trait's spec functions so that if `foo = bar.to_dyn::<T>()`, spec-level facts about `bar` also apply to `foo`. Currently my verification does not depend on this, so I removed it from the critical path.\n\nOnce this PR is merged and stable, I will have a follow-up that is the actual proof work built on it.",
       "url": "https://github.com/asterinas/vostd/pull/968",
-      "updatedAt": "2026-11-26T02:04:45Z",
+      "updatedAt": "2026-11-28T08:02:49Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
       "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
       "review": "需修改",
-      "gate": "BLOCKED",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1267,18 +1267,18 @@ window.PLAN_PR_SNAPSHOT = {
       "n": 977,
       "kind": "open",
       "draft": false,
-      "head": "06327ccfdfe3b6a5c917a4914bc49e5f22115b30",
+      "head": "5add785e9cd2622bfd180719c67122fa6f8a9ea0",
       "title": "prove: verify x86 TLB flush and page table activation functions",
-      "body": "## Summary\n\nRestore and verify four x86-64 memory management functions, replacing their `external_body` stubs:\n\n- `tlb_flush_addr`\n- `tlb_flush_addr_range`\n- `tlb_flush_all_excluding_global`\n- `activate_page_table`\n\nThe verification covers address validity, page alignment, loop termination, and panic freedom under the specified preconditions.\n\n## Executable Code Changes\n\nNone. The original Asterinas implementations, including the `step_by` loop, are restored without modification.\n\n## Trusted Boundaries\n\nAdd external specifications in `vstd_extra` for:\n\n- `external/x86.rs`: x86_64 address, paging, TLB, and CR3 APIs, based on `x86_64` 0.15.5.\n- `external/iter.rs`: `StepBy` and `Iterator::step_by`, including an iterator-model axiom, pending upstream `vstd` support.\n\nNo new `admit()`, `assume()`, or executable `external_body` annotations are introduced.\n\n## Out of Scope\n\n- `tlb_flush_all_including_global`, `current_page_table_paddr`, and `Debug` for `PageTableEntry`.\n- Restoring cross-module callers.\n- Modeling hardware TLB and CR3 state transitions.",
+      "body": "## Summary\n\nRestore and adapt four x86-64 memory management functions in `ostd/src/arch/x86/mm/mod.rs` to the per-CPU TLB model introduced in #935 (`TlbModel`, `CpuTlbState`, and `FlushSet`):\n\n- `tlb_flush_addr`\n- `tlb_flush_addr_range`\n- `tlb_flush_all_excluding_global`\n- `activate_page_table`\n\nThe verification covers address validity, page alignment, CR3 flag validity, loop termination, panic freedom, and `TlbModel` state transitions under the specified preconditions:\n\n- **`ostd/specs/mm/tlb.rs`**: Add `FlushSet::{addr, range, invalidates}`, `CpuTlbState::{apply_flush, activate}` with `lemma_apply_flush_empty` / `lemma_apply_flush_join`, and `TlbModel::cpu_updated`, keeping `TlbModel`'s internal state private.\n- **`ostd/src/mm/tlb.rs`**: Reuse `FlushSet::addr` and `FlushSet::range` in `TlbFlushOp::view`.\n- **`ostd/src/arch/x86/mm/mod.rs`**:\n  - `tlb_flush_addr` verifies canonical address validation (`VirtAddr::new`) and applies `FlushSet::addr(vaddr)` to the target CPU.\n  - `tlb_flush_addr_range` verifies the `Range::step_by(PAGE_SIZE)` loop against `FlushSet::range(*range)` via `tlb_flush_addr`.\n  - `tlb_flush_all_excluding_global` applies `FlushSet::all_user()` (under `CR4.PCIDE == 0`).\n  - `activate_page_table` verifies physical address validity, alignment (`PhysFrame::from_start_address(...).unwrap()`), and `CachePolicy` / CR3 flag dispatch, and applies `activate(root_paddr).apply_flush(FlushSet::all_user())` (under `CR4.PCIDE == 0`).\n\n## Executable Code Changes\n\nThe upstream Asterinas bodies (including the `step_by` loop) are restored. In `ostd/src/arch/x86/mm/mod.rs`, the two raw hardware-instruction calls inside verified functions are factored into private one-line `#[inline(always)]` wrappers:\n\n- `tlb_flush_virt_addr(addr)` wrapping `tlb::flush(addr)` (called by `tlb_flush_addr`).\n- `write_cr3(frame, flags)` wrapping `unsafe { Cr3::write(frame, flags) }` (called by `activate_page_table`).\n\n**Justification**: Verus `assume_specification` on external `x86_64` functions cannot accept extra `Tracked<&mut TlbModel>` / `Ghost<CpuIdx>` parameters, and `TlbModel` intentionally keeps its state private so proofs cannot forge it or drop stale entries (#935). Isolating only the hardware instruction calls preserves identical runtime behavior while keeping all surrounding Rust checks and `tlb_flush_addr_range` verified.\n\n## Trusted Boundaries\n\n- **`ostd/src/arch/x86/mm/mod.rs`**: Three minimal `#[verifier::external_body]` hardware primitives (`tlb_flush_virt_addr`, `tlb_flush_all_excluding_global`, and `write_cr3`) bridge `invlpg`, CR3 reload, and CR3 write to `TlbModel` (assuming `CR4.PCIDE == 0`).\n- **`verified_libs/vstd_extra/src/external/x86.rs`**: Audited specifications for `x86_64` 0.15.5 `VirtAddr`, `PhysAddr`, `PageSize`/`Size4KiB`/`PhysFrame`, and `Cr3Flags` (assuming `memory_encryption` is disabled).\n- **`verified_libs/vstd_extra/src/external/iter.rs`**: `StepBy` and `Iterator::step_by`, including an iterator-model axiom for `Range<usize>`, pending upstream `vstd` support.\n\nNo `admit()` or `assume()` is introduced.\n\n## Out of Scope\n\n- `tlb_flush_all_including_global`, `current_page_table_paddr`, and `Debug` for `PageTableEntry`.\n- Restoring cross-module callers (e.g. `TlbFlushOp::perform_on_current`, `OpsStack::flush_all`, `PageTableNode::activate`) and adapting RISC-V / LoongArch arch flush functions.\n",
       "url": "https://github.com/asterinas/vostd/pull/977",
-      "updatedAt": "2026-11-26T09:55:45Z",
+      "updatedAt": "2026-11-28T18:16:35Z",
       "mergedAt": null,
       "closedAt": null,
       "mergeCommit": null,
-      "reviewDecision": null,
+      "reviewDecision": "CHANGES_REQUESTED",
       "ciState": "SUCCESS",
-      "review": "无汇总结论",
-      "gate": "DIRTY",
+      "review": "需修改",
+      "gate": "BLOCKED",
       "ci": "成功"
     },
     {
@@ -1350,7 +1350,7 @@ window.PLAN_PR_SNAPSHOT = {
       "reviewDecision": null,
       "ciState": "SUCCESS",
       "review": "无汇总结论",
-      "gate": "CLEAN",
+      "gate": "UNKNOWN",
       "ci": "成功"
     },
     {
@@ -1361,7 +1361,7 @@ window.PLAN_PR_SNAPSHOT = {
       "title": "prove: verify x86 TSC and RDRAND hardware accessors",
       "body": "## Summary\n\nVerify x86 TSC and RDRAND hardware accessors in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc`:\n\n- `tsc_freq`: unwind-free frequency read from the verified `TSC_FREQ` (`AtomicU64`).\n- `read_tsc`: invariant-preserving, unwind-free timestamp counter read via `_rdtsc`.\n- `read_random`: hardware RNG read via `_rdrand64_step` under `cpu_feature_model().supports_rdrand`.\n\nAlso extend `CpuFeatureModel` / `cpuid_consistent` in `ostd::specs::context` with `supports_rdrand` (`CPUID.01H:ECX[bit 30]`).\n\n## Executable Code Changes\n\nNone — only uncommented existing `AtomicU64` / `Ordering` imports, `kernel::tsc::TSC_FREQ`, and `arch::x86::{tsc_freq, read_tsc, read_random}` in place without altering their bodies, types, or visibility.\n\n## Trusted Boundaries\n\nAudited against Rust 1.100.0 `core_arch` and the Intel SDM:\n\n- `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`): `assume_specification` (`opens_invariants none`, `no_unwind`), with a `TODO` to upstream to Verus `vstd`.\n- `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`): `assume_specification` guarded by `cpu_feature_model().supports_rdrand` (placed in `ostd` due to the `cpu_feature_model()` dependency).\n- No `#[verifier::external_body]`, `assume()`, or `admit()` is introduced.\n\n## Out of Scope\n\n- Runtime `RDRAND` CPUID guard in `read_random()` (tracks Asterinas v0.16.0; runtime checks belong to a future upstream sync).\n- `no_unwind` / `opens_invariants none` on `read_random()` and `opens_invariants none` on `tsc_freq()` (blocked by vendored `vstd::std_specs::{iter, atomic}`).\n- Remaining unverified items in `ostd::arch::x86` and `ostd::arch::x86::kernel::tsc` (e.g., `init_tsc_freq`).\n\n---\n\n<details>\n<summary>Detailed Specification &amp; Verification Notes</summary>\n\n### Summary\n\nVerify `tsc_freq`, `read_tsc`, and `read_random` in `ostd::arch::x86` (`Exec`: `16 -> 33`, **+17 Verified Exec LoC**, **0 Trusted Exec LoC**) and enable `TSC_FREQ` in `ostd::arch::x86::kernel::tsc` (`Exec`: `25 -> 25`, **0 Trusted Exec LoC**), backed by `CpuFeatureModel::supports_rdrand` and 2 new `assume_specification` entries (`_rdrand64_step` in `ostd/specs/context.rs` and `_rdtsc` in `verified_libs/vstd_extra/src/external/x86.rs`).\n\n### Specification Models & Contracts\n\n| Item | What It Provides |\n| --- | --- |\n| `CpuFeatureModel::supports_rdrand` (`ostd::specs::context`) | Models `CPUID.01H:ECX[bit 30]` (`max_basic_leaf >= 1 && features.ecx & (1u32 << 30) != 0`) across `CpuFeatureModel`, `from_cpuid`, and `cpuid_consistent` leaf 1 so callers can discharge `supports_rdrand` via `__cpuid(0)` + `__cpuid_count(1, 0)`. |\n| `core::arch::x86_64::_rdrand64_step` (`ostd::specs::context`) | `assume_specification` requiring `cpu_feature_model().supports_rdrand`, ensuring `flag == 0 || flag == 1` and `flag == 0 ==> *final(val) == 0u64`, with `opens_invariants none` and `no_unwind when cpu_feature_model().supports_rdrand`. |\n| `core::arch::x86_64::_rdtsc` (`vstd_extra::external::x86`) | `assume_specification` returning an unconstrained `u64` with `opens_invariants none` and `no_unwind`, marked with `TODO` to upstream to Verus `vstd`. |\n\n### Verified Scope\n\n| Function / Entry | Module | Contract / Scope |\n| --- | --- | --- |\n| `TSC_FREQ` | `ostd::arch::x86::kernel::tsc` | Marked `#[verus_verify]` (`AtomicU64::new(0)`), reusing `vstd::std_specs::atomic`. |\n| `tsc_freq` | `ostd::arch::x86` | `#[verus_spec(no_unwind)]`; loads `kernel::tsc::TSC_FREQ` with `Ordering::Acquire`. |\n| `read_tsc` | `ostd::arch::x86` | `#[verus_spec(opens_invariants none no_unwind)]`; delegates to `core::arch::x86_64::_rdtsc`. |\n| `read_random` | `ostd::arch::x86` | `#[verus_spec(requires cpu_feature_model().supports_rdrand)]` with loop invariant `cpu_feature_model().supports_rdrand` across `for _ in 0..RETRY_LIMIT` (10 retries). |\n\n### Executable Code Changes & Justifications\n\nPer `AGENTS.md`, no executable code was rewritten:\n\n- **`ostd/src/arch/x86/kernel/tsc.rs`**: Only uncommented `AtomicU64` in `use core::sync::atomic` and `pub(in crate::arch) static TSC_FREQ: AtomicU64 = AtomicU64::new(0);` with `#[verus_verify]`.\n- **`ostd/src/arch/x86/mod.rs`**: Only uncommented `use core::sync::atomic::Ordering;` and `tsc_freq`, `read_tsc`, `read_random`.\n  - Preserved `for _ in 0..RETRY_LIMIT` verbatim rather than rewriting to `while` or adding `external_body`, accepting the omission of `no_unwind` / `opens_invariants none` until `vstd::std_specs::iter` provides them.\n  - Preserved v0.16.0 `read_random()` without injecting a runtime CPUID check, capturing the hardware requirement in `requires cpu_feature_model().supports_rdrand` instead.\n\n### Trusted Boundaries & Deferred Scope\n\n- **No cheating / trusted boundary inventory**: This PR introduces **no** `#[verifier::external_body]`, `assume()`, or `admit()`.\n  - `vstd_extra::external::x86` (`core::arch::x86_64::_rdtsc`): `RDTSC` is a baseline x86-64 instruction (`core_arch/src/x86/rdtsc.rs` carries no `#[target_feature]`), executes without unwinding, and returns `u64`. Carries a `TODO` note to upstream to Verus `vstd`.\n  - `ostd::specs::context` (`core::arch::x86_64::_rdrand64_step`): `core_arch/src/x86_64/rdrand.rs` requires `#[target_feature(enable = \"rdrand\")]`, which is absent on `x86_64-unknown-none`. Requiring `cpu_feature_model().supports_rdrand` prevents `#UD`/UB on CPUs without `RDRAND`; postconditions match Rust 1.100.0 `core_arch` and Intel SDM Vol. 2B. Placed in `ostd/specs/context.rs` alongside `__cpuid` / `__cpuid_count` because it depends on `cpu_feature_model()`.\n- **Deferred / out of scope**:\n  - Upstream Asterinas v0.19+ runtime `RDRAND` feature guard in `read_random()`.\n  - Adding `no_unwind` / `opens_invariants none` to `vstd::std_specs::iter` (`Range` / `VerusForLoopWrapper`) and `opens_invariants none` to `vstd::std_specs::atomic::AtomicU64::load`.\n  - Verifying `kernel::tsc::init_tsc_freq` and the remaining unverified functions in `ostd/src/arch/x86/mod.rs`.\n\n</details>\n",
       "url": "https://github.com/asterinas/vostd/pull/983",
-      "updatedAt": "2026-11-28T06:25:16Z",
+      "updatedAt": "2026-11-28T08:13:26Z",
       "mergedAt": "2026-11-27T17:05:11Z",
       "closedAt": "2026-11-27T17:05:11Z",
       "mergeCommit": "1ee2aeeeb5a72e47442e50dbefeaf33b1f46b9d9",
@@ -1410,67 +1410,53 @@ window.PLAN_PR_SNAPSHOT = {
   ],
   "candidates": [
     {
-      "n": 998,
-      "title": "prove: verify bzImage legacy i386 allocator range construction",
-      "url": "https://github.com/asterinas/vostd/pull/998",
-      "head": "42f70ff2de8d4bc5099c953d4a7eee764273c2b0",
-      "updatedAt": "2026-11-28T07:32:44Z"
+      "n": 1000,
+      "title": "Sync the cargo workspace setting with the latest Asterinas and bump version to 0.19.0",
+      "url": "https://github.com/asterinas/vostd/pull/1000",
+      "head": "d8d2bd592bb701dcaa8e7b249797f9c89cb0f974",
+      "updatedAt": "2026-11-28T15:24:52Z"
+    },
+    {
+      "n": 999,
+      "title": "prove: verify bzImage boot-params record layouts",
+      "url": "https://github.com/asterinas/vostd/pull/999",
+      "head": "486686e40a2791f9856e67a96f6a3373dc2a7efe",
+      "updatedAt": "2026-11-28T10:41:04Z"
     },
     {
       "n": 997,
       "title": "prove: verify x86 bzImage EFI-to-E820 memory type mapping",
       "url": "https://github.com/asterinas/vostd/pull/997",
-      "head": "9b79994f5da4ed32e7b60a21f55a1f83abe9afbe",
-      "updatedAt": "2026-11-28T07:34:40Z"
-    },
-    {
-      "n": 996,
-      "title": "prove: verify bzImage firmware record layouts",
-      "url": "https://github.com/asterinas/vostd/pull/996",
-      "head": "27c81a492513208f84c6c2589edc86d6a518a4c6",
-      "updatedAt": "2026-11-28T07:42:39Z"
+      "head": "27cc2b963bcaeabba7e2f73790fed6a1d74409ff",
+      "updatedAt": "2026-11-28T09:05:28Z"
     },
     {
       "n": 995,
       "title": "prove: verify x86 TDX trap-frame register accessors",
       "url": "https://github.com/asterinas/vostd/pull/995",
-      "head": "8092e69effba8aa73c61631ac51cd10ebf8fc5ff",
-      "updatedAt": "2026-11-28T07:46:56Z"
+      "head": "b57a68267e32a0d3c613f48df1bfe7fc002a64cb",
+      "updatedAt": "2026-11-28T10:14:49Z"
     },
     {
       "n": 994,
       "title": "prove: verify bzImage EFI command-line loading and page allocation",
       "url": "https://github.com/asterinas/vostd/pull/994",
-      "head": "2aa68361eb80c19308649be0e800d1443c246c51",
-      "updatedAt": "2026-11-28T07:36:52Z"
-    },
-    {
-      "n": 992,
-      "title": "prove: verify bzImage setup header and screen info layouts",
-      "url": "https://github.com/asterinas/vostd/pull/992",
-      "head": "4a8c8942626b4b8d4fed81df1fc6c3ac2d862637",
-      "updatedAt": "2026-11-28T07:32:24Z"
+      "head": "5fe93c6853927eed72e46b2f6883fd6f740a2617",
+      "updatedAt": "2026-11-28T09:04:09Z"
     },
     {
       "n": 991,
       "title": "prove: verify x86 trap and syscall frame layouts",
       "url": "https://github.com/asterinas/vostd/pull/991",
-      "head": "eacd88367fa78434093f146be630658cb0f4b762",
-      "updatedAt": "2026-11-28T07:36:47Z"
-    },
-    {
-      "n": 990,
-      "title": "prove: verify bzImage zero-page table capacities and bounds",
-      "url": "https://github.com/asterinas/vostd/pull/990",
-      "head": "6dd442a8e1665ed1d7d83d61e9590da386ac9618",
-      "updatedAt": "2026-11-28T07:36:01Z"
+      "head": "480da7c917b4e86607d6f3b61f885768fd642cf9",
+      "updatedAt": "2026-11-28T13:03:40Z"
     },
     {
       "n": 989,
       "title": "prove: verify x86 user context trap frame projection",
       "url": "https://github.com/asterinas/vostd/pull/989",
       "head": "18d1bbca2d1bad1042a143fa8923b3273cf23cfa",
-      "updatedAt": "2026-11-28T07:35:31Z"
+      "updatedAt": "2026-11-28T08:34:38Z"
     },
     {
       "n": 986,
